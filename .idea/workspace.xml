@@ -2,32 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f737f2cc-1493-4146-a24e-8663794c9609" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/server/controllers/employees.controller.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/controllers/groups.controller.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/models/contracts.model.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/models/employees.model.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/models/groups.model.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/models/ktp.model.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/models/relations/employeeContract.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/models/relations/groupsSpecs.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/models/specs.model.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/models/subjects.model.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/routes/employees.routes.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/routes/groups.routes.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/routes/ktp.routes.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/services/employees.service.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/services/groups.service.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/services/ktp.service.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.name" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/client/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/app.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/config/db.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/config/db.config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/server/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/server/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/controllers/ktpController.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/controllers/ktpController.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/routes/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/services/cabinets.service.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/cabinets.service.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/routes/ktp.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/ktp.routes.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/services/ktp.service.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/ktp.service.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -81,7 +60,7 @@
       <workItem from="1651666716091" duration="3605000" />
       <workItem from="1651814408931" duration="8888000" />
       <workItem from="1651923826418" duration="7268000" />
-      <workItem from="1651999296141" duration="1418000" />
+      <workItem from="1651999296141" duration="3493000" />
     </task>
     <servers />
   </component>

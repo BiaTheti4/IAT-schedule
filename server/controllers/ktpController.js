@@ -9,7 +9,7 @@ class KtpController {
 
     async getTeachers(req, res) {
         return res.json(
-            await KtpService.getTeachersByKtp
+            await KtpService.getTeachersByKtp()
         )
     }
 }
