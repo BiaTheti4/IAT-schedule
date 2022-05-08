@@ -1,5 +1,6 @@
 const express = require('express'),
     app = express(),
+    sequelize = require('./models')
     routes = require('./routes/index.js')
 
 const host = '127.0.0.1'
@@ -10,6 +11,17 @@ app.use(express.urlencoded({extended: true}))
 // init db
 app.use('/api', routes)
 
-app.listen(port, host, () =>
-    console.log(`Server listens http://${host}:${port}`)
-)
+
+const start = async ()=> {
+    try {
+        await sequelize.authenticate()
+        await sequelize.sync()
+        app.listen(port,host, () => console.log(`Server started on port : http://${host}:${port}`))
+    } catch (e) {
+        console.log(e)
+    }
+}
+start()
+// app.listen(port, host, () =>
+//     console.log(`Server listens http://${host}:${port}`)
+// )

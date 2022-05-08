@@ -1,4 +1,3 @@
-const fs = require('fs')
 const Cabinets = require("../models/cabinets.model");
 
 class CabinetsService {

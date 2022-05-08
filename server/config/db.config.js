@@ -4,6 +4,7 @@ module.exports = {
     PASSWORD: "5800281020",
     DB: "journal_schedule",
     dialect: "mysql",
+    logging: false,
     pool: {
         max: 5,
         min: 0,
