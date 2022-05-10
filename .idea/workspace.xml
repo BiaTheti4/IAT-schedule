@@ -1,17 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f737f2cc-1493-4146-a24e-8663794c9609" name="Changes" comment="edited some SQL queries">
-      <change afterPath="$PROJECT_DIR$/server/controllers/schedule.controller.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/routes/schedule.routes.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/services/schedule.service.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/7ad900ae-6153-471e-80e1-95f93bcfe871.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/7ad900ae-6153-471e-80e1-95f93bcfe871.xml" afterDir="false" />
+    <list default="true" id="f737f2cc-1493-4146-a24e-8663794c9609" name="Changes" comment="add schedule queries">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/app.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/controllers/ktpController.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/controllers/ktpController.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/routes/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/routes/ktp.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/ktp.routes.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/controllers/schedule.controller.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/controllers/schedule.controller.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/routes/schedule.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/schedule.routes.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/services/ktp.service.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/ktp.service.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/services/schedule.service.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/schedule.service.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -26,6 +21,19 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <favorite-branches>
+      <branch-storage>
+        <map>
+          <entry type="REMOTE">
+            <value>
+              <list>
+                <branch-info repo="$PROJECT_DIR$" source="origin/main" />
+              </list>
+            </value>
+          </entry>
+        </map>
+      </branch-storage>
+    </favorite-branches>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GitSEFilterConfiguration">
@@ -72,7 +80,7 @@
       <workItem from="1651923826418" duration="7268000" />
       <workItem from="1651999296141" duration="13361000" />
       <workItem from="1652075737951" duration="808000" />
-      <workItem from="1652180277032" duration="6154000" />
+      <workItem from="1652180277032" duration="8028000" />
     </task>
     <task id="LOCAL-00001" summary="edited some SQL queries">
       <created>1652002893534</created>
@@ -81,7 +89,14 @@
       <option name="project" value="LOCAL" />
       <updated>1652002893534</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="add schedule queries">
+      <created>1652187740945</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1652187740945</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -101,6 +116,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="edited some SQL queries" />
-    <option name="LAST_COMMIT_MESSAGE" value="edited some SQL queries" />
+    <MESSAGE value="add schedule queries" />
+    <option name="LAST_COMMIT_MESSAGE" value="add schedule queries" />
   </component>
 </project>

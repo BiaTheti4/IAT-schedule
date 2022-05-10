@@ -15,6 +15,13 @@ class ScheduleController {
             await ScheduleService.createNewLesson(lesson)
         )
     }
+    async updateSchedule(req, res) {
+        const lesson = req.body
+        // return ktp_id
+        return res.json(
+            await ScheduleService.updateSchedule(lesson)
+        )
+    }
 }
 
 module.exports = new ScheduleController()

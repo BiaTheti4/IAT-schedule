@@ -4,6 +4,7 @@ const express = require('express'),
 
 router.get('/getCurrentSchedule/', ScheduleController.getCurrentSchedule)
 router.post('/createNewLesson', ScheduleController.createNewLesson)
+router.post('/updateSchedule', ScheduleController.updateSchedule)
 
 
 module.exports = router

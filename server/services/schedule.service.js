@@ -17,30 +17,39 @@ class ScheduleService {
     async createNewLesson({date, status, event, lesson_number, teacher_id, optional_teacher_id, subject_id, group_id, cabinet_id}) {
         return await sequelize.query(
             'insert into schedule_new(date, status,event,lesson_number,teacher_id,optional_teacher_id,subject_id,group_id,cabinet_id)' +
-            `values (?,?,?,?,?,?,?,?,?)`,
+            `values (:date,:status,:event,:lesson,:teacher,:optional_teacher,:subject,:group,:cabinet)`,
             {
                 replacements: {
                     date:date,
                     status:status,
                     event:event,
-                    lesson_number:lesson_number,
-                    teacher_id:teacher_id,
-                    optional_teacher_id:optional_teacher_id,
-                    subject_id:subject_id,
-                    group_id:group_id,
-                    cabinet_id:cabinet_id
+                    lesson:lesson_number,
+                    teacher:teacher_id,
+                    optional_teacher:optional_teacher_id,
+                    subject:subject_id,
+                    group:group_id,
+                    cabinet:cabinet_id
                 }
             }
         )
     }
-
-
-    // async updateTeacher(req, res) {
-    //     return await sequelize.query(
-    //
-    //     )
-    // }
+    async updateSchedule({status,event,lesson_number,teacher_id,optional_teacher_id,subject_id,group_id,cabinet_id,id}){
+        return await sequelize.query(
+            'update schedule_new set status=:status,event=:event,lesson_number=:lesson,teacher_id=:teacher,optional_teacher_id=:optional_teacher,subject_id=:subject,group_id=:group,cabinet_id=:cabinet where id=:id',{
+                replacements:{
+                    status:status,
+                    event:event,
+                    lesson:lesson_number,
+                    teacher:teacher_id,
+                    optional_teacher:optional_teacher_id,
+                    subject:subject_id,
+                    group:group_id,
+                    cabinet:cabinet_id,
+                    id:id
+                }
+            }
+        )
+    }
 }
 
-module
-    .exports = new ScheduleService()
+module.exports = new ScheduleService()
