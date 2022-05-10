@@ -1,7 +1,7 @@
-const {Sequelize} = require("sequelize");
 const sequelize = require("../models");
 class KtpService {
-    async getSubjectsByGroup(req, res) {
+    async getSubjectsByGroup(groupId) {
+        const date= new Date();
         return await sequelize.query(
             'select ktpId, ' +
             'groupId, ' +
@@ -14,12 +14,14 @@ class KtpService {
             'nameShort ' +
             'from ktp ' +
             'inner join subjects s on ktp.subjectId = s.subjectId ' +
-            'where groupId = 124  ' +
-            'and year=2021;'
+            //поменять на request
+            'where groupId = '+groupId +
+            //поменять на текущую дату(когда будет свежая бд)
+            'and year='+date.getFullYear()
         );
     }
 
-    async getTeachersByKtp(req, res) {
+    async getTeachersByKtp(ktpId) {
         return await sequelize.query(
             'select ' +
             'ktp.employeeId, ' +
@@ -29,7 +31,8 @@ class KtpService {
             'from ktp ' +
             'inner join `employees` e on ktp.employeeId = e.employeeId ' +
             'inner join `employees` emp on ktp.group_employee = emp.employeeId ' +
-            'where ktpId = 12565' +
+            //поменять на request
+            'where ktpId='+ ktpId+
             ' group by ktp.employeeId;'
         );
     }

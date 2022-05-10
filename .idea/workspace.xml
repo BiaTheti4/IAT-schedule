@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f737f2cc-1493-4146-a24e-8663794c9609" name="Changes" comment="">
+    <list default="true" id="f737f2cc-1493-4146-a24e-8663794c9609" name="Changes" comment="edited some SQL queries">
+      <change afterPath="$PROJECT_DIR$/server/controllers/schedule.controller.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/server/routes/schedule.routes.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/server/services/schedule.service.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/7ad900ae-6153-471e-80e1-95f93bcfe871.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/7ad900ae-6153-471e-80e1-95f93bcfe871.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/app.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/controllers/ktpController.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/controllers/ktpController.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/routes/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/index.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/routes/ktp.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/ktp.routes.js" afterDir="false" />
@@ -32,15 +37,20 @@
     </file-type-list>
   </component>
   <component name="ProjectId" id="28KCN1CE0JYsUofYwXpW3w1Gh2C" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="ASKED_SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="DatabaseDriversLRU" value="mysql" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/Change SQL Dialect" value="MariaDB" />
     <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/SQL Dialect" value="MySQL" />
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="settings.editor.selected.configurable" value="MTConfigurable" />
@@ -60,8 +70,18 @@
       <workItem from="1651666716091" duration="3605000" />
       <workItem from="1651814408931" duration="8888000" />
       <workItem from="1651923826418" duration="7268000" />
-      <workItem from="1651999296141" duration="3493000" />
+      <workItem from="1651999296141" duration="13361000" />
+      <workItem from="1652075737951" duration="808000" />
+      <workItem from="1652180277032" duration="6154000" />
     </task>
+    <task id="LOCAL-00001" summary="edited some SQL queries">
+      <created>1652002893534</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1652002893534</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -78,5 +98,9 @@
       </map>
     </option>
     <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="edited some SQL queries" />
+    <option name="LAST_COMMIT_MESSAGE" value="edited some SQL queries" />
   </component>
 </project>

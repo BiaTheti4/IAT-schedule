@@ -1,9 +1,8 @@
 const express = require('express'),
     router = express.Router(),
-    KtpController = require('../controllers/ktpController'),
-    KtpService = require('../services/ktp.service')
+    KtpController = require('../controllers/ktpController')
 
-router.get('/getTeachers', KtpController.getTeachers)
-router.get('/getSubjects',KtpController.getSubjects)
+router.get('/getTeachers/:ktpId', KtpController.getTeachers)
+router.get('/getSubjects/:groupId',KtpController.getSubjects)
 
 module.exports = router
