@@ -16,10 +16,9 @@ class KtpService {
             'nameShort ' +
             'from ktp ' +
             'inner join subjects s on ktp.subjectId = s.subjectId ' +
-            //поменять на request
             'where groupId =:group ' + +
                 //поменять на текущую дату(когда будет свежая бд)
-                'and year=:date', {
+                'and year=2021', {
                 replacements: {
                     group: groupId,
                     date: currentYear
@@ -38,7 +37,6 @@ class KtpService {
             'from ktp ' +
             'inner join `employees` e on ktp.employeeId = e.employeeId ' +
             'inner join `employees` emp on ktp.group_employee = emp.employeeId ' +
-            //поменять на request
             'where ktpId=:ktp' +
             ' group by ktp.employeeId;', {
                 replacements: {

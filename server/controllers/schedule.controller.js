@@ -10,16 +10,26 @@ class ScheduleController {
 
     async createNewLesson(req, res) {
         const lesson = req.body
-        // return ktp_id
         return res.json(
             await ScheduleService.createNewLesson(lesson)
         )
     }
     async updateSchedule(req, res) {
         const lesson = req.body
-        // return ktp_id
         return res.json(
             await ScheduleService.updateSchedule(lesson)
+        )
+    }
+    async getWeekSchedule(req, res) {
+        const lesson = req.body
+        return res.json(
+            await ScheduleService.getWeekSchedule(lesson)
+        )
+    }
+    async deleteSchedule(req, res) {
+        const lesson = req.body
+        return res.json(
+            await ScheduleService.deleteSchedule(lesson)
         )
     }
 }
