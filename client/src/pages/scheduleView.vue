@@ -105,10 +105,10 @@ export default {
       return days[date.getDay()];
     },
     getFullDate(date) {
-      return date.getFullYear() + '.' + (date.getMonth() + 1) + '.' + (date.getDate() > 9 ? date.getDate() : "0" + (date.getDate()));
+      return date.getFullYear() + '.' + (date.getMonth() + 1 >9?date.getMonth(): "0"+(date.getMonth() + 1)) + '.' + (date.getDate() > 9 ? date.getDate() : "0" + date.getDate());
     },
     DateToBD(date) {
-      return date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + (date.getDate() > 9 ? date.getDate() : "0" + date.getDate());
+      return date.getFullYear() + '-' + (date.getMonth() + 1 >9?date.getMonth(): "0"+(date.getMonth() + 1)) + '-' + (date.getDate() > 9 ? date.getDate() : "0" + date.getDate());
     },
 //получение рабочей недели без воскресенья
     getWorkWeek() {
@@ -157,10 +157,11 @@ export default {
         // console.log(this.weekEvents[this.groups[g].name])
       }
       //запрос на получение информации о расписании
-      axios.post('http://localhost:5000/postScheduleView', {
+      axios.post(process.env.SERVER_IP+'/schedule/getCurrentSchedule', {
         time: this.DateToBD(new Date(this.date))
       }).then((res) => {
         this.UpdateDateCourseEvent(res)
+
       })
     },
     //обновление объектов занятий.
@@ -179,7 +180,7 @@ export default {
     },
     Init(){
       //запрос на получение групп
-      axios.get('http://localhost:5000/groupList').then(res => {
+      axios.get(process.env.SERVER_IP+'/groups/all').then(res => {
         for (let i = 0; i < res.data.length; i++) {
           res.data[i].status = (res.data[i].status == 1) ? true : false
         }
@@ -200,9 +201,9 @@ export default {
   },
   mounted() {
     //запросы на получение кабинетов, преподавателей, предметов
-    axios.get('http://localhost:5000/cabinets').then(res => (this.cabinets = res.data))
-    axios.get('http://localhost:5000/teachers').then(res => (this.teachers = res.data))
-    axios.get('http://localhost:5000/subjects').then(res => (this.subjects = res.data))
+    // axios.get('http://localhost:5000/cabinets').then(res => (this.cabinets = res.data))
+    // axios.get('http://localhost:5000/teachers').then(res => (this.teachers = res.data))
+    // axios.get('http://localhost:5000/subjects').then(res => (this.subjects = res.data))
     this.date = new Date();
     this.getWorkWeek()
     this.Init()

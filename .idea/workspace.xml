@@ -1,10 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f737f2cc-1493-4146-a24e-8663794c9609" name="Changes" comment="add schedule queries">
+    <list default="true" id="f737f2cc-1493-4146-a24e-8663794c9609" name="Changes" comment="completed main part of backend queries">
+      <change afterPath="$PROJECT_DIR$/client/vue.config.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/server/.env" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/7ad900ae-6153-471e-80e1-95f93bcfe871.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/7ad900ae-6153-471e-80e1-95f93bcfe871.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/client/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/client/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/client/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/App.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/App.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/pages/scheduleMain.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/scheduleMain.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/pages/scheduleView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/scheduleView.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/router/router.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/router/router.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/app.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/controllers/ktpController.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/controllers/ktpController.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/controllers/schedule.controller.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/controllers/schedule.controller.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/server/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/server/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/routes/groups.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/groups.routes.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/routes/ktp.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/ktp.routes.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/routes/schedule.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/schedule.routes.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/services/groups.service.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/groups.service.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/services/ktp.service.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/ktp.service.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/services/schedule.service.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/schedule.service.js" afterDir="false" />
     </list>
@@ -60,8 +79,10 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/Change SQL Dialect" value="MariaDB" />
     <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/SQL Dialect" value="MySQL" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_package_manager_path" value="npm" />
-    <property name="settings.editor.selected.configurable" value="MTConfigurable" />
+    <property name="settings.editor.selected.configurable" value="preferences.fileTypes" />
+    <property name="ts.external.directory.path" value="C:\Program Files\JetBrains\WebStorm 2020.2.2\plugins\JavaScriptLanguage\jsLanguageServicesImpl\external" />
     <property name="vue.rearranger.settings.migration" value="true" />
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
@@ -80,7 +101,12 @@
       <workItem from="1651923826418" duration="7268000" />
       <workItem from="1651999296141" duration="13361000" />
       <workItem from="1652075737951" duration="808000" />
-      <workItem from="1652180277032" duration="8028000" />
+      <workItem from="1652180277032" duration="8348000" />
+      <workItem from="1652231553895" duration="4792000" />
+      <workItem from="1652337588556" duration="1514000" />
+      <workItem from="1652339146626" duration="4226000" />
+      <workItem from="1652408474365" duration="17181000" />
+      <workItem from="1652462919567" duration="9710000" />
     </task>
     <task id="LOCAL-00001" summary="edited some SQL queries">
       <created>1652002893534</created>
@@ -96,7 +122,21 @@
       <option name="project" value="LOCAL" />
       <updated>1652187740945</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="edited some queries and added some new queries">
+      <created>1652189696119</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1652189696119</updated>
+    </task>
+    <task id="LOCAL-00004" summary="completed main part of backend queries">
+      <created>1652338149777</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1652338149777</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -117,6 +157,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="edited some SQL queries" />
     <MESSAGE value="add schedule queries" />
-    <option name="LAST_COMMIT_MESSAGE" value="add schedule queries" />
+    <MESSAGE value="edited some queries and added some new queries" />
+    <MESSAGE value="completed main part of backend queries" />
+    <option name="LAST_COMMIT_MESSAGE" value="completed main part of backend queries" />
   </component>
 </project>

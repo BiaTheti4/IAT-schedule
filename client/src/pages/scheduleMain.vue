@@ -25,27 +25,34 @@
       </thead>
       <tr v-for="para in 7" :key="para.value">
         <td>{{ para }} пара</td>
-        <td v-for="(group) in dateCourseEvent[selectedCourse]" :key="group">
+        <td v-for="(group,idx) in dateCourseEvent[selectedCourse]">
           <div class="formSubjects">
             <select class="selectdiv"
-                    v-model="group[para].subject">
+                    v-model="group[para].subject"
+                    @click="getSubjectsByGroup(Object.keys(dateCourseEvent[selectedCourse]),idx)">
               <option></option>
-              <option v-for="subject in subjects" :key="subject.id" :value="subject.id">
+              <option v-for="subject in subjects" :key="subject.subjectId" :value="subject.subjectId">
                 {{ subject.name }}
               </option>
             </select>
-            <select class="selectdiv" @change="checkDublicateTeacher(group[para].teacher)"
+            <select class="selectdiv"
+                    @click="getTeacherBySubject(group[para].subject,Object.keys(dateCourseEvent[selectedCourse]),idx)"
                     v-model="group[para].teacher">
               <option></option>
-              <option v-for="teacher in teachers" :key="teacher.id" :value="teacher.id">
-                {{ teacher.name }}
+              <option :value="mainEmployee.id">
+                {{ mainEmployee.fullName }}
+              </option>
+            </select>
+            <select v-model="group[para].groupTeacher">
+              <option :value="groupEmployee.id">
+                {{ groupEmployee.fullName }}
               </option>
             </select>
             <select class="selectdiv" @change="checkDublicateCabinet(group[para].cabinet,group[para])"
                     v-model="group[para].cabinet">
               <option></option>
               <option v-for="cabinet in cabinets" :key="cabinet.id" :value="cabinet.id">
-                {{ cabinet.name }} - {{ cabinet.type }}
+                {{ cabinet.name }}
               </option>
             </select>
 
@@ -78,15 +85,27 @@
 </template>
 
 <script>
+
+
 import axios from "axios";
+
 export default {
   data() {
     return {
-      subjects: [],
-      cabinets: [],
-      teachers: [],
+
       date: '',
       selectedCourse: '',
+      subjects: [],
+
+      mainEmployee: {
+        id: '',
+        fullName: ''
+      },
+      groupEmployee: {
+        id: '',
+        fullName: ''
+      },
+      cabinets: [],
       dateCourseEvent: {},
 
       courses: {
@@ -112,8 +131,42 @@ export default {
           return this.courses[1].groups;
       }
     },
+    getSubjectsByGroup(group, idx) {
+      axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/ktp/getSubjects', {
+        group: idx
+      }).then((res) => {
+            console.log(res.data)
+            let subjArr = []
+            for (let i = 0; i < res.data.length; i++) {
+              subjArr.push(res.data[i])
+              this.subjects = subjArr
+            }
+          }
+      ).catch(err => console.warn(err))
+
+    },
+    getTeacherBySubject(subjectId, group, idx) {
+
+      axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/ktp/getTeachers', {
+        subject: subjectId,
+        group: idx
+
+      }).then((res) => {
+            console.log(res.data)
+            this.mainEmployee.id = res.data[0].employeeId,
+                this.mainEmployee.fullName = res.data[0].main_emp,
+                this.groupEmployee.id = res.data[0].group_employee,
+                this.groupEmployee.fullName = res.data[0].group_emp
+          }
+      ).catch(err => console.warn(err))
+    },
+    setDefault(group){
+
+    },
+    getGroupsArray(obj) {
+    },
     UpdateDateCourseEvent() {
-      this.selectedCourse=1
+      this.selectedCourse = 1
       for (let k = 1; k < 5; k++) {
         let groups = this.getCourses(k)
         for (let i = 0; i < groups.length; i++) {
@@ -127,9 +180,10 @@ export default {
           }
         }
       }
-      axios.post('http://localhost:5000/currentSchedule', {
-        time: this.date
+      axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/getCurrentSchedule', {
+        date: this.date
       }).then((res) => {
+        console.log(res)
         for (let i = 0; i < res.data.length; i++) {
           let elem = this.dateCourseEvent[this.selectedCourse][res.data[i].group_name][res.data[i].paraNumber]
           elem.subject = res.data[i].subject_id
@@ -142,7 +196,7 @@ export default {
           }
           elem.id = res.data[i].id;
         }
-      })
+      }).catch(err => console.warn(err))
     },
     initDateCourseEvent() {
       this.dateCourseEvent = {}
@@ -155,6 +209,7 @@ export default {
             this.dateCourseEvent[k][groups[i].name][j] = {
               subject: '',
               teacher: '',
+              groupTeacher: '',
               cabinet: '',
               status: false,
               id: 0
@@ -186,6 +241,7 @@ export default {
                   id: elem.id,
                   subject: elem.subject,
                   teacher: elem.teacher,
+                  groupTeacher: elem.groupTeacher,
                   cabinet: elem.cabinet,
                   paraNumber: j,
                   groupId: groups[i].id,
@@ -200,6 +256,7 @@ export default {
                 axios.post('http://localhost:5000/postSchedule', {
                   subject: elem.subject,
                   teacher: elem.teacher,
+                  groupTeacher: elem.groupTeacher,
                   cabinet: elem.cabinet,
                   paraNumber: j,
                   groupId: groups[i].id,
@@ -363,10 +420,12 @@ export default {
       console.log("--------------------")
     },
     Init() {
-      axios.get('http://localhost:5000/groups').then((res) => {
+
+      axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/groups/all').then((res) => {
+            console.log(res.data)
             for (let i = 0; i < res.data.length; i++) {
               let gr = res.data[i]
-              // console.log(gr)
+
               this.courses[gr.course].groups.push(gr)
             }
             this.initDateCourseEvent();
@@ -378,19 +437,23 @@ export default {
 
   },
   mounted() {
+
     //получение текущей даты
     let today = new Date();
-    let fullDate = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + (today.getDate() > 9 ? today.getDate() : "0" + today.getDate());
-    this.date = fullDate;
+
+    this.date = today.getFullYear() + '-' + (today.getMonth() + 1 > 9 ? today.getMonth() : "0" + (today.getMonth() + 1)) + '-' + (today.getDate() > 9 ? today.getDate() : "0" + today.getDate());
+
     //установка текущего курса по умолчанию на 1
     this.selectedCourse = '1';
     //запросы на получение информации
-    axios.get('http://localhost:5000/cabinets').then(res => (this.cabinets = res.data))
-    axios.get('http://localhost:5000/teachers').then(res => (this.teachers = res.data))
-    axios.get('http://localhost:5000/subjects').then(res => (this.subjects = res.data))
 
     this.Init()
   },
+  computed: {
+    env() {
+      return process.env
+    }
+  }
 
 }
 </script>

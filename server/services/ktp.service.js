@@ -1,33 +1,27 @@
 const sequelize = require("../models");
 
 class KtpService {
-    async getSubjectsByGroup(groupId) {
+    async getSubjectsByGroup(groupName) {
         const date = new Date();
         let currentYear = date.getFullYear()
         return await sequelize.query(
-            'select ktpId, ' +
-            'groupId, ' +
-            'employeeId, ' +
-            's.subjectId, ' +
-            'curriculumSubjectId, ' +
-            'group_employee, ' +
-            'name, ' +
-            'semester, ' +
-            'nameShort ' +
-            'from ktp ' +
-            'inner join subjects s on ktp.subjectId = s.subjectId ' +
-            'where groupId =:group ' + +
-                //поменять на текущую дату(когда будет свежая бд)
-                'and year=2021', {
+            'select s.name,s.subjectId ' +
+            'from subjects s ' +
+            'inner join ktp k on s.subjectId = k.subjectId ' +
+            'inner join `groups` g on k.groupId = g.groupId ' +
+            'where g.name =:group ' +
+            //поменять на текущую дату(когда будет свежая бд)
+            'and k.year=:date group by s.name', {
                 replacements: {
-                    group: groupId,
-                    date: currentYear
-                }
+                    group: groupName,
+                    date: '2021'
+                },
+                type: sequelize.QueryTypes.SELECT
             }
         );
     }
 
-    async getTeachersByKtp(ktpId) {
+    async getTeachersByKtp(subjectId,groupName) {
         return await sequelize.query(
             'select ' +
             'ktp.employeeId, ' +
@@ -36,12 +30,15 @@ class KtpService {
             'concat(emp.last_name, \' \', emp.first_name, \' \', emp.fathers_name) as group_emp ' +
             'from ktp ' +
             'inner join `employees` e on ktp.employeeId = e.employeeId ' +
-            'inner join `employees` emp on ktp.group_employee = emp.employeeId ' +
-            'where ktpId=:ktp' +
-            ' group by ktp.employeeId;', {
+            'left join `employees` emp on ktp.group_employee = emp.employeeId ' +
+            'inner join `groups` g on g.groupId = ktp.groupId ' +
+            'where ktp.subjectId=:subject and g.name=:group '+
+            'group by e.employeeId', {
                 replacements: {
-                    ktp: ktpId
-                }
+                    subject: subjectId,
+                    group:groupName
+                },
+                type: sequelize.QueryTypes.SELECT
             }
         );
     }

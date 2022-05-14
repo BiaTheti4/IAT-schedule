@@ -6,8 +6,6 @@ import cabinets from "@/pages/cabinets";
 import groups from "@/pages/groups";
 import scheduleView from "../pages/scheduleView";
 import print from "../pages/print";
-// import test from "@/pages/test"
-
 
 const routes=[
     {
@@ -38,10 +36,6 @@ const routes=[
         path:'/print',
         component:print,
     },
-    // {
-    //     path:'/test',
-    //     component:test,
-    // }
 ]
 
 const router = createRouter({

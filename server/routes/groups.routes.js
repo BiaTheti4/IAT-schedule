@@ -1,7 +1,6 @@
 const express = require('express'),
     router = express.Router(),
-    GroupsController = require('../controllers/groups.controller'),
-    GroupsService = require('../services/groups.service')
+    GroupsController = require('../controllers/groups.controller')
 
 router.get('/all', GroupsController.getGroups)
 

@@ -2,17 +2,17 @@ const KtpService = require('../services/ktp.service')
 
 class KtpController {
     async getSubjects(req, res) {
-        const{groupId}=req.params
+        const group = req.body.group
         return res.json(
-            await KtpService.getSubjectsByGroup(groupId)
+            await KtpService.getSubjectsByGroup(group)
         )
     }
 
     async getTeachers(req, res) {
-        const {ktpId} = req.params
-        // return ktp_id
+        const subjectId = req.body.subject
+        const group = req.body.group
         return res.json(
-            await KtpService.getTeachersByKtp(ktpId)
+            await KtpService.getTeachersByKtp(subjectId,group)
         )
     }
 }

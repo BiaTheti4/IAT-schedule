@@ -5,7 +5,7 @@ const {Op, literal} = require("sequelize");
 const sequelize = require("../models");
 
 class GroupsService {
-    async getGroups() {
+    async getGroups(req, res) {
         return await groups.findAll({
             where: {
                 [Op.and]: [
@@ -18,12 +18,12 @@ class GroupsService {
                     },
                     {
                         year: {
-                            [Op.gte]: literal(new Date().getFullYear()+' - `spec`.`learningPeriod`')
+                            [Op.gte]: literal(new Date().getFullYear() + ' - `spec`.`learningPeriod`')
                         },
                     }
                 ]
             },
-            include:[
+            include: [
                 {
                     model: specs,
                 }

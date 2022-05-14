@@ -3,28 +3,25 @@ const sequelize = require("../models");
 class ScheduleService {
     async getCurrentSchedule(date) {
         return await sequelize.query(
-            'select id,date,status,event,lesson_number,schedule_new.teacher_id,schedule_new.optional_teacher from schedule_new' +
-            '    inner join employees e on schedule_new.teacher_id = e.employeeId' +
-            '    inner join employees emp on schedule_new.optional_teacher_id=emp.employeeId' +
-            '    inner join cabinets c on schedule_new.cabinet_id = c.id' +
-            '    inner join `groups` g on schedule_new.group_id = g.groupId' +
-            '    inner join subjects s on schedule_new.subject_id = s.subjectId' +
-            'where date=:date', {
-                replacements: {date: date},
+            'select schedule_new.id,schedule_new.date,schedule_new.status,schedule_new.event,schedule_new.lesson_number,schedule_new.teacher_id,schedule_new.optional_teacher_id from schedule_new' +
+            ' where date=:date', {
+                replacements:{date:String(date)},
+                type: sequelize.QueryTypes.SELECT
             }
         )
     }
 
     async getWeekSchedule(date) {
         return await sequelize.query(
-            'select id,date,status,event,lesson_number,schedule_new.teacher_id,schedule_new.optional_teacher from schedule_new' +
+            'select s.name,c.number,status,event,lesson_number,concat(e.last_name, \' \', e.first_name, \' \', e.fathers_name) as main_emp, concat(emp.last_name, \' \', emp.first_name, \' \', emp.fathers_name) as group_emp from schedule_new' +
             '    inner join employees e on schedule_new.teacher_id = e.employeeId' +
             '    inner join employees emp on schedule_new.optional_teacher_id=emp.employeeId' +
             '    inner join cabinets c on schedule_new.cabinet_id = c.id' +
             '    inner join `groups` g on schedule_new.group_id = g.groupId' +
             '    inner join subjects s on schedule_new.subject_id = s.subjectId' +
             'where date>=:date', {
-                replacements: {date: date},
+                replacements:{date:String(date)},
+                type: sequelize.QueryTypes.SELECT
             }
         )
     }
