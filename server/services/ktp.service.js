@@ -5,7 +5,7 @@ class KtpService {
         const date = new Date();
         let currentYear = date.getFullYear()
         return await sequelize.query(
-            'select s.name,s.subjectId ' +
+            'select s.nameShort,s.subjectId ' +
             'from subjects s ' +
             'inner join ktp k on s.subjectId = k.subjectId ' +
             'inner join `groups` g on k.groupId = g.groupId ' +
@@ -22,12 +22,13 @@ class KtpService {
     }
 
     async getTeachersByKtp(subjectId,groupName) {
+        // console.log(subjectId)
         return await sequelize.query(
             'select ' +
             'ktp.employeeId, ' +
-            'concat(e.last_name, \' \', e.first_name, \' \', e.fathers_name) as main_emp, ' +
+            'concat(e.last_name, \' \', left(e.first_name,1),".", \' \', left(e.fathers_name,1),".") as main_emp, ' +
             'ktp.group_employee, ' +
-            'concat(emp.last_name, \' \', emp.first_name, \' \', emp.fathers_name) as group_emp ' +
+            'concat(emp.last_name, \' \', left(emp.first_name,1),".", \' \', left(emp.fathers_name,1),".") as group_emp ' +
             'from ktp ' +
             'inner join `employees` e on ktp.employeeId = e.employeeId ' +
             'left join `employees` emp on ktp.group_employee = emp.employeeId ' +

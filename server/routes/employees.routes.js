@@ -4,5 +4,6 @@ const express = require('express'),
     EmployeesService = require('../services/employees.service')
 
 router.get('/all', EmployeesController.getEmployees)
+router.get('/teacher', EmployeesController.getTeacherName)
 
 module.exports = router

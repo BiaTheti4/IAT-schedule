@@ -3,10 +3,10 @@
     <nav class="navbar">
       <group_first class="group_first">
         <router-link class="links" to="/">Расписание</router-link>
-        <router-link class="links" to="/teachers">Преподаватели</router-link>
-        <router-link class="links" to="/cabinets">Кабинеты</router-link>
-        <router-link class="links" to="/groups">Учебные группы</router-link>
-        <router-link class="links" to="/ktp">Учебная программа</router-link>
+<!--        <router-link class="links" to="/teachers">Преподаватели</router-link>-->
+<!--        <router-link class="links" to="/cabinets">Кабинеты</router-link>-->
+<!--        <router-link class="links" to="/groups">Учебные группы</router-link>-->
+<!--        <router-link class="links" to="/ktp">Учебная программа</router-link>-->
         <router-link class="links" to="/schedule">Просмотр расписания</router-link>
         <router-link class="links" to="/print">Печать расписания</router-link>
       </group_first>

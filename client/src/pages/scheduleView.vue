@@ -1,10 +1,11 @@
 <template>
   <div>
-
+<template v-for="group in groups">
+  {{group}}
+</template>
     <select class="button-6" v-model="selectedGroup">
       <option value="" selected></option>
-      <option v-for="group in groups" :key="group.name" :value="group.name"> {{ group.name }}</option>
-
+      <option v-for="(group,idx) in this.groups" :key="group.name" :value="group.groupId"> {{ group[idx].name }}</option>
     </select>
 
     <div v-if="groupList(selectedGroup)==''">
@@ -90,25 +91,19 @@ export default {
       selectedGroup: '',
       groups: [],
       week: [],
-      subjects: [],
-      cabinets: [],
-      teachers: [],
     }
   },
   methods: {
-    testFunction(a) {
-      console.log(a)
-    },
     //возврат дня недели для удобного составления расписания
     getWeekDay(date) {
       let days = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
       return days[date.getDay()];
     },
     getFullDate(date) {
-      return date.getFullYear() + '.' + (date.getMonth() + 1 >9?date.getMonth(): "0"+(date.getMonth() + 1)) + '.' + (date.getDate() > 9 ? date.getDate() : "0" + date.getDate());
+      return date.getFullYear() + '.' + (date.getMonth() + 1 > 9 ? date.getMonth() : "0" + (date.getMonth() + 1)) + '.' + (date.getDate() > 9 ? date.getDate() : "0" + date.getDate());
     },
     DateToBD(date) {
-      return date.getFullYear() + '-' + (date.getMonth() + 1 >9?date.getMonth(): "0"+(date.getMonth() + 1)) + '-' + (date.getDate() > 9 ? date.getDate() : "0" + date.getDate());
+      return date.getFullYear() + '-' + (date.getMonth() + 1 > 9 ? date.getMonth() : "0" + (date.getMonth() + 1)) + '-' + (date.getDate() > 9 ? date.getDate() : "0" + date.getDate());
     },
 //получение рабочей недели без воскресенья
     getWorkWeek() {
@@ -157,7 +152,7 @@ export default {
         // console.log(this.weekEvents[this.groups[g].name])
       }
       //запрос на получение информации о расписании
-      axios.post(process.env.SERVER_IP+'/schedule/getCurrentSchedule', {
+      axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/getTeachers', {
         time: this.DateToBD(new Date(this.date))
       }).then((res) => {
         this.UpdateDateCourseEvent(res)
@@ -178,16 +173,16 @@ export default {
         this.weekEvents[grp][date][pare].status = res.data[i].status
       }
     },
-    Init(){
+    Init() {
       //запрос на получение групп
-      axios.get(process.env.SERVER_IP+'/groups/all').then(res => {
+      axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/groups/all').then(res => {
         for (let i = 0; i < res.data.length; i++) {
           res.data[i].status = (res.data[i].status == 1) ? true : false
         }
         this.groups = res.data
       })
       //запрос на получение расписания
-      axios.post('http://localhost:5000/postScheduleView', {
+      axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/getWeekSchedule', {
         time: this.DateToBD(this.date)
       }).then((res) => {
         console.log(res.data)
@@ -199,15 +194,16 @@ export default {
     }
 
   },
+  computed: {
+    env() {
+      return process.env
+    }
+  },
+
   mounted() {
-    //запросы на получение кабинетов, преподавателей, предметов
-    // axios.get('http://localhost:5000/cabinets').then(res => (this.cabinets = res.data))
-    // axios.get('http://localhost:5000/teachers').then(res => (this.teachers = res.data))
-    // axios.get('http://localhost:5000/subjects').then(res => (this.subjects = res.data))
     this.date = new Date();
     this.getWorkWeek()
     this.Init()
-
   }
 
 }
@@ -294,6 +290,7 @@ export default {
 .other_columns {
   width: 250px;
 }
+
 .button-6 {
   align-items: center;
   background-color: #FFFFFF;
@@ -304,7 +301,7 @@ export default {
   color: rgba(0, 0, 0, 0.85);
   cursor: pointer;
   display: inline-flex;
-  font-family: system-ui,-apple-system,system-ui,"Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-family: system-ui, -apple-system, system-ui, "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 16px;
   font-weight: 600;
   justify-content: center;
@@ -321,5 +318,4 @@ export default {
   width: auto;
   margin: 0 0 0 10px;
 }
-
 </style>

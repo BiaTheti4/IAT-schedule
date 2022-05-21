@@ -6,10 +6,10 @@ cors = require('cors')
 require('dotenv').config()
 const host = '127.0.0.1'
 const port = 7000
-console.log(process.env.SERVER_DOMAIN)
+
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
-app.use(cors({origin:process.env.SERVER_DOMAIN }))
+app.use(cors({origin: process.env.SERVER_DOMAIN}))
 // init db
 app.use('/api', routes)
 

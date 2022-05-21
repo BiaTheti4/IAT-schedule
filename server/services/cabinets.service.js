@@ -4,6 +4,7 @@ class CabinetsService {
 //получение списка кабинетов
     async getCabinets() {
         return await Cabinets.findAll({
+            attributes: ['id', 'number'],
             order: [
                 ['number', 'asc']
             ]

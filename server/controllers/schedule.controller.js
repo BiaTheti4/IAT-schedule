@@ -2,11 +2,13 @@ const ScheduleService = require('../services/schedule.service')
 
 class ScheduleController {
     async getCurrentSchedule(req, res) {
+
         const date = req.body.date
 
         return res.json(
             await ScheduleService.getCurrentSchedule(date)
         )
+
     }
 
     async getWeekSchedule(req, res) {
@@ -17,9 +19,10 @@ class ScheduleController {
     }
 
     async createNewLesson(req, res) {
-        const lesson = req.body
+
+        // console.log(lesson)
         return res.json(
-            await ScheduleService.createNewLesson(lesson)
+            await ScheduleService.createNewLesson(req.body)
         )
     }
 

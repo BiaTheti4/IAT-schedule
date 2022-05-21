@@ -4,14 +4,16 @@
     <div class="datePicker" id="content">
       <form>
         <input class="button-6" type="date" @change="UpdateDateCourseEvent(date)" v-model="date">
-        <select class="button-6" v-model="selectedCourse">
+        <select class="button-6" v-model="selectedCourse"
+                @change="getSubjectsByGroup()"
+        >
           <option v-for="n in 5" :value="n">{{ n }} курс</option>
         </select>
       </form>
 
     </div>
     <br>
-    <div class="table">
+    <table class="table">
       <thead>
       <tr>
         <th>Пара</th>
@@ -23,58 +25,71 @@
         </th>
       </tr>
       </thead>
+      <tbody>
       <tr v-for="para in 7" :key="para.value">
-        <td>{{ para }} пара</td>
+        <td class="lessonNumber">{{ para }} пара</td>
         <td v-for="(group,idx) in dateCourseEvent[selectedCourse]">
           <div class="formSubjects">
+
             <select class="selectdiv"
                     v-model="group[para].subject"
-                    @click="getSubjectsByGroup(Object.keys(dateCourseEvent[selectedCourse]),idx)">
+                    @click="getSubjectList(idx)"
+            >
               <option></option>
-              <option v-for="subject in subjects" :key="subject.subjectId" :value="subject.subjectId">
-                {{ subject.name }}
-              </option>
+                <option v-for="subject in subjects" :key="subject.subjectId" :value="subject.subjectId">
+                  {{ subject.nameShort }}
+                </option>
             </select>
-            <select class="selectdiv"
-                    @click="getTeacherBySubject(group[para].subject,Object.keys(dateCourseEvent[selectedCourse]),idx)"
-                    v-model="group[para].teacher">
-              <option></option>
-              <option :value="mainEmployee.id">
-                {{ mainEmployee.fullName }}
-              </option>
-            </select>
-            <select v-model="group[para].groupTeacher">
-              <option :value="groupEmployee.id">
-                {{ groupEmployee.fullName }}
-              </option>
-            </select>
-            <select class="selectdiv" @change="checkDublicateCabinet(group[para].cabinet,group[para])"
-                    v-model="group[para].cabinet">
-              <option></option>
-              <option v-for="cabinet in cabinets" :key="cabinet.id" :value="cabinet.id">
-                {{ cabinet.name }}
-              </option>
-            </select>
+            <template v-if="group[para].subject">
 
-            <!--постараться сделать эту хрень-->
-            <!--                        <input @change="checkDublicateCabinet(group[para].cabinet)"-->
-            <!--                               v-model="group[para].cabinet" :list="group[para].id"/>-->
-            <!--                        <datalist>-->
+              <select class="selectdiv"
 
-            <!--                          <option></option>-->
-            <!--                          <option v-for="cabinet in cabinets" :key="cabinet.id" :value="cabinet.id">-->
-            <!--                            {{ cabinet.name }}-->
-            <!--                          </option>-->
-            <!--                        </datalist>-->
+                      v-model="group[para].teacher"
+                      @click="getTeacherBySubject(group[para].subject,Object.keys(dateCourseEvent[selectedCourse]),idx)">
 
-            <div class="distant">
-              <div>дистант
-                <input type="checkbox" v-model="group[para].status"></div>
-            </div>
+                <option :value="mainEmployee.id">
+                  {{ mainEmployee.fullName }}
+                </option>
+              </select>
+
+
+              <select v-model="group[para].groupTeacher">
+
+                <option :value="groupEmployee.id">
+                  {{ groupEmployee.fullName }}
+                </option>
+              </select>
+
+
+              <select class="selectdiv" @click=""
+                      v-model="group[para].cabinet">
+                <option></option>
+                <option v-for="cabinet in cabinets" :key="cabinet.id" :value="cabinet.id">
+                  {{ cabinet.number }}
+                </option>
+              </select>
+
+              <!--постараться сделать эту хрень-->
+              <!--                        <input @change="checkDublicateCabinet(group[para].cabinet)"-->
+              <!--                               v-model="group[para].cabinet" :list="group[para].id"/>-->
+              <!--                        <datalist>-->
+
+              <!--                          <option></option>-->
+              <!--                          <option v-for="cabinet in cabinets" :key="cabinet.id" :value="cabinet.id">-->
+              <!--                            {{ cabinet.name }}-->
+              <!--                          </option>-->
+              <!--                        </datalist>-->
+
+              <div class="distant">
+                <div>дистант
+                  <input type="checkbox" v-model="group[para].status"></div>
+              </div>
+            </template>
           </div>
         </td>
       </tr>
-    </div>
+      </tbody>
+    </table>
 
     <button class="button-7" @click="sendPostObject">отправить</button>
     <button class="button-7" @click="checkEmptySelect">проверить</button>
@@ -118,6 +133,7 @@ export default {
   },
   methods: {
     getCourses(course) {
+
       switch (Number(course)) {
         case 1:
           return this.courses[1].groups;
@@ -131,19 +147,28 @@ export default {
           return this.courses[1].groups;
       }
     },
-    getSubjectsByGroup(group, idx) {
-      axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/ktp/getSubjects', {
-        group: idx
-      }).then((res) => {
-            console.log(res.data)
-            let subjArr = []
-            for (let i = 0; i < res.data.length; i++) {
-              subjArr.push(res.data[i])
-              this.subjects = subjArr
-            }
-          }
-      ).catch(err => console.warn(err))
+    async getSubjectsByGroup() {
+      for (let group in this.courses[this.selectedCourse].groups) {
+        axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/ktp/getSubjects', {
+          group: this.courses[this.selectedCourse].groups[group].name
+        }).then((res) => {
+              console.log(res.data)
+              this.courses[this.selectedCourse].groups[group].subjects = res.data
 
+            }
+        )
+      }
+
+    },
+    getSubjectList(test) {
+      return this.courses[this.selectedCourse].groups[group]?.subjects
+    },
+    getTeacherName(id) {
+      axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/ktp/getTeachers', {
+        teacher: id
+      }).then((res) => {
+        return res
+      })
     },
     getTeacherBySubject(subjectId, group, idx) {
 
@@ -160,11 +185,7 @@ export default {
           }
       ).catch(err => console.warn(err))
     },
-    setDefault(group){
 
-    },
-    getGroupsArray(obj) {
-    },
     UpdateDateCourseEvent() {
       this.selectedCourse = 1
       for (let k = 1; k < 5; k++) {
@@ -183,26 +204,28 @@ export default {
       axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/getCurrentSchedule', {
         date: this.date
       }).then((res) => {
+        console.log('======================================================')
         console.log(res)
         for (let i = 0; i < res.data.length; i++) {
           let elem = this.dateCourseEvent[this.selectedCourse][res.data[i].group_name][res.data[i].paraNumber]
-          elem.subject = res.data[i].subject_id
-          elem.teacher = res.data[i].teacher_id
-          elem.cabinet = res.data[i].cabinet_id
-          if (res.data[i].status == 1) {
-            elem.status = true
-          } else {
-            elem.status = false
-          }
+          elem.subject = res.data[i].elem.subject
+          elem.teacher = res.data[i].elem.teacher
+          // elem.teacher = res.data[i].teacher_id
+          elem.cabinet = res.data[i].elem.cabinet
+          // if (res.data[i].status == 1) {
+          //   elem.status = true
+          // } else {
+          //   elem.status = false
+          // }
           elem.id = res.data[i].id;
         }
-      }).catch(err => console.warn(err))
+      })
     },
     initDateCourseEvent() {
       this.dateCourseEvent = {}
       for (let k = 1; k < 5; k++) {
         this.dateCourseEvent[k] = {}
-        let groups = this.getCourses(k) //this.courses[k]
+        let groups = this.getCourses(k)
         for (let i = 0; i < groups.length; i++) {
           this.dateCourseEvent[k][groups[i].name] = {}
           for (let j = 1; j < 8; j++) {
@@ -213,6 +236,7 @@ export default {
               cabinet: '',
               status: false,
               id: 0
+
             }
           }
         }
@@ -235,16 +259,17 @@ export default {
             //проверка на пустой  элемент расписания
             if (notEmpty) {
               //если пара уже была, но изменили данные внутри
-              if (elem.id != '') {
+              if (elem.id != 0 || elem.id != '') {
                 //update
-                axios.patch("http://localhost:5000/patchSchedule", {
-                  id: elem.id,
+                axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/updateSchedule', {
                   subject: elem.subject,
                   teacher: elem.teacher,
-                  groupTeacher: elem.groupTeacher,
+                  groupTeacher: (elem.groupTeacher) ? elem.groupTeacher : null,
                   cabinet: elem.cabinet,
-                  paraNumber: j,
-                  groupId: groups[i].id,
+                  //потом добавить
+                  // event:elem.event,
+                  lessonNumber: j,
+                  groupId: groups[i].groupId,
                   status: (elem.status == true) ? 1 : 0,
                   date: this.date
                 }).then((res) => {
@@ -253,22 +278,25 @@ export default {
                 //если пары не было, добавили новую
               } else {
 
-                axios.post('http://localhost:5000/postSchedule', {
+                axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/createNewLesson', {
                   subject: elem.subject,
                   teacher: elem.teacher,
-                  groupTeacher: elem.groupTeacher,
+                  groupTeacher: (elem.groupTeacher) ? elem.groupTeacher : null,
                   cabinet: elem.cabinet,
-                  paraNumber: j,
-                  groupId: groups[i].id,
-                  status: elem.status,
+                  //потом добавить
+                  // event:elem.event,
+                  lessonNumber: j,
+                  groupId: groups[i].groupId,
+                  status: (elem.status == true) ? 1 : 0,
                   date: this.date
                 }).then((res) => {
+                  console.log('vse ok')
                   console.log(res.data)
                 })
               }
             } else {
               if (elem.id != '') {
-                axios.post('http://localhost:5000/deleteSchedule', {
+                axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/deleteSchedule', {
                   id: elem.id
                 }).then((res) => {
                   console.log(res.data)
@@ -425,13 +453,14 @@ export default {
             console.log(res.data)
             for (let i = 0; i < res.data.length; i++) {
               let gr = res.data[i]
-
-              this.courses[gr.course].groups.push(gr)
+              this.courses[gr.course].groups.push({...gr, subjects: []})
             }
+
             this.initDateCourseEvent();
             this.UpdateDateCourseEvent();
           }
       )
+
     },
 
 
@@ -440,6 +469,20 @@ export default {
 
     //получение текущей даты
     let today = new Date();
+    axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/cabinets/all').then((res) => {
+      console.log(res.data)
+      for (let i = 0; i < res.data.length; i++) {
+        let cb = {
+          id: res.data[i].id,
+          number: res.data[i].number
+        }
+        this.cabinets.push(cb)
+        // this.courses[gr.course].groups.push(gr)
+      }
+    })
+    this.initDateCourseEvent();
+    this.UpdateDateCourseEvent();
+
 
     this.date = today.getFullYear() + '-' + (today.getMonth() + 1 > 9 ? today.getMonth() : "0" + (today.getMonth() + 1)) + '-' + (today.getDate() > 9 ? today.getDate() : "0" + today.getDate());
 
@@ -448,11 +491,14 @@ export default {
     //запросы на получение информации
 
     this.Init()
+    this.getSubjectsByGroup()
   },
   computed: {
     env() {
       return process.env
-    }
+    },
+
+
   }
 
 }
@@ -507,7 +553,7 @@ export default {
 }
 
 .table {
-  width: 100%;
+
   border: none;
   margin-bottom: 20px;
   border-collapse: separate;
@@ -522,6 +568,7 @@ export default {
   background: #D9EDF7;
   font-size: 14px;
   border-top: 1px solid #ddd;
+  width: 7.9%;
 }
 
 .table tr th:first-child, .table tr td:first-child {
@@ -570,8 +617,8 @@ export default {
   margin: 2px;
 }
 
-.selectorSubject {
-
+.lessonNumber {
+  width: 7%;
 }
 
 body {
@@ -581,19 +628,7 @@ body {
 .selectdiv {
   position: relative;
   align-items: center;
-  background-color: #FFFFFF;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: .25rem;
-  box-shadow: rgba(0, 0, 0, 0.02) 0 1px 3px 0;
-  box-sizing: border-box;
-  color: rgba(0, 0, 0, 0.85);
-  cursor: pointer;
-  display: inline-flex;
-  font-family: system-ui, -apple-system, system-ui, "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-weight: 400;
-  justify-content: center;
-  line-height: 1.25;
-  padding-left: 5px;
+
 
   text-decoration: none;
   transition: all 250ms;
@@ -602,17 +637,6 @@ body {
   touch-action: manipulation;
   vertical-align: baseline;
   width: 100%;
-}
-
-.selectdiv:hover,
-.selectdiv:focus {
-  border-color: rgba(0, 0, 0, 0.15);
-
-  color: rgba(0, 0, 0, 0.65);
-}
-
-.selectdiv:hover {
-  transform: translateY(-1px);
 }
 
 
