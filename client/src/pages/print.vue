@@ -1,20 +1,20 @@
 <template>
   <div class="printNone">
-  <div class="datePicker" id="content">
-    <form>
-      <input class="button-6" type="date" @change="UpdateDateCourseEvent(date)" v-model="date">
-      <select class="button-6" v-model="selectedCourse">
-        <option v-for="n in 4" :value="n">{{ n }} курс</option>
-      </select>
-      <a class="button-7" href="javascript:window.print()">Печать</a>
-    </form>
+    <div class="datePicker" id="content">
+      <form>
+        <input class="button-6" type="date" @change="UpdateDateCourseEvent(date)" v-model="date">
+        <select class="button-6" v-model="selectedCourse">
+          <option v-for="n in 4" :value="n">{{ n }} курс</option>
+        </select>
+        <a class="button-7" href="javascript:window.print()">Печать</a>
+      </form>
 
-  </div>
-  <br>
+    </div>
+    <br>
   </div>
   <div class="printSchedule">
     <h1 class="date">
-      {{this.date}}
+      {{ this.date }}
     </h1>
     <table class="table">
       <thead>
@@ -51,8 +51,7 @@
 
 <script>
 import axios from "axios";
-import html2pdf from "html2pdf.js"
-import teachers from "./teachers";
+
 
 export default {
 
@@ -134,7 +133,7 @@ export default {
       html2pdf(elem)
     },
     UpdateDateCourseEvent() {
-      this.selectedCourse=1
+      this.selectedCourse = 1
       for (let k = 1; k < 5; k++) {
         let groups = this.getCourses(k)
         for (let i = 0; i < groups.length; i++) {
@@ -401,24 +400,29 @@ export default {
     border-radius: 5px;
     padding-left: 3px;
   }
-  .date{
+
+  .date {
     margin-left: auto;
     margin-right: auto;
   }
-  .printSchedule{
+
+  .printSchedule {
     margin: 1cm;
   }
 
-  printSchedule{
+  printSchedule {
 
   }
-  printNone{
+
+  printNone {
     display: none;
   }
-  .datePicker{
+
+  .datePicker {
     display: none;
   }
-  div#app nav{
+
+  div#app nav {
     display: none;
   }
 }
