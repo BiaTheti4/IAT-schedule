@@ -14,7 +14,7 @@
   </div>
   <div class="printSchedule">
     <h1 class="date">
-      {{ this.date }}
+<!--      {{ getFullDate(this.date) }}-->
     </h1>
     <table class="table">
       <thead>
@@ -34,9 +34,13 @@
         <td>{{ para }} пара</td>
         <td v-for="(group) in dateCourseEvent[selectedCourse]" :key="group">
           <div class="formSubjects" v-if="group[para].subject!=''">
-            <div> {{ getSubject(group[para].subject) }}</div>
-            <div>{{ getCabinet(group[para].cabinet) }}</div>
-            <div>{{ getTeacher(group[para].teacher) }}</div>
+            <div>{{group[para].subject}}</div>
+            <div>(каб. {{group[para].cabinet}})</div>
+            <div>{{group[para].teacher}}</div>
+            <div v-if="group[para].optional_teacher!=''">{{group[para].optional_teacher}}</div>
+<!--            <div> {{ getSubject(group[para].subject) }}</div>-->
+<!--            <div>{{ getCabinet(group[para].cabinet) }}</div>-->
+<!--            <div>{{ getTeacher(group[para].teacher) }}</div>-->
             <div class="distant">
               <div v-if="group[para].status==1">дистант</div>
             </div>
@@ -72,7 +76,19 @@ export default {
       },
     }
   },
+  computed:{
+    env() {
+      return process.env
+    }
+  },
   methods: {
+    getFullDate(date) {
+      return date.getFullYear() + '.' + (date.getMonth() + 1 > 9 ? date.getMonth() : "0" + (date.getMonth() + 1)) + '.' + (date.getDate() > 9 ? date.getDate() : "0" + date.getDate());
+    },
+    dateToDb(date) {
+      return date.getFullYear() + '-' + (date.getMonth() + 1 > 9 ? date.getMonth() : "0" + (date.getMonth() + 1)) + '-' + (date.getDate() > 9 ? date.getDate() : "0" + date.getDate());
+    },
+
     getTeacher(t) {
       let teacherId = t
       let teacherName = ''
@@ -128,10 +144,6 @@ export default {
           return this.courses[1].groups;
       }
     },
-    download() {
-      let elem = document.getElementById("content")
-      html2pdf(elem)
-    },
     UpdateDateCourseEvent() {
       this.selectedCourse = 1
       for (let k = 1; k < 5; k++) {
@@ -141,26 +153,31 @@ export default {
             let elem = this.dateCourseEvent[k][groups[i].name][j]
             elem.subject = ''
             elem.teacher = ''
+            elem.optional_teacher = ''
             elem.cabinet = ''
             elem.status = (groups[i].status == 1) ? 1 : 0,
                 elem.id = 0
           }
         }
       }
-      axios.post('http://localhost:5000/printSchedule', {
-        time: this.date
+      axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/getPrintSchedule', {
+        date: this.dateToDb(new Date(this.date))
       }).then((res) => {
         for (let i = 0; i < res.data.length; i++) {
-          let elem = this.dateCourseEvent[this.selectedCourse][res.data[i].group_name][res.data[i].paraNumber]
-          elem.subject = res.data[i].subject_id
-          elem.teacher = res.data[i].teacher_id
-          elem.cabinet = res.data[i].cabinet_id
+          // console.log(res.data[i].name)
+          // console.log(this.dateCourseEvent[this.selectedCourse])
+          // console.log(this.dateCourseEvent[this.selectedCourse][res.data[i].name])
+          let elem = this.dateCourseEvent[res.data[i].course][res.data[i].name][res.data[i].lesson_number]
+
+          elem.subject = res.data[i].nameShort
+          elem.teacher = res.data[i].main_emp
+          elem.optional_teacher = res.data[i].group_emp
+          elem.cabinet = res.data[i].number
           if (res.data[i].status == 1) {
             elem.status = true
           } else {
             elem.status = false
           }
-          elem.id = res.data[i].id;
         }
       })
     },
@@ -183,69 +200,9 @@ export default {
         }
       }
     },
-    sendPostObject() {
-
-      //итерации по курсу
-      for (let k = 1; k < 5; k++) {
-        //группы в курсе
-        let groups = this.getCourses(k)
-        //итерации по группам
-        for (let i = 0; i < groups.length; i++) {
-          //итерации по номеру пары
-          for (let j = 1; j < 8; j++) {
-            //информация о паре выбранной группы
-            let elem = this.dateCourseEvent[k][groups[i].name][j]
-            //проверка на пустой предмет
-            let notEmpty = (elem.subject != '' && elem.teacher != '' && elem.cabinet != '')
-            //проверка на пустой  элемент расписания
-            if (notEmpty) {
-              //если пара уже была, но изменили данные внутри
-              if (elem.id != '') {
-                //update
-                axios.patch("http://localhost:5000/patchSchedule", {
-                  id: elem.id,
-                  subject: elem.subject,
-                  teacher: elem.teacher,
-                  cabinet: elem.cabinet,
-                  paraNumber: j,
-                  groupId: groups[i].id,
-                  status: (elem.status == true) ? 1 : 0,
-                  date: this.date
-                }).then((res) => {
-                  console.log(res.data)
-                })
-                //если пары не было, добавили новую
-              } else {
-
-                axios.post('http://localhost:5000/postSchedule', {
-                  subject: elem.subject,
-                  teacher: elem.teacher,
-                  cabinet: elem.cabinet,
-                  paraNumber: j,
-                  groupId: groups[i].id,
-                  status: elem.status,
-                  date: this.date
-                }).then((res) => {
-                  console.log(res.data)
-                })
-              }
-            } else {
-              if (elem.id != '') {
-                axios.post('http://localhost:5000/deleteSchedule', {
-                  id: elem.id
-                }).then((res) => {
-                  console.log(res.data)
-                })
-              }
-            }
-          }
-        }
-      }
-    },
-
 
     Init() {
-      axios.get('http://localhost:5000/groups').then((res) => {
+      axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/groups/all').then((res) => {
             for (let i = 0; i < res.data.length; i++) {
               let gr = res.data[i]
               // console.log(gr)
@@ -270,15 +227,10 @@ export default {
   mounted() {
     //получение текущей даты
     let today = new Date();
-    let fullDate = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + (today.getDate() > 9 ? today.getDate() : "0" + today.getDate());
-    this.date = fullDate;
+
+    this.date =this.getFullDate(today);
     //установка текущего курса по умолчанию на 1
     this.selectedCourse = '1';
-    //запросы на получение информации
-    axios.get('http://localhost:5000/cabinets').then(res => (this.cabinets = res.data))
-    axios.get('http://localhost:5000/teachers').then(res => (this.teachers = res.data))
-    axios.get('http://localhost:5000/subjects').then(res => (this.subjects = res.data))
-
     this.Init()
   },
 
@@ -309,7 +261,6 @@ export default {
     transition: all 250ms;
     user-select: none;
     -webkit-user-select: none;
-    touch-action: manipulation;
     vertical-align: baseline;
     width: auto;
     margin: 0 0 0 10px;

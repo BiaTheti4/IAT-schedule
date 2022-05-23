@@ -2,7 +2,7 @@ const sequelize = require("../models");
 
 class ScheduleService {
     async getCurrentSchedule(date) {
-
+        console.log(date)
         return await sequelize.query(
             'select schedule_new.id,schedule_new.date,schedule_new.status,schedule_new.event,schedule_new.lesson_number,schedule_new.teacher_id,schedule_new.optional_teacher_id from schedule_new' +
             ' where date=:date', {
@@ -15,7 +15,7 @@ class ScheduleService {
     async getWeekSchedule(date) {
 
         return await sequelize.query(
-            'select s.nameShort as subjectName,' +
+            'select s.nameShort as subject_name,' +
             'c.number,' +
             'g.name,' +
             'date,' +
@@ -30,6 +30,32 @@ class ScheduleService {
             '    inner join `groups` g on schedule_new.group_id = g.groupId ' +
             '    inner join subjects s on schedule_new.subject_id = s.subjectId ' +
             ' where date>=:date', {
+                replacements: {date: String(date)},
+                type: sequelize.QueryTypes.SELECT
+            }
+        )
+    }
+
+    async getPrintSchedule(date) {
+        console.log(date)
+        return await sequelize.query(
+            ' select date, ' +
+            ' schedule_new.status, ' +
+            ' schedule_new.event, ' +
+            ' lesson_number, ' +
+            'concat(e.last_name, \' \', left(e.first_name,1),".", \' \', left(e.fathers_name,1),".") as main_emp, ' +
+            'concat(emp.last_name, \' \', left(emp.first_name,1),".", \' \', left(emp.fathers_name,1),".") as group_emp, ' +
+            ' s.nameShort, ' +
+            ' g.name, ' +
+            ' c.number, ' +
+            ' g.course ' +
+            ' from schedule_new ' +
+            ' inner join employees e on schedule_new.teacher_id = e.employeeId ' +
+            ' inner join employees emp on schedule_new.optional_teacher_id = emp.employeeId ' +
+            ' inner join subjects s on schedule_new.subject_id = s.subjectId ' +
+            ' inner join `groups` g on schedule_new.group_id = g.groupId ' +
+            ' inner join cabinets c on schedule_new.cabinet_id = c.id ' +
+            ' where date=:date', {
                 replacements: {date: String(date)},
                 type: sequelize.QueryTypes.SELECT
             }
