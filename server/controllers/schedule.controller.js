@@ -17,8 +17,6 @@ class ScheduleController {
     }
 
     async createNewLesson(req, res) {
-
-        // console.log(lesson)
         return res.json(
             await ScheduleService.createNewLesson(req.body)
         )
@@ -44,5 +42,4 @@ class ScheduleController {
         )
     }
 }
-
 module.exports = new ScheduleController()

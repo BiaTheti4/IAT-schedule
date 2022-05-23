@@ -226,7 +226,7 @@ export default {
     //получение текущей даты
     let today = new Date();
 
-    this.date =this.getFullDate(today);
+    this.date =this.dateToDb(today);
     //установка текущего курса по умолчанию на 1
     this.selectedCourse = '1';
     this.Init()
@@ -264,16 +264,7 @@ export default {
     margin: 0 0 0 10px;
   }
 
-  .button-6:hover,
-  .button-6:focus {
-    border-color: rgba(0, 0, 0, 0.15);
-    box-shadow: rgba(0, 0, 0, 0.1) 0 4px 12px;
-    color: rgba(0, 0, 0, 0.65);
-  }
 
-  .button-6:hover {
-    transform: translateY(-1px);
-  }
 
   .button-6:active {
     background-color: #F0F0F1;

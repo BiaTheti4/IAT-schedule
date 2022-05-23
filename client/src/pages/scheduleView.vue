@@ -1,6 +1,5 @@
 <template>
   <div>
-
     <select class="button-6" v-model="selectedGroup">
       <option value="" selected></option>
       <option v-for="group in groups" :key="group.name" :value="group.name">
@@ -42,37 +41,42 @@
       </div>
     </template>
 
-<!--            <template v-else>-->
-<!--              <h2>{{ selectedGroup }}</h2>-->
-<!--              <table class="table">-->
-<!--                <thead class="thead_items">-->
-<!--                <tr>-->
-<!--                  <th>пара</th>-->
+    <template v-if="selectedGroup!==''">
+      <h2>{{ selectedGroup }}</h2>
+      <table class="table">
+        <thead class="thead_items">
+        <tr>
+          <th class="first_column">пара</th>
+          <th class="other_columns" v-for="day in week" :key="day.date">{{ day.date }} ({{ day.weekDay }})</th>
+        </tr>
+        </thead>
+        <tbody class="tbody_items">
+        <tr v-for="lessonNumber in 7">
+          <td>{{ lessonNumber }}</td>
+          <td v-for="lessonInDay in week" :key="lessonInDay">
 
-<!--                  <th v-for="day in week" :key="day.date">{{ day.date }} ({{ day.weekDay }})</th>-->
-<!--                </tr>-->
-<!--                </thead>-->
-<!--                <tbody class="tbody_items">-->
-<!--                <tr v-for="paraNumber in 7" :key="paraNumber">-->
-<!--                  <td class="paraNumber">{{ paraNumber }}</td>-->
-
-<!--                  <td v-for="paraInDay in week" :key="paraInDay">-->
-
-<!--                    <div class="event" v-if="this.weekEvents[group.name][lessonInDay.date][lessonNumber].subject!==''">-->
-<!--                      <label>{{ this.weekEvents[group.name][lessonInDay.date][lessonNumber].subject }}</label>-->
-<!--                      <label>кабинет:{{ this.weekEvents[group.name][lessonInDay.date][lessonNumber].cabinet }}</label>-->
-<!--                      <label>Преподаватель: {{ this.weekEvents[group.name][lessonInDay.date][lessonNumber].mainTeacher }}</label>-->
-<!--                      <label v-if=" this.weekEvents[group.name][lessonInDay.date][lessonNumber].optionalTeacher!==''">Преподаватель в группе: {{ this.weekEvents[group.name][lessonInDay.date][lessonNumber].optionalTeacher }}</label>-->
-<!--                      <label class="distant" v-if="this.weekEvents[group.name][lessonInDay.date][lessonNumber].status=0">Дистант</label>-->
-<!--                    </div>-->
-<!--                    <div class="event_none" v-if="this.weekEvents[group.name][lessonInDay.date][lessonNumber].subject===''">-->
-<!--                      <label>нет</label>-->
-<!--                    </div>-->
-<!--                  </td>-->
-<!--                </tr>-->
-<!--                </tbody>-->
-<!--              </table>-->
-<!--            </template>-->
+            <div class="event" v-if="this.weekEvents[this.selectedGroup][lessonInDay.date][lessonNumber].subject!==''">
+              <label>{{ this.weekEvents[this.selectedGroup][lessonInDay.date][lessonNumber].subject }}</label>
+              <label>кабинет:{{ this.weekEvents[this.selectedGroup][lessonInDay.date][lessonNumber].cabinet }}</label>
+              <label>Преподаватель: {{
+                  this.weekEvents[this.selectedGroup][lessonInDay.date][lessonNumber].mainTeacher
+                }}</label>
+              <label v-if=" this.weekEvents[this.selectedGroup][lessonInDay.date][lessonNumber].optionalTeacher!==''">Преподаватель
+                в группе: {{
+                  this.weekEvents[this.selectedGroup][lessonInDay.date][lessonNumber].optionalTeacher
+                }}</label>
+              <label class="distant"
+                     v-if="this.weekEvents[this.selectedGroup][lessonInDay.date][lessonNumber].status=0">Дистант</label>
+            </div>
+            <div class="event_none"
+                 v-if="this.weekEvents[this.selectedGroup][lessonInDay.date][lessonNumber].subject===''">
+              <label>нет</label>
+            </div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </template>
 
 
   </div>

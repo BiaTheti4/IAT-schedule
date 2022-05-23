@@ -68,7 +68,7 @@
                 </option>
               </select>
 
-              <!--постараться сделать эту хрень-->
+              <!--постараться сделать этo-->
               <!--                        <input @change="checkDublicateCabinet(group[para].cabinet)"-->
               <!--                               v-model="group[para].cabinet" :list="group[para].id"/>-->
               <!--                        <datalist>-->
@@ -160,6 +160,14 @@ export default {
 
     },
     getSubjectList(test) {
+      let course= this.selectedCourse;
+      for(let i in this.courses[course][i]){
+        if(i.name === test){
+          console.log(this.courses[course][i].subjects)
+        }else{
+          i++
+        }
+      }
       console.log(test)
       // return this.courses[this.selectedCourse].groups[group]?.subjects
     },

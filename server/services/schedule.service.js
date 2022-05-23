@@ -2,7 +2,6 @@ const sequelize = require("../models");
 
 class ScheduleService {
     async getCurrentSchedule(date) {
-        console.log(date)
         return await sequelize.query(
             'select schedule_new.id,schedule_new.date,schedule_new.status,schedule_new.event,schedule_new.lesson_number,schedule_new.teacher_id,schedule_new.optional_teacher_id from schedule_new' +
             ' where date=:date', {
@@ -13,7 +12,6 @@ class ScheduleService {
     }
 
     async getWeekSchedule(date) {
-
         return await sequelize.query(
             'select s.nameShort as subject_name,' +
             'c.number,' +
@@ -37,7 +35,6 @@ class ScheduleService {
     }
 
     async getPrintSchedule(date) {
-        console.log(date)
         return await sequelize.query(
             ' select date, ' +
             ' schedule_new.status, ' +
@@ -84,8 +81,6 @@ class ScheduleService {
     }
 
     async updateSchedule(lesson) {
-        console.log('lessonInfo:')
-        console.log(lesson)
         return await sequelize.query(
             'update schedule_new set status=:status,lesson_number=:lesson,teacher_id=:teacher,optional_teacher_id=:optional_teacher,subject_id=:subject,group_id=:group,cabinet_id=:cabinet ' +
             'where id=:id', {
@@ -113,8 +108,6 @@ class ScheduleService {
             }
         )
     }
-
-
 }
 
 module.exports = new ScheduleService()
