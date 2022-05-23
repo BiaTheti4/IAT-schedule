@@ -164,9 +164,7 @@ export default {
         date: this.dateToDb(new Date(this.date))
       }).then((res) => {
         for (let i = 0; i < res.data.length; i++) {
-          // console.log(res.data[i].name)
-          // console.log(this.dateCourseEvent[this.selectedCourse])
-          // console.log(this.dateCourseEvent[this.selectedCourse][res.data[i].name])
+
           let elem = this.dateCourseEvent[res.data[i].course][res.data[i].name][res.data[i].lesson_number]
 
           elem.subject = res.data[i].nameShort

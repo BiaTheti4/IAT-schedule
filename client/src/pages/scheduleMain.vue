@@ -43,7 +43,6 @@
             <template v-if="group[para].subject">
 
               <select class="selectdiv"
-
                       v-model="group[para].teacher"
                       @click="getTeacherBySubject(group[para].subject,Object.keys(dateCourseEvent[selectedCourse]),idx)">
 
@@ -161,7 +160,8 @@ export default {
 
     },
     getSubjectList(test) {
-      return this.courses[this.selectedCourse].groups[group]?.subjects
+      console.log(test)
+      // return this.courses[this.selectedCourse].groups[group]?.subjects
     },
     getTeacherName(id) {
       axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/ktp/getTeachers', {
