@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f737f2cc-1493-4146-a24e-8663794c9609" name="Changes" comment="">
+    <list default="true" id="f737f2cc-1493-4146-a24e-8663794c9609" name="Changes" comment="Fixed select group in scheduleView.vue">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/pages/print.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/print.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/client/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/pages/scheduleMain.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/scheduleMain.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/pages/scheduleView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/scheduleView.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/controllers/schedule.controller.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/controllers/schedule.controller.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/services/schedule.service.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/schedule.service.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -97,7 +95,9 @@
       <workItem from="1653005716911" duration="19409000" />
       <workItem from="1653115742967" duration="10462000" />
       <workItem from="1653229587569" duration="7879000" />
-      <workItem from="1653273109910" duration="5010000" />
+      <workItem from="1653273109910" duration="8968000" />
+      <workItem from="1653378119184" duration="762000" />
+      <workItem from="1653457285089" duration="4606000" />
     </task>
     <task id="LOCAL-00001" summary="edited some SQL queries">
       <created>1652002893534</created>
@@ -162,7 +162,14 @@
       <option name="project" value="LOCAL" />
       <updated>1653273711433</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="Fixed select group in scheduleView.vue">
+      <created>1653283611371</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1653283611371</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -190,6 +197,7 @@
     <MESSAGE value="fixed view schedule" />
     <MESSAGE value="fixed errors" />
     <MESSAGE value="completed print&amp;view" />
-    <option name="LAST_COMMIT_MESSAGE" value="completed print&amp;view" />
+    <MESSAGE value="Fixed select group in scheduleView.vue" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed select group in scheduleView.vue" />
   </component>
 </project>

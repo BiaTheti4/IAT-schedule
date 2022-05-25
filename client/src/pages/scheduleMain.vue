@@ -3,7 +3,7 @@
 
     <div class="datePicker" id="content">
       <form>
-        <input class="button-6" type="date" @change="UpdateDateCourseEvent(date)" v-model="date">
+        <input class="button-6" type="date" @change="UpdateDateCourseEvent(date)" v-model="date" min="">
         <select class="button-6" v-model="selectedCourse"
                 @change="getSubjectsByGroup()"
         >
@@ -12,6 +12,9 @@
       </form>
 
     </div>
+    <button @click="test()">
+
+    </button>
     <br>
     <table class="table">
       <thead>
@@ -32,21 +35,21 @@
           <div class="formSubjects">
 
             <select class="selectdiv"
-                    v-model="group[para].subject"
+                    v-model="group[para].subjectId"
                     @click="getSubjectList(idx)"
             >
               <option></option>
-                <option v-for="subject in subjects" :key="subject.subjectId" :value="subject.subjectId">
-                  {{ subject.nameShort }}
-                </option>
+              <option v-for="subject in getSubjectList(idx)" :key="subject.subjectId" :value="subject.subjectId">
+                {{ subject.nameShort }}
+              </option>
             </select>
-            <template v-if="group[para].subject">
+            <template v-if="group[para].subjectId">
 
               <select class="selectdiv"
-                      v-model="group[para].teacher"
+                      v-model="group[para].teacherId"
                       @click="getTeacherBySubject(group[para].subject,Object.keys(dateCourseEvent[selectedCourse]),idx)">
 
-                <option :value="mainEmployee.id">
+                <option :value="group[para].teacher">
                   {{ mainEmployee.fullName }}
                 </option>
               </select>
@@ -102,6 +105,8 @@
 
 
 import axios from "axios";
+import {logging} from "../../../server/config/db.config";
+import {nextTick} from "vue";
 
 export default {
   data() {
@@ -109,7 +114,6 @@ export default {
 
       date: '',
       selectedCourse: '',
-      subjects: [],
 
       mainEmployee: {
         id: '',
@@ -131,6 +135,9 @@ export default {
     }
   },
   methods: {
+    test() {
+      console.log(this.courses[this.selectedCourse].groups[0].subjects)
+    },
     getCourses(course) {
 
       switch (Number(course)) {
@@ -159,17 +166,20 @@ export default {
       }
 
     },
+
+    // в test лежит название группы
     getSubjectList(test) {
-      let course= this.selectedCourse;
-      for(let i in this.courses[course][i]){
-        if(i.name === test){
-          console.log(this.courses[course][i].subjects)
-        }else{
+      let course = this.selectedCourse;
+
+      for (let i in this.courses[course].groups) {
+        if (this.courses[course].groups[i].name === test) {
+          return this.courses[course].groups[i].subjects
+        } else {
           i++
         }
       }
       console.log(test)
-      // return this.courses[this.selectedCourse].groups[group]?.subjects
+      return this.courses[this.selectedCourse].groups[group]?.subjects
     },
     getTeacherName(id) {
       axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/ktp/getTeachers', {
@@ -185,8 +195,9 @@ export default {
         group: idx
 
       }).then((res) => {
+            console.log('asdasd')
             console.log(res.data)
-            this.mainEmployee.id = res.data[0].employeeId,
+            this.mainEmployee.id = res.data[0].teacherId,
                 this.mainEmployee.fullName = res.data[0].main_emp,
                 this.groupEmployee.id = res.data[0].group_employee,
                 this.groupEmployee.fullName = res.data[0].group_emp
@@ -212,19 +223,26 @@ export default {
       axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/getCurrentSchedule', {
         date: this.date
       }).then((res) => {
-        console.log('======================================================')
-        console.log(res)
+        // console.log('======================================================')
+        // console.log(res.data)
         for (let i = 0; i < res.data.length; i++) {
-          let elem = this.dateCourseEvent[this.selectedCourse][res.data[i].group_name][res.data[i].paraNumber]
-          elem.subject = res.data[i].elem.subject
-          elem.teacher = res.data[i].elem.teacher
-          // elem.teacher = res.data[i].teacher_id
-          elem.cabinet = res.data[i].elem.cabinet
-          // if (res.data[i].status == 1) {
-          //   elem.status = true
-          // } else {
-          //   elem.status = false
-          // }
+          console.log(res.data)
+          // console.log(this.dateCourseEvent[res.data[i].course][res.data[i].name][res.data[i].lesson_number])
+          let elem = this.dateCourseEvent[res.data[i].course][res.data[i].name][res.data[i].lesson_number]
+
+          elem.subject = res.data[i].subject
+          elem.subjectId = res.data[i].subject_id
+          elem.teacher = res.data[i].main_emp
+          elem.teacherId = res.data[i].teacher_id
+          elem.optionalTeacher = res.data[i].group_emp
+          elem.optionalTeacherId = res.data[i].optional_teacher_id
+          elem.cabinet = res.data[i].number
+          elem.cabinetId = res.data[i].cabinet_id
+          if (res.data[i].status == 1) {
+            elem.status = true
+          } else {
+            elem.status = false
+          }
           elem.id = res.data[i].id;
         }
       })
@@ -239,9 +257,13 @@ export default {
           for (let j = 1; j < 8; j++) {
             this.dateCourseEvent[k][groups[i].name][j] = {
               subject: '',
+              subjectId: '',
               teacher: '',
-              groupTeacher: '',
+              teacherId: '',
+              optionalTeacher: '',
+              optionalTeacherId: '',
               cabinet: '',
+              cabinetId: '',
               status: false,
               id: 0
 
@@ -281,7 +303,7 @@ export default {
                   status: (elem.status == true) ? 1 : 0,
                   date: this.date
                 }).then((res) => {
-                  console.log(res.data)
+                  // console.log(res.data)
                 })
                 //если пары не было, добавили новую
               } else {
@@ -298,8 +320,8 @@ export default {
                   status: (elem.status == true) ? 1 : 0,
                   date: this.date
                 }).then((res) => {
-                  console.log('vse ok')
-                  console.log(res.data)
+                  // console.log('vse ok')
+                  // console.log(res.data)
                 })
               }
             } else {
@@ -307,7 +329,7 @@ export default {
                 axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/deleteSchedule', {
                   id: elem.id
                 }).then((res) => {
-                  console.log(res.data)
+                  // console.log(res.data)
                 })
               }
             }
@@ -458,12 +480,12 @@ export default {
     Init() {
 
       axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/groups/all').then((res) => {
-            console.log(res.data)
+            // console.log(res.data)
             for (let i = 0; i < res.data.length; i++) {
               let gr = res.data[i]
               this.courses[gr.course].groups.push({...gr, subjects: []})
             }
-
+            this.getSubjectsByGroup()
             this.initDateCourseEvent();
             this.UpdateDateCourseEvent();
           }
@@ -478,7 +500,7 @@ export default {
     //получение текущей даты
     let today = new Date();
     axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/cabinets/all').then((res) => {
-      console.log(res.data)
+      // console.log(res.data)
       for (let i = 0; i < res.data.length; i++) {
         let cb = {
           id: res.data[i].id,
@@ -499,7 +521,7 @@ export default {
     //запросы на получение информации
 
     this.Init()
-    this.getSubjectsByGroup()
+
   },
   computed: {
     env() {
