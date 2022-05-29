@@ -22,7 +22,8 @@ class KtpService {
     }
 
     async getTeachersByKtp(subjectId,groupName) {
-        // console.log(subjectId)
+        console.log(subjectId)
+        console.log(groupName)
         return await sequelize.query(
             'select ' +
             'ktp.employeeId, ' +

@@ -18,7 +18,7 @@
           </thead>
           <tbody class="tbody_items">
           <tr v-for="lessonNumber in 7">
-            <td>{{ lessonNumber }}</td>
+            <td>{{ lessonTime[lessonNumber-1] }}</td>
             <td v-for="lessonInDay in week" :key="lessonInDay">
 
               <div class="event" v-if="this.weekEvents[group.name][lessonInDay.date][lessonNumber].subject!==''">
@@ -95,6 +95,15 @@ export default {
       selectedGroup: '',
       groups: [],
       week: [],
+      lessonTime:[
+          '08:30-10:00',
+          '10:10-11:40',
+          '12:10-13:40',
+          '13:50-15:20',
+          '15:50-17:20',
+          '17:30-19:00',
+          '19:10-20:40',
+      ]
     }
   },
   methods: {

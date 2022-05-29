@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f737f2cc-1493-4146-a24e-8663794c9609" name="Changes" comment="Fixed select group in scheduleView.vue">
+    <list default="true" id="f737f2cc-1493-4146-a24e-8663794c9609" name="Changes" comment="fixed loading subjects of selected group">
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/7ad900ae-6153-471e-80e1-95f93bcfe871.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/7ad900ae-6153-471e-80e1-95f93bcfe871.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/client/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/client/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/pages/print.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/print.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/pages/scheduleMain.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/scheduleMain.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/pages/scheduleView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/scheduleView.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/router/router.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/router/router.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/server/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/services/ktp.service.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/ktp.service.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/services/schedule.service.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/schedule.service.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -43,6 +50,9 @@
       <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
     </file-type-list>
   </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
   <component name="ProjectId" id="28KCN1CE0JYsUofYwXpW3w1Gh2C" />
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
@@ -51,20 +61,13 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">
-    <property name="ASKED_SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="DatabaseDriversLRU" value="mysql" />
-    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
-    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/Change SQL Dialect" value="MariaDB" />
-    <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/SQL Dialect" value="MySQL" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="nodejs_package_manager_path" value="npm" />
-    <property name="settings.editor.selected.configurable" value="MTConfigurable" />
-    <property name="ts.external.directory.path" value="C:\Program Files\JetBrains\WebStorm 2020.2.2\plugins\JavaScriptLanguage\jsLanguageServicesImpl\external" />
-    <property name="vue.rearranger.settings.migration" value="true" />
-  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "WebServerToolWindowFactoryState": "false",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -97,7 +100,10 @@
       <workItem from="1653229587569" duration="7879000" />
       <workItem from="1653273109910" duration="8968000" />
       <workItem from="1653378119184" duration="762000" />
-      <workItem from="1653457285089" duration="4606000" />
+      <workItem from="1653457285089" duration="12360000" />
+      <workItem from="1653554114685" duration="1201000" />
+      <workItem from="1653828412607" duration="798000" />
+      <workItem from="1653829804044" duration="6814000" />
     </task>
     <task id="LOCAL-00001" summary="edited some SQL queries">
       <created>1652002893534</created>
@@ -169,7 +175,14 @@
       <option name="project" value="LOCAL" />
       <updated>1653283611371</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="fixed loading subjects of selected group">
+      <created>1653467020074</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1653467020074</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -185,7 +198,6 @@
         </entry>
       </map>
     </option>
-    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="edited some SQL queries" />
@@ -198,6 +210,7 @@
     <MESSAGE value="fixed errors" />
     <MESSAGE value="completed print&amp;view" />
     <MESSAGE value="Fixed select group in scheduleView.vue" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixed select group in scheduleView.vue" />
+    <MESSAGE value="fixed loading subjects of selected group" />
+    <option name="LAST_COMMIT_MESSAGE" value="fixed loading subjects of selected group" />
   </component>
 </project>

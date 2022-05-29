@@ -31,7 +31,7 @@
       <tbody>
 
       <tr v-for="para in 7" :key="para.value">
-        <td>{{ para }} пара</td>
+        <td>{{ lessonTime[para-1] }}</td>
         <td v-for="(group) in dateCourseEvent[selectedCourse]" :key="group">
           <div class="formSubjects" v-if="group[para].subject!=''">
             <div>{{group[para].subject}}</div>
@@ -67,7 +67,15 @@ export default {
       date: '',
       selectedCourse: '',
       dateCourseEvent: {},
-
+      lessonTime:[
+        '08:30-10:00',
+        '10:10-11:40',
+        '12:10-13:40',
+        '13:50-15:20',
+        '15:50-17:20',
+        '17:30-19:00',
+        '19:10-20:40',
+      ],
       courses: {
         1: {groups: []},
         2: {groups: []},

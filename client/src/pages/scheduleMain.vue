@@ -3,7 +3,8 @@
 
     <div class="datePicker" id="content">
       <form>
-        <input class="button-6" type="date" @change="UpdateDateCourseEvent(date)" v-model="date" min="">
+        <input class="button-6" type="date" @change="UpdateDateCourseEvent(date)" v-model="date"
+               min="{{this.disabledDates}}">
         <select class="button-6" v-model="selectedCourse"
                 @change="getSubjectsByGroup()"
         >
@@ -23,20 +24,20 @@
         <th v-for="group in getCourses(selectedCourse)" :key="group">
           <div class="thGroup">
             <div> {{ group.name }}</div>
-            <template v-if="group.status==1">Дистант</template>
           </div>
         </th>
       </tr>
       </thead>
       <tbody>
       <tr v-for="para in 7" :key="para.value">
-        <td class="lessonNumber">{{ para }} пара</td>
+        <td class="lessonNumber">{{ this.lessonTime[para - 1] }}</td>
         <td v-for="(group,idx) in dateCourseEvent[selectedCourse]">
           <div class="formSubjects">
 
             <select class="selectdiv"
                     v-model="group[para].subjectId"
                     @click="getSubjectList(idx)"
+                    @change="setEmpty(group[para]);"
             >
               <option></option>
               <option v-for="subject in getSubjectList(idx)" :key="subject.subjectId" :value="subject.subjectId">
@@ -47,29 +48,39 @@
 
               <select class="selectdiv"
                       v-model="group[para].teacherId"
-                      @click="getTeacherBySubject(group[para].subject,Object.keys(dateCourseEvent[selectedCourse]),idx)">
-
-                <option :value="group[para].teacher">
-                  {{ mainEmployee.fullName }}
+                      @click="getTeacherBySubject(group[para].subjectId,Object.keys(dateCourseEvent[selectedCourse]),idx,group[para])">
+                <option></option>
+                <option
+                    :value="group[para].teacherId">
+                  {{ group[para].teacher }}
                 </option>
               </select>
 
 
-              <select v-model="group[para].groupTeacher">
-
-                <option :value="groupEmployee.id">
-                  {{ groupEmployee.fullName }}
+              <select v-model="group[para].optionalTeacherId">
+                <option
+                    :value="group[para].optionalTeacherId">
+                  {{ group[para].optionalTeacher }}
                 </option>
               </select>
 
 
               <select class="selectdiv" @click=""
-                      v-model="group[para].cabinet">
+                      v-model="group[para].cabinetId">
                 <option></option>
-                <option v-for="cabinet in cabinets" :key="cabinet.id" :value="cabinet.id">
+                <option v-if="group[para].subjectId!==''"
+                        v-for="cabinet in cabinets" :key="cabinet.id" :value="cabinet.id">
                   {{ cabinet.number }}
                 </option>
               </select>
+              <!--              доделать выбор опционального кабинета если есть опциональный преподаватель-->
+              <!--              <select class="selectdiv" @click=""-->
+              <!--                      v-model="group[para].cabinet">-->
+              <!--                <option></option>-->
+              <!--                <option v-for="cabinet in cabinets" :key="cabinet.id" :value="cabinet.id">-->
+              <!--                  {{ cabinet.number }}-->
+              <!--                </option>-->
+              <!--              </select>-->
 
               <!--постараться сделать этo-->
               <!--                        <input @change="checkDublicateCabinet(group[para].cabinet)"-->
@@ -95,7 +106,6 @@
 
     <button class="button-7" @click="sendPostObject">отправить</button>
     <button class="button-7" @click="checkEmptySelect">проверить</button>
-    <!-- HTML !-->
 
 
   </div>
@@ -105,8 +115,6 @@
 
 
 import axios from "axios";
-import {logging} from "../../../server/config/db.config";
-import {nextTick} from "vue";
 
 export default {
   data() {
@@ -114,18 +122,18 @@ export default {
 
       date: '',
       selectedCourse: '',
-
-      mainEmployee: {
-        id: '',
-        fullName: ''
-      },
-      groupEmployee: {
-        id: '',
-        fullName: ''
-      },
       cabinets: [],
       dateCourseEvent: {},
-
+      lessonTime: [
+        '08:30-10:00',
+        '10:10-11:40',
+        '12:10-13:40',
+        '13:50-15:20',
+        '15:50-17:20',
+        '17:30-19:00',
+        '19:10-20:40',
+      ],
+      disabledDates: {},
       courses: {
         1: {groups: []},
         2: {groups: []},
@@ -136,7 +144,13 @@ export default {
   },
   methods: {
     test() {
-      console.log(this.courses[this.selectedCourse].groups[0].subjects)
+      let monday = new Date(this.date)
+      let day = monday.getDay() || 7;
+      if (day !== 1)
+        monday.setHours(-24 * (day - 1));
+      let saturday = new Date(monday.setDate(monday.getDate() + 5));
+
+
     },
     getCourses(course) {
 
@@ -166,11 +180,19 @@ export default {
       }
 
     },
+    setEmpty(lesson) {
+      lesson.cabinet = ''
+      lesson.cabinetId = ''
+      lesson.teacher = ''
+      lesson.teacherId = ''
+      lesson.optionalTeacher = ''
+      lesson.optionalTeacherId = ''
+      lesson.status = ''
+    },
 
     // в test лежит название группы
     getSubjectList(test) {
       let course = this.selectedCourse;
-
       for (let i in this.courses[course].groups) {
         if (this.courses[course].groups[i].name === test) {
           return this.courses[course].groups[i].subjects
@@ -188,8 +210,8 @@ export default {
         return res
       })
     },
-    getTeacherBySubject(subjectId, group, idx) {
-
+    getTeacherBySubject(subjectId, group, idx, groupLesson) {
+      console.log(subjectId)
       axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/ktp/getTeachers', {
         subject: subjectId,
         group: idx
@@ -197,10 +219,10 @@ export default {
       }).then((res) => {
             console.log('asdasd')
             console.log(res.data)
-            this.mainEmployee.id = res.data[0].teacherId,
-                this.mainEmployee.fullName = res.data[0].main_emp,
-                this.groupEmployee.id = res.data[0].group_employee,
-                this.groupEmployee.fullName = res.data[0].group_emp
+            groupLesson.teacherId = res.data[0].employeeId,
+                groupLesson.teacher = res.data[0].main_emp,
+                groupLesson.optionalTeacher = res.data[0].group_emp,
+                groupLesson.optionalTeacherId = res.data[0].group_employee
           }
       ).catch(err => console.warn(err))
     },
@@ -213,7 +235,11 @@ export default {
           for (let j = 1; j < 8; j++) {
             let elem = this.dateCourseEvent[k][groups[i].name][j]
             elem.subject = ''
+            elem.subjectId = ''
             elem.teacher = ''
+            elem.teacherId = ''
+            elem.optionalTeacher = ''
+            elem.optionalTeacherId = ''
             elem.cabinet = ''
             elem.status = (groups[i].status == 1) ? 1 : 0,
                 elem.id = 0
@@ -223,11 +249,9 @@ export default {
       axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/getCurrentSchedule', {
         date: this.date
       }).then((res) => {
-        // console.log('======================================================')
-        // console.log(res.data)
+        console.log('======================================================')
+        console.log(res.data)
         for (let i = 0; i < res.data.length; i++) {
-          console.log(res.data)
-          // console.log(this.dateCourseEvent[res.data[i].course][res.data[i].name][res.data[i].lesson_number])
           let elem = this.dateCourseEvent[res.data[i].course][res.data[i].name][res.data[i].lesson_number]
 
           elem.subject = res.data[i].subject
@@ -285,17 +309,18 @@ export default {
             //информация о паре выбранной группы
             let elem = this.dateCourseEvent[k][groups[i].name][j]
             //проверка на пустой предмет
-            let notEmpty = (elem.subject != '' && elem.teacher != '' && elem.cabinet != '')
+            let notEmpty = (elem.subjectId != '' && elem.teacherId != '' && elem.cabinetId != '')
             //проверка на пустой  элемент расписания
             if (notEmpty) {
               //если пара уже была, но изменили данные внутри
               if (elem.id != 0 || elem.id != '') {
                 //update
                 axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/updateSchedule', {
-                  subject: elem.subject,
-                  teacher: elem.teacher,
-                  groupTeacher: (elem.groupTeacher) ? elem.groupTeacher : null,
-                  cabinet: elem.cabinet,
+                  id: elem.id,
+                  subject: elem.subjectId,
+                  teacher: elem.teacherId,
+                  optionalTeacher: (elem.optionalTeacherId) ?? null,
+                  cabinet: elem.cabinetId,
                   //потом добавить
                   // event:elem.event,
                   lessonNumber: j,
@@ -303,16 +328,16 @@ export default {
                   status: (elem.status == true) ? 1 : 0,
                   date: this.date
                 }).then((res) => {
-                  // console.log(res.data)
+                  console.log(elem.subject + ' успешно добавлено')
                 })
                 //если пары не было, добавили новую
               } else {
 
                 axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/createNewLesson', {
-                  subject: elem.subject,
-                  teacher: elem.teacher,
-                  groupTeacher: (elem.groupTeacher) ? elem.groupTeacher : null,
-                  cabinet: elem.cabinet,
+                  subject: elem.subjectId,
+                  teacher: elem.teacherId,
+                  optionalTeacher: (elem.optionalTeacherId) ?? null,
+                  cabinet: elem.cabinetId,
                   //потом добавить
                   // event:elem.event,
                   lessonNumber: j,
@@ -320,8 +345,7 @@ export default {
                   status: (elem.status == true) ? 1 : 0,
                   date: this.date
                 }).then((res) => {
-                  // console.log('vse ok')
-                  // console.log(res.data)
+                  console.log(elem.subject + ' успешно добавлено')
                 })
               }
             } else {
@@ -329,7 +353,7 @@ export default {
                 axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/deleteSchedule', {
                   id: elem.id
                 }).then((res) => {
-                  // console.log(res.data)
+                  console.log(' успешно удалено')
                 })
               }
             }

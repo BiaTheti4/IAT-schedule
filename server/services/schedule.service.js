@@ -20,7 +20,7 @@ class ScheduleService {
             'concat(emp.last_name, \' \', left(emp.first_name,1),".", \' \', left(emp.fathers_name,1),".") as group_emp, ' +
             'schedule_new.optional_teacher_id from schedule_new ' +
             '    inner join employees e on schedule_new.teacher_id = e.employeeId ' +
-            '    inner join employees emp on schedule_new.optional_teacher_id=emp.employeeId ' +
+            '    left join employees emp on schedule_new.optional_teacher_id=emp.employeeId ' +
             '    inner join cabinets c on schedule_new.cabinet_id = c.id ' +
             '    inner join `groups` g on schedule_new.group_id = g.groupId ' +
             '    inner join subjects s on schedule_new.subject_id = s.subjectId ' +
@@ -90,7 +90,7 @@ class ScheduleService {
                     // event: lesson.event,
                     lesson: lesson.lessonNumber,
                     teacher: lesson.teacher,
-                    optional_teacher: lesson.groupTeacher,
+                    optional_teacher: lesson.optionalTeacher,
                     subject: lesson.subject,
                     group: lesson.groupId,
                     cabinet: lesson.cabinet
@@ -101,16 +101,25 @@ class ScheduleService {
     }
 
     async updateSchedule(lesson) {
+        console.log(lesson)
         return await sequelize.query(
-            'update schedule_new set status=:status,lesson_number=:lesson,teacher_id=:teacher,optional_teacher_id=:optional_teacher,subject_id=:subject,group_id=:group,cabinet_id=:cabinet ' +
+            'update schedule_new set ' +
+            'status=:status,' +
+            'lesson_number=:lesson,' +
+            'teacher_id=:teacher,' +
+            'optional_teacher_id=:optional_teacher,' +
+            'subject_id=:subject,' +
+            'group_id=:group,' +
+            'cabinet_id=:cabinet ' +
             'where id=:id', {
                 replacements: {
+                    id: lesson.id,
                     date: lesson.date,
                     status: lesson.status,
                     // event: lesson.event,
                     lesson: lesson.lessonNumber,
                     teacher: lesson.teacher,
-                    optional_teacher: lesson.groupTeacher,
+                    optional_teacher: lesson.optionalTeacher,
                     subject: lesson.subject,
                     group: lesson.groupId,
                     cabinet: lesson.cabinet

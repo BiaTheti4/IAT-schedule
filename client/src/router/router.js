@@ -36,6 +36,7 @@ const routes=[
         path:'/print',
         component:print,
     },
+
 ]
 
 const router = createRouter({
