@@ -27,7 +27,7 @@
                 <label>Преподаватель: {{
                     this.weekEvents[group.name][lessonInDay.date][lessonNumber].mainTeacher
                   }}</label>
-                <label v-if=" this.weekEvents[group.name][lessonInDay.date][lessonNumber].optionalTeacher!==''">Преподаватель
+                <label v-if=" this.weekEvents[group.name][lessonInDay.date][lessonNumber].optionalTeacher">Преподаватель
                   в группе: {{ this.weekEvents[group.name][lessonInDay.date][lessonNumber].optionalTeacher }}</label>
                 <label class="distant" v-if="this.weekEvents[group.name][lessonInDay.date][lessonNumber].status=0">Дистант</label>
               </div>
@@ -125,7 +125,7 @@ export default {
       if (this.getWeekDay(day) === 'вс') day.setDate(day.getDate() + 1)
       console.log(day)
       let objectDate = {
-        date: this.getFullDate(day),
+        date: this.DateToBD(day),
         weekDay: this.getWeekDay(day),
       }
       this.week.push(objectDate)
@@ -135,7 +135,7 @@ export default {
         nextDay.setDate(day.getDate() + i);
         i++
         let objectDate = {
-          date: this.getFullDate(nextDay),
+          date: this.DateToBD(nextDay),
           weekDay: this.getWeekDay(nextDay),
         }
         if (objectDate.weekDay === 'вс') continue
@@ -167,7 +167,7 @@ export default {
       }
       for (let j in res.data) {
 
-        let date = this.getFullDate(new Date(res.data[j].date))
+        let date = this.DateToBD(new Date(res.data[j].date))
         console.log(date)
         let grp = res.data[j].name
         let para = res.data[j].lesson_number

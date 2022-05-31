@@ -28,6 +28,15 @@ class ScheduleController {
             await ScheduleService.updateSchedule(lesson)
         )
     }
+    async getWeekHours(req, res) {
+        const startWeek  = req.body.startWeek
+        const endWeek = req.body.endWeek
+        const groupId = req.body.groupId
+        const currentDate = req.body.currentDate
+        return res.json(
+            await ScheduleService.getWeekHours(currentDate,startWeek, endWeek,groupId)
+        )
+    }
 
     async deleteSchedule(req, res) {
         const lesson = req.body

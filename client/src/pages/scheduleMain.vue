@@ -101,6 +101,14 @@
           </div>
         </td>
       </tr>
+      <tr>
+        <td>
+          Количество часов в неделю:
+        </td>
+        <td v-for="group in getCourses(selectedCourse)" :key="group">
+          {{ getWeekHours(group.groupId) }}/36
+        </td>
+      </tr>
       </tbody>
     </table>
 
@@ -115,6 +123,7 @@
 
 
 import axios from "axios";
+import moment from 'moment';
 
 export default {
   data() {
@@ -143,15 +152,42 @@ export default {
     }
   },
   methods: {
-    test() {
-      let monday = new Date(this.date)
-      let day = monday.getDay() || 7;
-      if (day !== 1)
-        monday.setHours(-24 * (day - 1));
-      let saturday = new Date(monday.setDate(monday.getDate() + 5));
 
+    getStudyWeek() {
+      let dt = moment(this.date);
+      let year = dt.year();
+      if (dt.month() < 8) {
+        year--;
+      }
+      let startDate = moment(year + '-09-01');// start week
+      let diffWeeks = dt.diff(startDate, 'weeks');
+      let startWeekDate = startDate.add(diffWeeks, 'w');
+      let endWeekDate = startWeekDate.clone().add(6, 'd');
 
+      return [startWeekDate.format('YYYY-MM-DD'), endWeekDate.format('YYYY-MM-DD')]
+
+      /**
+       *    let monday = new Date(this.date)
+       *       let day = monday.getDay() || 7;
+       *       if (day !== 1)
+       *         monday.setHours(-24 * (day - 1));
+       *       let saturday = new Date(monday.setDate(monday.getDate() + 5));
+       */
     },
+    getWeekHours(groupId) {
+      let week = this.getStudyWeek()
+      axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/getWeekHours', {
+        startWeek: week[0],
+        endWeek: week[1],
+        groupId: groupId,
+        currentDate: this.date
+      }).then((res) => {
+
+            return res.data[0][0]
+          }
+      )
+    },
+
     getCourses(course) {
 
       switch (Number(course)) {
@@ -166,20 +202,22 @@ export default {
         default:
           return this.courses[1].groups;
       }
-    },
+    }
+    ,
     async getSubjectsByGroup() {
       for (let group in this.courses[this.selectedCourse].groups) {
         axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/ktp/getSubjects', {
           group: this.courses[this.selectedCourse].groups[group].name
         }).then((res) => {
-              console.log(res.data)
+
               this.courses[this.selectedCourse].groups[group].subjects = res.data
 
             }
         )
       }
 
-    },
+    }
+    ,
     setEmpty(lesson) {
       lesson.cabinet = ''
       lesson.cabinetId = ''
@@ -188,7 +226,8 @@ export default {
       lesson.optionalTeacher = ''
       lesson.optionalTeacherId = ''
       lesson.status = ''
-    },
+    }
+    ,
 
     // в test лежит название группы
     getSubjectList(test) {
@@ -202,14 +241,16 @@ export default {
       }
       console.log(test)
       return this.courses[this.selectedCourse].groups[group]?.subjects
-    },
+    }
+    ,
     getTeacherName(id) {
       axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/ktp/getTeachers', {
         teacher: id
       }).then((res) => {
         return res
       })
-    },
+    }
+    ,
     getTeacherBySubject(subjectId, group, idx, groupLesson) {
       console.log(subjectId)
       axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/ktp/getTeachers', {
@@ -225,7 +266,8 @@ export default {
                 groupLesson.optionalTeacherId = res.data[0].group_employee
           }
       ).catch(err => console.warn(err))
-    },
+    }
+    ,
 
     UpdateDateCourseEvent() {
       this.selectedCourse = 1
@@ -249,8 +291,6 @@ export default {
       axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/getCurrentSchedule', {
         date: this.date
       }).then((res) => {
-        console.log('======================================================')
-        console.log(res.data)
         for (let i = 0; i < res.data.length; i++) {
           let elem = this.dateCourseEvent[res.data[i].course][res.data[i].name][res.data[i].lesson_number]
 
@@ -270,7 +310,8 @@ export default {
           elem.id = res.data[i].id;
         }
       })
-    },
+    }
+    ,
     initDateCourseEvent() {
       this.dateCourseEvent = {}
       for (let k = 1; k < 5; k++) {
@@ -295,7 +336,8 @@ export default {
           }
         }
       }
-    },
+    }
+    ,
     sendPostObject() {
 
       //итерации по курсу
@@ -360,7 +402,8 @@ export default {
           }
         }
       }
-    },
+    }
+    ,
 
     checkSpaceBetween() {
       //итерации по курсу
@@ -394,7 +437,8 @@ export default {
 
       }
 
-    },
+    }
+    ,
     checkDublicateTeacher() {
       for (let p = 1; p < 8; p++) {
         let arrTeacher = []
@@ -436,7 +480,8 @@ export default {
       console.log("--------------------")
 
 
-    },
+    }
+    ,
     checkEmptySelect() {
       //итерации по курсу
       for (let k = 1; k < 5; k++) {
@@ -459,7 +504,8 @@ export default {
           }
         }
       }
-    },
+    }
+    ,
 
     checkDublicateCabinet(cabinet) {
       for (let p = 1; p < 8; p++) {
@@ -500,7 +546,8 @@ export default {
         console.log("para: " + p)
       }
       console.log("--------------------")
-    },
+    }
+    ,
     Init() {
 
       axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/groups/all').then((res) => {
@@ -515,7 +562,8 @@ export default {
           }
       )
 
-    },
+    }
+    ,
 
 
   },
