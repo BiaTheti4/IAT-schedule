@@ -1,10 +1,12 @@
 <template>
+  <!--  {{ test('ya eblan') }}-->
   <div>
-
+    <button @click="getWeekHours">
+      qweqwe
+    </button>
     <div class="datePicker" id="content">
       <form>
-        <input class="button-6" type="date" @change="UpdateDateCourseEvent(date)" v-model="date"
-               min="{{this.disabledDates}}">
+        <input class="button-6" type="date" @change="UpdateDateCourseEvent(date);getWeekHours() " v-model="date">
         <select class="button-6" v-model="selectedCourse"
                 @change="getSubjectsByGroup()"
         >
@@ -13,9 +15,6 @@
       </form>
 
     </div>
-    <button @click="test()">
-
-    </button>
     <br>
     <table class="table">
       <thead>
@@ -28,16 +27,16 @@
         </th>
       </tr>
       </thead>
+
       <tbody>
       <tr v-for="para in 7" :key="para.value">
         <td class="lessonNumber">{{ this.lessonTime[para - 1] }}</td>
         <td v-for="(group,idx) in dateCourseEvent[selectedCourse]">
           <div class="formSubjects">
-
             <select class="selectdiv"
                     v-model="group[para].subjectId"
                     @click="getSubjectList(idx)"
-                    @change="setEmpty(group[para]);"
+                    @change="setEmpty(group[para]);getWeekHours()"
             >
               <option></option>
               <option v-for="subject in getSubjectList(idx)" :key="subject.subjectId" :value="subject.subjectId">
@@ -105,17 +104,18 @@
         <td>
           Количество часов в неделю:
         </td>
-        <td v-for="group in getCourses(selectedCourse)" :key="group">
-          {{ getWeekHours(group.groupId) }}/36
+        <td v-for="(group,idx) in getCourses(selectedCourse)" :key="idx">
+          {{ group.hours * 2 }}
+
         </td>
+
       </tr>
       </tbody>
+
     </table>
 
     <button class="button-7" @click="sendPostObject">отправить</button>
     <button class="button-7" @click="checkEmptySelect">проверить</button>
-
-
   </div>
 </template>
 
@@ -142,7 +142,7 @@ export default {
         '17:30-19:00',
         '19:10-20:40',
       ],
-      disabledDates: {},
+      groupHours: {},
       courses: {
         1: {groups: []},
         2: {groups: []},
@@ -152,7 +152,6 @@ export default {
     }
   },
   methods: {
-
     getStudyWeek() {
       let dt = moment(this.date);
       let year = dt.year();
@@ -163,33 +162,35 @@ export default {
       let diffWeeks = dt.diff(startDate, 'weeks');
       let startWeekDate = startDate.add(diffWeeks, 'w');
       let endWeekDate = startWeekDate.clone().add(6, 'd');
-
       return [startWeekDate.format('YYYY-MM-DD'), endWeekDate.format('YYYY-MM-DD')]
 
-      /**
-       *    let monday = new Date(this.date)
-       *       let day = monday.getDay() || 7;
-       *       if (day !== 1)
-       *         monday.setHours(-24 * (day - 1));
-       *       let saturday = new Date(monday.setDate(monday.getDate() + 5));
-       */
     },
-    getWeekHours(groupId) {
+    getWeekHours() {
       let week = this.getStudyWeek()
-      axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/getWeekHours', {
-        startWeek: week[0],
-        endWeek: week[1],
-        groupId: groupId,
-        currentDate: this.date
-      }).then((res) => {
+      for (let i = 0; i < this.getCourses(this.selectedCourse).length; i++) {
+        let groupId = this.getCourses(this.selectedCourse)[i].groupId
 
-            return res.data[0][0]
-          }
-      )
+        axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/getWeekHours', {
+          startWeek: week[0],
+          endWeek: week[1],
+          groupId: groupId,
+          currentDate: this.date
+        }).then((res) => {
+              this.courses[this.selectedCourse].groups[i].hours = res.data[0][0].hours
+              let groupName = this.courses[this.selectedCourse].groups[i].name;
+              for (let lessonNumber = 1; lessonNumber < 8; lessonNumber++) {
+                if (this.dateCourseEvent[this.selectedCourse][groupName][lessonNumber].subjectId !== '') {
+                  this.courses[this.selectedCourse].groups[i].hours += 1
+                  // console.log(this.courses[this.selectedCourse].groups[i].name)
+                  // console.log(this.dateCourseEvent[this.selectedCourse].group[lessonNumber].subjectId)
+                }
+              }
+            }
+        )
+      }
     },
 
     getCourses(course) {
-
       switch (Number(course)) {
         case 1:
           return this.courses[1].groups;
@@ -202,22 +203,18 @@ export default {
         default:
           return this.courses[1].groups;
       }
-    }
-    ,
+    },
     async getSubjectsByGroup() {
       for (let group in this.courses[this.selectedCourse].groups) {
         axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/ktp/getSubjects', {
           group: this.courses[this.selectedCourse].groups[group].name
         }).then((res) => {
-
               this.courses[this.selectedCourse].groups[group].subjects = res.data
-
             }
         )
       }
 
-    }
-    ,
+    },
     setEmpty(lesson) {
       lesson.cabinet = ''
       lesson.cabinetId = ''
@@ -226,8 +223,7 @@ export default {
       lesson.optionalTeacher = ''
       lesson.optionalTeacherId = ''
       lesson.status = ''
-    }
-    ,
+    },
 
     // в test лежит название группы
     getSubjectList(test) {
@@ -241,16 +237,14 @@ export default {
       }
       console.log(test)
       return this.courses[this.selectedCourse].groups[group]?.subjects
-    }
-    ,
+    },
     getTeacherName(id) {
       axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/ktp/getTeachers', {
         teacher: id
       }).then((res) => {
         return res
       })
-    }
-    ,
+    },
     getTeacherBySubject(subjectId, group, idx, groupLesson) {
       console.log(subjectId)
       axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/ktp/getTeachers', {
@@ -258,7 +252,6 @@ export default {
         group: idx
 
       }).then((res) => {
-            console.log('asdasd')
             console.log(res.data)
             groupLesson.teacherId = res.data[0].employeeId,
                 groupLesson.teacher = res.data[0].main_emp,
@@ -266,9 +259,7 @@ export default {
                 groupLesson.optionalTeacherId = res.data[0].group_employee
           }
       ).catch(err => console.warn(err))
-    }
-    ,
-
+    },
     UpdateDateCourseEvent() {
       this.selectedCourse = 1
       for (let k = 1; k < 5; k++) {
@@ -310,8 +301,7 @@ export default {
           elem.id = res.data[i].id;
         }
       })
-    }
-    ,
+    },
     initDateCourseEvent() {
       this.dateCourseEvent = {}
       for (let k = 1; k < 5; k++) {
@@ -336,8 +326,8 @@ export default {
           }
         }
       }
-    }
-    ,
+      this.getWeekHours()
+    },
     sendPostObject() {
 
       //итерации по курсу
@@ -391,170 +381,169 @@ export default {
                 })
               }
             } else {
-              if (elem.id != '') {
+              if (elem.id != '' && elem.subjectId == '') {
                 axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/deleteSchedule', {
                   id: elem.id
                 }).then((res) => {
-                  console.log(' успешно удалено')
+                  console.log(elem.id + ' ' + elem.subject + ' ' + ' успешно удалено')
                 })
               }
             }
           }
         }
       }
-    }
-    ,
+    },
 
-    checkSpaceBetween() {
-      //итерации по курсу
+    // checkSpaceBetween() {
+    //   //итерации по курсу
+    //
+    //   for (let k = 1; k < 5; k++) {
+    //     //группы в курсе
+    //     let groups = this.getCourses(k)
+    //     //итерации по группам
+    //     for (let i = 0; i < groups.length; i++) {
+    //       //итерации по номеру пары
+    //       let arr = []
+    //       let firstElem = ''
+    //       for (let j = 1, asd = 0; j < 8; j++, asd++) {
+    //         if (this.dateCourseEvent[k][groups[i].name][j].cabinet != ''
+    //             && this.dateCourseEvent[k][groups[i].name][j].subject != ''
+    //             && this.dateCourseEvent[k][groups[i].name][j].teacher != '') {
+    //           if (firstElem = '') firstElem = j
+    //           else
+    //             arr.push(j)
+    //         }
+    //         console.log(firstElem)
+    //         // if (arr[j] < arr.length && arr[j + 1] - arr[j] !== 1) {
+    //         //   console.log('ПРОБЕЛ МЕЖДУ ПАРАМИ')
+    //         // } else {
+    //         //   console.log('все ок')
+    //         // }
+    //
+    //       }
+    //
+    //     }
+    //
+    //   }
+    //
+    // },
+    // checkDublicateTeacher() {
+    //   for (let p = 1; p < 8; p++) {
+    //     let arrTeacher = []
+    //     for (let k = 1; k < 5; k++) {
+    //       let groups = this.getCourses(k)
+    //       for (let i = 0; i < groups.length; i++) {
+    //
+    //         let elem = this.dateCourseEvent[k][groups[i].name][p]
+    //         if (elem.teacher != '') {
+    //           let inArr = false
+    //           for (let j = 0; j < arrTeacher.length; j++) {
+    //             if (arrTeacher[j].elem.teacher == elem.teacher) {
+    //               inArr = true
+    //               console.log("повторный выбор Преподователя " + elem.teacher)
+    //               let elemArr = {
+    //                 elem: elem,
+    //                 group: groups[i].name,
+    //                 para: p,
+    //                 course: k
+    //               }
+    //               console.log(arrTeacher[j])
+    //               console.log(elemArr)
+    //             }
+    //           }
+    //           if (!inArr) {
+    //             let arrItem = {
+    //               elem: elem,
+    //               group: groups[i].name,
+    //               para: p,
+    //               course: k
+    //             }
+    //             arrTeacher.push(arrItem)
+    //           }
+    //         }
+    //       }
+    //     }
+    //     console.log("para: " + p)
+    //   }
+    //   console.log("--------------------")
+    //
+    //
+    // }
+    // ,
+    // checkEmptySelect() {
+    //   //итерации по курсу
+    //   for (let k = 1; k < 5; k++) {
+    //     //группы в курсе
+    //     let groups = this.getCourses(k)
+    //     //итерации по группам
+    //     for (let i = 0; i < groups.length; i++) {
+    //       //итерации по номеру пары
+    //       for (let j = 1; j < 8; j++) {
+    //         //информация о паре выбранной группы
+    //         let elem = this.dateCourseEvent[k][groups[i].name][j]
+    //
+    //         //проверка на пустой предмет
+    //         let correct = ((elem.subject == '' && elem.teacher == '' && elem.cabinet == '') || (elem.subject != '' && elem.teacher != '' && elem.cabinet != ''))
+    //
+    //         //проверка на пустой  элемент расписания
+    //         if (!correct) {
+    //           alert('Некорректно заполнена пара' + '\n' + 'группа: ' + groups[i].name + '\n' + 'пара:' + j)
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
+    // ,
 
-      for (let k = 1; k < 5; k++) {
-        //группы в курсе
-        let groups = this.getCourses(k)
-        //итерации по группам
-        for (let i = 0; i < groups.length; i++) {
-          //итерации по номеру пары
-          let arr = []
-          let firstElem = ''
-          for (let j = 1, asd = 0; j < 8; j++, asd++) {
-            if (this.dateCourseEvent[k][groups[i].name][j].cabinet != ''
-                && this.dateCourseEvent[k][groups[i].name][j].subject != ''
-                && this.dateCourseEvent[k][groups[i].name][j].teacher != '') {
-              if (firstElem = '') firstElem = j
-              else
-                arr.push(j)
-            }
-            console.log(firstElem)
-            // if (arr[j] < arr.length && arr[j + 1] - arr[j] !== 1) {
-            //   console.log('ПРОБЕЛ МЕЖДУ ПАРАМИ')
-            // } else {
-            //   console.log('все ок')
-            // }
-
-          }
-
-        }
-
-      }
-
-    }
-    ,
-    checkDublicateTeacher() {
-      for (let p = 1; p < 8; p++) {
-        let arrTeacher = []
-        for (let k = 1; k < 5; k++) {
-          let groups = this.getCourses(k)
-          for (let i = 0; i < groups.length; i++) {
-
-            let elem = this.dateCourseEvent[k][groups[i].name][p]
-            if (elem.teacher != '') {
-              let inArr = false
-              for (let j = 0; j < arrTeacher.length; j++) {
-                if (arrTeacher[j].elem.teacher == elem.teacher) {
-                  inArr = true
-                  console.log("повторный выбор Преподователя " + elem.teacher)
-                  let elemArr = {
-                    elem: elem,
-                    group: groups[i].name,
-                    para: p,
-                    course: k
-                  }
-                  console.log(arrTeacher[j])
-                  console.log(elemArr)
-                }
-              }
-              if (!inArr) {
-                let arrItem = {
-                  elem: elem,
-                  group: groups[i].name,
-                  para: p,
-                  course: k
-                }
-                arrTeacher.push(arrItem)
-              }
-            }
-          }
-        }
-        console.log("para: " + p)
-      }
-      console.log("--------------------")
-
-
-    }
-    ,
-    checkEmptySelect() {
-      //итерации по курсу
-      for (let k = 1; k < 5; k++) {
-        //группы в курсе
-        let groups = this.getCourses(k)
-        //итерации по группам
-        for (let i = 0; i < groups.length; i++) {
-          //итерации по номеру пары
-          for (let j = 1; j < 8; j++) {
-            //информация о паре выбранной группы
-            let elem = this.dateCourseEvent[k][groups[i].name][j]
-
-            //проверка на пустой предмет
-            let correct = ((elem.subject == '' && elem.teacher == '' && elem.cabinet == '') || (elem.subject != '' && elem.teacher != '' && elem.cabinet != ''))
-
-            //проверка на пустой  элемент расписания
-            if (!correct) {
-              alert('Некорректно заполнена пара' + '\n' + 'группа: ' + groups[i].name + '\n' + 'пара:' + j)
-            }
-          }
-        }
-      }
-    }
-    ,
-
-    checkDublicateCabinet(cabinet) {
-      for (let p = 1; p < 8; p++) {
-        let arrCabinets = []
-        for (let k = 1; k < 5; k++) {
-          let groups = this.getCourses(k)
-          for (let i = 0; i < groups.length; i++) {
-
-            let elem = this.dateCourseEvent[k][groups[i].name][p]
-            if (elem.cabinet != '') {
-              let inArr = false
-              for (let j = 0; j < arrCabinets.length; j++) {
-                if (arrCabinets[j].elem.cabinet == elem.cabinet) {
-                  inArr = true
-                  console.log("повторный выбор кабинета " + elem.cabinet)
-                  let elemArr = {
-                    elem: elem,
-                    group: groups[i].name,
-                    para: p,
-                    course: k
-                  }
-                  console.log(arrCabinets[j])
-                  console.log(elemArr)
-                }
-              }
-              if (!inArr) {
-                let arrItem = {
-                  elem: elem,
-                  group: groups[i].name,
-                  para: p,
-                  course: k
-                }
-                arrCabinets.push(arrItem)
-              }
-            }
-          }
-        }
-        console.log("para: " + p)
-      }
-      console.log("--------------------")
-    }
-    ,
+    // checkDublicateCabinet(cabinet) {
+    //   for (let p = 1; p < 8; p++) {
+    //     let arrCabinets = []
+    //     for (let k = 1; k < 5; k++) {
+    //       let groups = this.getCourses(k)
+    //       for (let i = 0; i < groups.length; i++) {
+    //
+    //         let elem = this.dateCourseEvent[k][groups[i].name][p]
+    //         if (elem.cabinet != '') {
+    //           let inArr = false
+    //           for (let j = 0; j < arrCabinets.length; j++) {
+    //             if (arrCabinets[j].elem.cabinet == elem.cabinet) {
+    //               inArr = true
+    //               console.log("повторный выбор кабинета " + elem.cabinet)
+    //               let elemArr = {
+    //                 elem: elem,
+    //                 group: groups[i].name,
+    //                 para: p,
+    //                 course: k
+    //               }
+    //               console.log(arrCabinets[j])
+    //               console.log(elemArr)
+    //             }
+    //           }
+    //           if (!inArr) {
+    //             let arrItem = {
+    //               elem: elem,
+    //               group: groups[i].name,
+    //               para: p,
+    //               course: k
+    //             }
+    //             arrCabinets.push(arrItem)
+    //           }
+    //         }
+    //       }
+    //     }
+    //     console.log("para: " + p)
+    //   }
+    //   console.log("--------------------")
+    // }
+    // ,
     Init() {
 
       axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/groups/all').then((res) => {
             // console.log(res.data)
             for (let i = 0; i < res.data.length; i++) {
               let gr = res.data[i]
-              this.courses[gr.course].groups.push({...gr, subjects: []})
+              this.courses[gr.course].groups.push({...gr, subjects: [], hours: 0})
+
             }
             this.getSubjectsByGroup()
             this.initDateCourseEvent();
@@ -562,10 +551,7 @@ export default {
           }
       )
 
-    }
-    ,
-
-
+    },
   },
   mounted() {
 
@@ -592,7 +578,13 @@ export default {
     this.selectedCourse = '1';
     //запросы на получение информации
 
-    this.Init()
+    this.Init();
+    // console.log(this.courses[this.selectedCourse].groups[0])
+    // // for (let i=0;i<this.getCourses(this.selectedCourse).length;i++) {
+    // //   this.getWeekHours(this.getCourses(this.selectedCourse)[i])
+    // //   console.log(this.getCourses(this.selectedCourse)[i]);
+    // // }
+
 
   },
   computed: {
@@ -600,6 +592,9 @@ export default {
       return process.env
     },
 
+    test(asd) {
+      console.log(asd)
+    },
 
   }
 

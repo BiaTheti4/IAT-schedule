@@ -7,34 +7,34 @@ import groups from "@/pages/groups";
 import scheduleView from "../pages/scheduleView";
 import print from "../pages/print";
 
-const routes=[
+const routes = [
     {
-        path:'/',
-        component:scheduleMain,
+        path: '/',
+        component: scheduleMain,
     },
     {
-        path:'/teachers',
-        component:teachers,
+        path: '/teachers',
+        component: teachers,
     },
     {
-        path:'/ktp',
-        component:ktp,
+        path: '/ktp',
+        component: ktp,
     },
     {
-        path:'/cabinets',
-        component:cabinets,
+        path: '/cabinets',
+        component: cabinets,
     },
     {
-        path:'/groups',
-        component:groups,
+        path: '/groups',
+        component: groups,
     },
     {
-        path:'/schedule',
-        component:scheduleView,
+        path: '/schedule',
+        component: scheduleView,
     },
     {
-        path:'/print',
-        component:print,
+        path: '/print',
+        component: print,
     },
 
 ]

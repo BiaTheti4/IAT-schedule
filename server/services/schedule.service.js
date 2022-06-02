@@ -101,15 +101,13 @@ class ScheduleService {
     }
 
     async getWeekHours(currentDate, startWeek, endWeek, groupId) {
-        console.log(currentDate, startWeek, endWeek, groupId);
+
         return await sequelize.query(
-            'select count(id) ' +
-            'from schedule_new ' +
-            'where group_id=:group and ' +
-            'schedule_new.date between( :start and :end ) and '+
-            'schedule_new.date <> :currentDate '
-
-
+            'select count(date) as hours ' +
+            'from schedule_new s ' +
+            'where s.group_id=:group and ' +
+            '(s.date between :start and :end ) and ' +
+            's.date <> :currentDate '
             , {
                 replacements: {
                     currentDate: String(currentDate),
@@ -154,10 +152,10 @@ class ScheduleService {
         )
     }
 
-    async deleteSchedule(id) {
+    async deleteSchedule(lessonId) {
         return await sequelize.query(
             'delete from schedule_new where id=:id', {
-                replacements: {id: id},
+                replacements: {id: lessonId},
             }
         )
     }

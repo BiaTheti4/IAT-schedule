@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f737f2cc-1493-4146-a24e-8663794c9609" name="Changes" comment="fixed bugs with sending schedule lessons, start work with check hours in week">
+    <list default="true" id="cd559433-e689-413e-a053-fa218f6bfea0" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/7ad900ae-6153-471e-80e1-95f93bcfe871.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/7ad900ae-6153-471e-80e1-95f93bcfe871/storage_v2/_src_/schema/information_schema.FNRwLQ.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/7ad900ae-6153-471e-80e1-95f93bcfe871/storage_v2/_src_/schema/mysql.osA4Bg.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/7ad900ae-6153-471e-80e1-95f93bcfe871/storage_v2/_src_/schema/performance_schema.kIw0nw.meta" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/client/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/client/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/pages/scheduleMain.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/scheduleMain.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/pages/scheduleView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/scheduleView.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/router/router.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/router/router.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/controllers/schedule.controller.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/controllers/schedule.controller.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/routes/schedule.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/schedule.routes.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/services/schedule.service.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/schedule.service.js" afterDir="false" />
@@ -16,208 +21,52 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="FileTemplateManagerImpl">
-    <option name="RECENT_TEMPLATES">
-      <list>
-        <option value="JavaScript File" />
-      </list>
-    </option>
-  </component>
   <component name="Git.Settings">
-    <favorite-branches>
-      <branch-storage>
-        <map>
-          <entry type="REMOTE">
-            <value>
-              <list>
-                <branch-info repo="$PROJECT_DIR$" source="origin/main" />
-              </list>
-            </value>
-          </entry>
-        </map>
-      </branch-storage>
-    </favorite-branches>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
-  </component>
-  <component name="GitSEFilterConfiguration">
-    <file-type-list>
-      <filtered-out-file-type name="LOCAL_BRANCH" />
-      <filtered-out-file-type name="REMOTE_BRANCH" />
-      <filtered-out-file-type name="TAG" />
-      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
-    </file-type-list>
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
-  <component name="ProjectId" id="28KCN1CE0JYsUofYwXpW3w1Gh2C" />
-  <component name="ProjectLevelVcsManager">
-    <ConfirmationsSetting value="2" id="Add" />
-  </component>
+  <component name="ProjectId" id="29wG959Crx0rKOPfpl2mW2McIfP" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_interpreter_path&quot;: &quot;node&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;settings.nodejs&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="f737f2cc-1493-4146-a24e-8663794c9609" name="Changes" comment="" />
-      <created>1650955848907</created>
+      <changelist id="cd559433-e689-413e-a053-fa218f6bfea0" name="Changes" comment="" />
+      <created>1654016581931</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1650955848907</updated>
-      <workItem from="1650955850501" duration="5828000" />
-      <workItem from="1650980669520" duration="1183000" />
-      <workItem from="1651020433340" duration="5963000" />
-      <workItem from="1651666716091" duration="3605000" />
-      <workItem from="1651814408931" duration="8888000" />
-      <workItem from="1651923826418" duration="7268000" />
-      <workItem from="1651999296141" duration="13361000" />
-      <workItem from="1652075737951" duration="808000" />
-      <workItem from="1652180277032" duration="8348000" />
-      <workItem from="1652231553895" duration="4792000" />
-      <workItem from="1652337588556" duration="1514000" />
-      <workItem from="1652339146626" duration="4226000" />
-      <workItem from="1652408474365" duration="17181000" />
-      <workItem from="1652462919567" duration="9710000" />
-      <workItem from="1652502949843" duration="716000" />
-      <workItem from="1652639636336" duration="2956000" />
-      <workItem from="1652844021104" duration="3924000" />
-      <workItem from="1652924644018" duration="6152000" />
-      <workItem from="1652966934976" duration="5203000" />
-      <workItem from="1653005716911" duration="19409000" />
-      <workItem from="1653115742967" duration="10462000" />
-      <workItem from="1653229587569" duration="7879000" />
-      <workItem from="1653273109910" duration="8968000" />
-      <workItem from="1653378119184" duration="762000" />
-      <workItem from="1653457285089" duration="12360000" />
-      <workItem from="1653554114685" duration="1201000" />
-      <workItem from="1653828412607" duration="798000" />
-      <workItem from="1653829804044" duration="7207000" />
-      <workItem from="1653891789062" duration="3938000" />
-      <workItem from="1653964687915" duration="10773000" />
+      <updated>1654016581931</updated>
+      <workItem from="1654016583700" duration="174000" />
+      <workItem from="1654017146800" duration="7000" />
+      <workItem from="1654045670960" duration="9314000" />
+      <workItem from="1654130524952" duration="5888000" />
     </task>
-    <task id="LOCAL-00001" summary="edited some SQL queries">
-      <created>1652002893534</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1652002893534</updated>
-    </task>
-    <task id="LOCAL-00002" summary="add schedule queries">
-      <created>1652187740945</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1652187740945</updated>
-    </task>
-    <task id="LOCAL-00003" summary="edited some queries and added some new queries">
-      <created>1652189696119</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1652189696119</updated>
-    </task>
-    <task id="LOCAL-00004" summary="completed main part of backend queries">
-      <created>1652338149777</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1652338149777</updated>
-    </task>
-    <task id="LOCAL-00005" summary="added frontend functional&#10;connect frontend and backend">
-      <created>1652503055140</created>
-      <option name="number" value="00005" />
-      <option name="presentableId" value="LOCAL-00005" />
-      <option name="project" value="LOCAL" />
-      <updated>1652503055140</updated>
-    </task>
-    <task id="LOCAL-00006" summary="added some frontend functional(get subjects for every group,but it doesn't work with select options)">
-      <created>1653117067166</created>
-      <option name="number" value="00006" />
-      <option name="presentableId" value="LOCAL-00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1653117067166</updated>
-    </task>
-    <task id="LOCAL-00007" summary="fixed view schedule">
-      <created>1653128444633</created>
-      <option name="number" value="00007" />
-      <option name="presentableId" value="LOCAL-00007" />
-      <option name="project" value="LOCAL" />
-      <updated>1653128444633</updated>
-    </task>
-    <task id="LOCAL-00008" summary="fixed errors">
-      <created>1653273126050</created>
-      <option name="number" value="00008" />
-      <option name="presentableId" value="LOCAL-00008" />
-      <option name="project" value="LOCAL" />
-      <updated>1653273126050</updated>
-    </task>
-    <task id="LOCAL-00009" summary="completed print&amp;view">
-      <created>1653273711433</created>
-      <option name="number" value="00009" />
-      <option name="presentableId" value="LOCAL-00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1653273711433</updated>
-    </task>
-    <task id="LOCAL-00010" summary="Fixed select group in scheduleView.vue">
-      <created>1653283611371</created>
-      <option name="number" value="00010" />
-      <option name="presentableId" value="LOCAL-00010" />
-      <option name="project" value="LOCAL" />
-      <updated>1653283611371</updated>
-    </task>
-    <task id="LOCAL-00011" summary="fixed loading subjects of selected group">
-      <created>1653467020074</created>
-      <option name="number" value="00011" />
-      <option name="presentableId" value="LOCAL-00011" />
-      <option name="project" value="LOCAL" />
-      <updated>1653467020074</updated>
-    </task>
-    <task id="LOCAL-00012" summary="fixed bugs with sending schedule lessons, start work with check hours in week">
-      <created>1653836791009</created>
-      <option name="number" value="00012" />
-      <option name="presentableId" value="LOCAL-00012" />
-      <option name="project" value="LOCAL" />
-      <updated>1653836791009</updated>
-    </task>
-    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
-  <component name="Vcs.Log.Tabs.Properties">
-    <option name="TAB_STATES">
-      <map>
-        <entry key="MAIN">
-          <value>
-            <State />
-          </value>
-        </entry>
-      </map>
-    </option>
-  </component>
-  <component name="VcsManagerConfiguration">
-    <MESSAGE value="edited some SQL queries" />
-    <MESSAGE value="add schedule queries" />
-    <MESSAGE value="edited some queries and added some new queries" />
-    <MESSAGE value="completed main part of backend queries" />
-    <MESSAGE value="added frontend functional&#10;connect frontend and backend" />
-    <MESSAGE value="added some frontend functional(get subjects for every group,but it doesn't work with select options)" />
-    <MESSAGE value="fixed view schedule" />
-    <MESSAGE value="fixed errors" />
-    <MESSAGE value="completed print&amp;view" />
-    <MESSAGE value="Fixed select group in scheduleView.vue" />
-    <MESSAGE value="fixed loading subjects of selected group" />
-    <MESSAGE value="fixed bugs with sending schedule lessons, start work with check hours in week" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed bugs with sending schedule lessons, start work with check hours in week" />
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
   </component>
 </project>

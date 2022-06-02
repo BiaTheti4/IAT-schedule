@@ -8,6 +8,6 @@ router.post('/updateSchedule', ScheduleController.updateSchedule)
 router.post('/week', ScheduleController.getWeekSchedule)
 router.post('/getPrintSchedule', ScheduleController.getPrintSchedule)
 router.post('/getWeekHours', ScheduleController.getWeekHours)
-router.delete('/deleteSchedule',ScheduleController.deleteSchedule)
+router.post('/deleteSchedule',ScheduleController.deleteSchedule)
 
 module.exports = router

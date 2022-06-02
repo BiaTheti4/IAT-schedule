@@ -39,9 +39,9 @@ class ScheduleController {
     }
 
     async deleteSchedule(req, res) {
-        const lesson = req.body
+        const lessonId = req.body.id
         return res.json(
-            await ScheduleService.deleteSchedule(lesson)
+            await ScheduleService.deleteSchedule(lessonId)
         )
     }
     async getPrintSchedule(req,res){
