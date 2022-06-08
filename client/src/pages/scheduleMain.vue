@@ -1,5 +1,5 @@
 <template>
-  <!--  {{ test('ya eblan') }}-->
+
   <div>
     <button @click="checkDublicateTeacher">
       qweqwe
@@ -35,7 +35,7 @@
           <div class="formSubjects">
             <select class="selectdiv"
                     v-model="group[para].subjectId"
-                    @click="getSubjectList(idx)"
+                    @click="getSubjectList(idx);checkDublicateCabinet(para,group);checkDublicateTeacher(para,group)"
                     @change="setEmpty(group[para]);getWeekHours()"
             >
               <option></option>
@@ -47,7 +47,7 @@
 
               <select class="selectdiv"
                       v-model="group[para].teacherId"
-                      @click="getTeacherBySubject(group[para].subjectId,Object.keys(dateCourseEvent[selectedCourse]),idx,group[para])">
+                      @click="getTeacherBySubject(group[para].subjectId,Object.keys(dateCourseEvent[selectedCourse]),idx,group[para]);checkDublicateCabinet(para,group);checkDublicateTeacher(para,group)">
                 <option></option>
                 <option
                     :value="group[para].teacherId">
@@ -56,7 +56,8 @@
               </select>
 
 
-              <select v-model="group[para].optionalTeacherId">
+              <select v-model="group[para].optionalTeacherId"
+                      @click="checkDublicateCabinet(para,group);checkDublicateTeacher(para,group)">
                 <option
                     :value="group[para].optionalTeacherId">
                   {{ group[para].optionalTeacher }}
@@ -64,7 +65,7 @@
               </select>
 
 
-              <select class="selectdiv" @click=""
+              <select class="selectdiv" @click="checkDublicateCabinet(para,group);checkDublicateTeacher(para,group)"
                       v-model="group[para].cabinetId">
                 <option></option>
                 <option v-if="group[para].subjectId!==''"
@@ -72,14 +73,14 @@
                   {{ cabinet.number }}
                 </option>
               </select>
-                            //доделать выбор опционального кабинета если есть опциональный преподаватель
-                            <select class="selectdiv" @click=""
-                                    v-model="group[para].optionalCabinetId">
-                              <option></option>
-                              <option v-for="cabinet in cabinets" :key="cabinet.id" :value="cabinet.id">
-                                {{ cabinet.number }}
-                              </option>
-                            </select>
+
+              <select class="selectdiv" @click="checkDublicateCabinet(para,group);checkDublicateTeacher(para,group)"
+                      v-model="group[para].optionalCabinetId">
+                <option></option>
+                <option v-for="cabinet in cabinets" :key="cabinet.id" :value="cabinet.id">
+                  {{ cabinet.number }}
+                </option>
+              </select>
 
               <!--постараться сделать этo-->
               <!--                        <input @change="checkDublicateCabinet(group[para].cabinet)"-->
@@ -96,8 +97,10 @@
                 <div>дистант
                   <input type="checkbox" v-model="group[para].status"></div>
               </div>
-              <div class="tooltip" v-if="group[para].error=1">!
-                <span class="tooltiptext">{{}}</span>
+              <div class="tooltip" v-if="group[para].error.length!==0">!
+                <span class="tooltiptext">
+                  <span v-for="(err,idx) in group[para].error" :key="idx">{{ err }}</span>
+                </span>
               </div>
             </template>
           </div>
@@ -118,10 +121,12 @@
     </table>
 
     <button class="button-7" @click="sendPostObject">отправить</button>
-    <div class="tooltip">!
-      <span class="tooltiptext">1</span>
-      <span class="tooltiptext">2</span>
-      <span class="tooltiptext">3</span>
+    <div class="tooltip" v-if="warnings.length!==0">!
+      <span class="tooltiptext">
+                  <span class="tooltiptext" v-for="(warn,idx) in warnings" :key="idx">
+                    <span v-for="(err,index) in warn.error" :key="index">{{ err }}</span>
+                  </span>
+                </span>
     </div>
 
   </div>
@@ -136,7 +141,7 @@ import moment from 'moment';
 export default {
   data() {
     return {
-
+      warnings: [],
       date: '',
       busyTeachers: [],
       selectedCourse: '',
@@ -257,13 +262,13 @@ export default {
       })
     },
     getTeacherBySubject(subjectId, group, idx, groupLesson) {
-      console.log(subjectId)
+      // console.log(subjectId)
       axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/ktp/getTeachers', {
         subject: subjectId,
         group: idx
 
       }).then((res) => {
-            console.log(res.data)
+            // console.log(res.data)
             groupLesson.teacherId = res.data[0].employeeId,
                 groupLesson.teacher = res.data[0].main_emp,
                 groupLesson.optionalTeacher = res.data[0].group_emp,
@@ -308,6 +313,8 @@ export default {
           elem.optionalTeacherId = res.data[i].optional_teacher_id
           elem.cabinet = res.data[i].number
           elem.cabinetId = res.data[i].cabinet_id
+          elem.optionalCabinet = res.data[i].optional_cabinet
+          elem.optionalCabinetId = res.data[i].optional_cabinet_id
           if (res.data[i].status == 1) {
             elem.status = true
           } else {
@@ -334,8 +341,10 @@ export default {
               optionalTeacherId: '',
               cabinet: '',
               cabinetId: '',
+              optionalCabinet: '',
+              optionalCabinetId: '',
               status: false,
-              error: 0,
+              error: [],
               id: 0
 
             }
@@ -372,6 +381,7 @@ export default {
                   teacher: elem.teacherId,
                   optionalTeacher: (elem.optionalTeacherId) ?? null,
                   cabinet: elem.cabinetId,
+                  optionalCabinet: elem.optionalCabinetId,
                   //потом добавить
                   // event:elem.event,
                   lessonNumber: j,
@@ -389,6 +399,7 @@ export default {
                   teacher: elem.teacherId,
                   optionalTeacher: (elem.optionalTeacherId) ?? null,
                   cabinet: elem.cabinetId,
+                  optionalCabinet: elem.optionalCabinetId,
                   //потом добавить
                   // event:elem.event,
                   lessonNumber: j,
@@ -433,7 +444,7 @@ export default {
             }
             console.log(firstElem)
             // if (arr[j] < arr.length && arr[j + 1] - arr[j] !== 1) {
-            //   console.log('ПРОБЕЛ МЕЖДУ ПАРАМИ')
+            //   console.log('ПРОБЕЛ МЕЖДУ ПАРАМИ' )
             // } else {
             //   console.log('все ок')
             // }
@@ -442,31 +453,93 @@ export default {
         }
       }
     },
-    checkDublicateTeacher() {
-      let arrTeacher = []
+    checkDublicateTeacher(lesson) {
+
+      // for(let course =1;course<this.courses.length;course++){
+      //   for (let group=0;group<this.courses[course].length;group++){
+      //
+      //   }
+      // }
+      let lessons = {}
+      for (let i in this.warnings) {
+        this.warnings[i].error = ''
+      }
+      this.warnings = []
+
       for (let p = 1; p < 8; p++) {
         for (let k = 1; k < 5; k++) {
           let groups = this.getCourses(k)
           for (let i = 0; i < groups.length; i++) {
             let elem = this.dateCourseEvent[k][groups[i].name][p]
-            elem.groupName=this.courses[k].groups[i].name
-            if (elem.teacherId != '') {
-              arrTeacher.push(elem)
-
+            elem.groupName = this.courses[k].groups[i].name
+            elem.lessonNumber = p;
+            elem.course = k;
+            if (elem.teacherId != '' || elem.cabinetId != '') {
+              if (!lessons[p]) lessons[p] = [];
+              lessons[p].push(elem)
             }
           }
         }
-
       }
-      for (let i = 0; i < arrTeacher.length; i++) {
-        for (let j = 0; j < arrTeacher.length; j++) {
-          if (arrTeacher[i].teacherId === arrTeacher[j].teacherId) {
-            console.log('проблема с ')
-            console.log(arrTeacher[i].groupName)
-            console.log(arrTeacher[j].groupName)
+      console.log(lessons)
+
+      for (let p in lessons) {
+        for (let i = 0; i < lessons[p].length; i++) {
+          for (let j = i + 1; j < lessons[p].length; j++) {
+            if (lessons[p][i].teacherId === lessons[p][j].teacherId) {
+              if (!this.warnings.includes(lessons[p][i])) this.warnings.push(lessons[p][i])
+              if (!this.warnings.includes(lessons[p][j])) this.warnings.push(lessons[p][j])
+              lessons[p][i].error.push('состыковка преподавателей с группой ' + lessons[p][j].groupName + ' пара №' + lessons[p][j].lessonNumber)
+              lessons[p][j].error.push('состыковка преподавателей с группой ' + lessons[p][i].groupName + ' пара №' + lessons[p][i].lessonNumber)
+            }
+            if (lessons[p][i].teacherId === lessons[p][j].optionalTeacherId) {
+              if (!this.warnings.includes(lessons[p][i])) this.warnings.push(lessons[p][i])
+              if (!this.warnings.includes(lessons[p][j])) this.warnings.push(lessons[p][j])
+              lessons[p][i].error.push('состыковка преподавателей с группой ' + lessons[p][j].groupName + ' пара №' + lessons[p][j].lessonNumber)
+              lessons[p][j].error.push('состыковка преподавателей с группой ' + lessons[p][i].groupName + ' пара №' + lessons[p][i].lessonNumber)
+            }
+            if (lessons[p][i].optionalTeacherId === lessons[p][j].teacherId) {
+              if (!this.warnings.includes(lessons[p][i])) this.warnings.push(lessons[p][i])
+              if (!this.warnings.includes(lessons[p][j])) this.warnings.push(lessons[p][j])
+              lessons[p][i].error.push('состыковка преподавателей с группой ' + lessons[p][j].groupName + ' пара №' + lessons[p][j].lessonNumber)
+              lessons[p][j].error.push('состыковка преподавателей с группой ' + lessons[p][i].groupName + ' пара №' + lessons[p][i].lessonNumber)
+            }
+            if (lessons[p][i].optionalTeacherId === lessons[p][j].optionalTeacherId) {
+              if (!this.warnings.includes(lessons[p][i])) this.warnings.push(lessons[p][i])
+              if (!this.warnings.includes(lessons[p][j])) this.warnings.push(lessons[p][j])
+              lessons[p][i].error.push('состыковка преподавателей с группой ' + lessons[p][j].groupName + ' пара №' + lessons[p][j].lessonNumber)
+              lessons[p][j].error.push('состыковка преподавателей с группой ' + lessons[p][i].groupName + ' пара №' + lessons[p][i].lessonNumber)
+            }
+            //cabinets
+            if (lessons[p][i].cabinetId === lessons[p][j].cabinetId) {
+              if (!this.warnings.includes(lessons[p][i])) this.warnings.push(lessons[p][i])
+              if (!this.warnings.includes(lessons[p][j])) this.warnings.push(lessons[p][j])
+              lessons[p][i].error.push('состыковка кабинетов с группой ' + lessons[p][j].groupName + ' пара №' + lessons[p][j].lessonNumber)
+              lessons[p][j].error.push('состыковка кабинетов с группой ' + lessons[p][i].groupName + ' пара №' + lessons[p][i].lessonNumber)
+            }
+            if (lessons[p][i].cabinetId === lessons[p][j].optionalCabinetId) {
+              if (!this.warnings.includes(lessons[p][i])) this.warnings.push(lessons[p][i])
+              if (!this.warnings.includes(lessons[p][j])) this.warnings.push(lessons[p][j])
+              lessons[p][i].error.push('состыковка кабинетов с группой ' + lessons[p][j].groupName + ' пара №' + lessons[p][j].lessonNumber)
+              lessons[p][j].error.push('состыковка кабинетов с группой ' + lessons[p][i].groupName + ' пара №' + lessons[p][i].lessonNumber)
+            }
+            if (lessons[p][i].optionalCabinetId === lessons[p][j].cabinetId) {
+              if (!this.warnings.includes(lessons[p][i])) this.warnings.push(lessons[p][i])
+              if (!this.warnings.includes(lessons[p][j])) this.warnings.push(lessons[p][j])
+              lessons[p][i].error.push('состыковка кабинетов с группой ' + lessons[p][j].groupName + ' пара №' + lessons[p][j].lessonNumber)
+              lessons[p][j].error.push('состыковка кабинетов с группой ' + lessons[p][i].groupName + ' пара №' + lessons[p][i].lessonNumber)
+            }
+            if (lessons[p][i].optionalCabinetId === lessons[p][j].optionalCabinetId) {
+              if (!this.warnings.includes(lessons[p][i])) this.warnings.push(lessons[p][i])
+              if (!this.warnings.includes(lessons[p][j])) this.warnings.push(lessons[p][j])
+              lessons[p][i].error.push('состыковка кабинетов с группой ' + lessons[p][j].groupName + ' пара №' + lessons[p][j].lessonNumber)
+              lessons[p][j].error.push('состыковка кабинетов с группой ' + lessons[p][i].groupName + ' пара №' + lessons[p][i].lessonNumber)
+            }
+
           }
         }
       }
+
     },
     // checkEmptySelect() {
     //   //итерации по курсу
@@ -528,9 +601,9 @@ export default {
             }
           }
         }
-        console.log("para: " + p)
+        // console.log("para: " + p)
       }
-      console.log("--------------------")
+      // console.log("--------------------")
     }
     ,
     Init() {
@@ -592,10 +665,12 @@ export default {
 .tooltip {
   position: relative;
   display: inline-block;
-  border-bottom: 1px dotted black;
+
   margin-left: 10px;
-  font-size: 30px;
+  font-size: 40px;
   color: #c82829;
+  border: none;
+  margin-bottom: 0px;
 }
 
 .tooltip .tooltiptext {
@@ -607,6 +682,8 @@ export default {
   border-radius: 6px;
   padding: 5px 5px;
   font-size: 20px;
+  text-decoration: none;
+
 
   /* Position the tooltip */
   position: absolute;
@@ -614,6 +691,15 @@ export default {
   bottom: 100%;
   left: 50%;
   margin-left: -60px;
+}
+
+.tooltip .tooltiptext > span {
+  display: block;
+}
+
+.tooltip .tooltiptext > span + span {
+  border-top: white solid 2px;
+  text-decoration: none;
 }
 
 .tooltip:hover .tooltiptext {

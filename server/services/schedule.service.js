@@ -13,7 +13,9 @@ class ScheduleService {
             'schedule_new.status,' +
             'schedule_new.event,' +
             'schedule_new.cabinet_id,' +
-            'c.number,' +
+            'c.number, ' +
+            'schedule_new.optional_cabinet_id, ' +
+            'cab.number as optional_cabinet, ' +
             'schedule_new.lesson_number,' +
             'concat(e.last_name, \' \', left(e.first_name,1),".", \' \', left(e.fathers_name,1),".") as main_emp, ' +
             'schedule_new.teacher_id,' +
@@ -22,6 +24,7 @@ class ScheduleService {
             '    inner join employees e on schedule_new.teacher_id = e.employeeId ' +
             '    left join employees emp on schedule_new.optional_teacher_id=emp.employeeId ' +
             '    inner join cabinets c on schedule_new.cabinet_id = c.id ' +
+            '    left join cabinets cab on schedule_new.optional_cabinet_id=cab.id ' +
             '    inner join `groups` g on schedule_new.group_id = g.groupId ' +
             '    inner join subjects s on schedule_new.subject_id = s.subjectId ' +
             ' where date=:date', {
@@ -35,6 +38,7 @@ class ScheduleService {
         return await sequelize.query(
             'select s.nameShort as subject_name,' +
             'c.number,' +
+            'cab.number as optionalCabinet,' +
             'g.name,' +
             'date,' +
             'schedule_new.event,' +
@@ -45,6 +49,7 @@ class ScheduleService {
             '    inner join employees e on schedule_new.teacher_id = e.employeeId ' +
             '    left join employees emp on schedule_new.optional_teacher_id=emp.employeeId ' +
             '    inner join cabinets c on schedule_new.cabinet_id = c.id ' +
+            ' left join cabinets cab on schedule_new.optional_cabinet_id=cab.id ' +
             '    inner join `groups` g on schedule_new.group_id = g.groupId ' +
             '    inner join subjects s on schedule_new.subject_id = s.subjectId ' +
             ' where date>=:date', {
@@ -65,6 +70,7 @@ class ScheduleService {
             ' s.nameShort, ' +
             ' g.name, ' +
             ' c.number, ' +
+            ' cab.number as optionalCabinet, ' +
             ' g.course ' +
             ' from schedule_new ' +
             ' inner join employees e on schedule_new.teacher_id = e.employeeId ' +
@@ -72,6 +78,7 @@ class ScheduleService {
             ' inner join subjects s on schedule_new.subject_id = s.subjectId ' +
             ' inner join `groups` g on schedule_new.group_id = g.groupId ' +
             ' inner join cabinets c on schedule_new.cabinet_id = c.id ' +
+            ' left join cabinets cab on schedule_new.optional_cabinet_id=cab.id ' +
             ' where date=:date', {
                 replacements: {date: String(date)},
                 type: sequelize.QueryTypes.SELECT
@@ -81,8 +88,8 @@ class ScheduleService {
 
     async createNewLesson(lesson) {
         return await sequelize.query(
-            'insert into schedule_new(date, status,lesson_number,teacher_id,optional_teacher_id,subject_id,group_id,cabinet_id)' +
-            `values (:date,:status,:lesson,:teacher,:optional_teacher,:subject,:group,:cabinet)`,
+            'insert into schedule_new(date, status,lesson_number,teacher_id,optional_teacher_id,subject_id,group_id,cabinet_id,optional_cabinet_id)' +
+            `values (:date,:status,:lesson,:teacher,:optional_teacher,:subject,:group,:cabinet,:optionalCabinet)`,
             {
                 replacements: {
                     date: lesson.date,
@@ -93,7 +100,8 @@ class ScheduleService {
                     optional_teacher: lesson.optionalTeacher,
                     subject: lesson.subject,
                     group: lesson.groupId,
-                    cabinet: lesson.cabinet
+                    cabinet: lesson.cabinet,
+                    optionalCabinet: lesson.optionalCabinet
                 },
                 type: sequelize.QueryTypes.insert
             }

@@ -35,12 +35,9 @@
         <td v-for="(group) in dateCourseEvent[selectedCourse]" :key="group">
           <div class="formSubjects" v-if="group[para].subject!=''">
             <div>{{group[para].subject}}</div>
-            <div>(каб. {{group[para].cabinet}})</div>
+            <div>(каб. {{group[para].cabinet}} {{group[para].optionalCabinet}})</div>
             <div>{{group[para].teacher}}</div>
             <div v-if="group[para].optional_teacher!=''">{{group[para].optional_teacher}}</div>
-<!--            <div> {{ getSubject(group[para].subject) }}</div>-->
-<!--            <div>{{ getCabinet(group[para].cabinet) }}</div>-->
-<!--            <div>{{ getTeacher(group[para].teacher) }}</div>-->
             <div class="distant">
               <div v-if="group[para].status==1">дистант</div>
             </div>
@@ -163,6 +160,7 @@ export default {
             elem.teacher = ''
             elem.optional_teacher = ''
             elem.cabinet = ''
+            elem.optionalCabinet = ''
             elem.status = (groups[i].status == 1) ? 1 : 0,
                 elem.id = 0
           }
@@ -179,6 +177,7 @@ export default {
           elem.teacher = res.data[i].main_emp
           elem.optional_teacher = res.data[i].group_emp
           elem.cabinet = res.data[i].number
+          elem.optionalCabinet = res.data[i].optionalCabinet
           if (res.data[i].status == 1) {
             elem.status = true
           } else {
@@ -199,6 +198,7 @@ export default {
               subject: '',
               teacher: '',
               cabinet: '',
+              optionalCabinet: '',
               status: false,
               id: 0
             }

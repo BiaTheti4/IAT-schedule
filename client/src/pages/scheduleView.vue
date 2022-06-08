@@ -57,7 +57,8 @@
 
             <div class="event" v-if="this.weekEvents[this.selectedGroup][lessonInDay.date][lessonNumber].subject!==''">
               <label>{{ this.weekEvents[this.selectedGroup][lessonInDay.date][lessonNumber].subject }}</label>
-              <label>кабинет:{{ this.weekEvents[this.selectedGroup][lessonInDay.date][lessonNumber].cabinet }}</label>
+              <label>кабинет:{{ this.weekEvents[this.selectedGroup][lessonInDay.date][lessonNumber].cabinet }} {{this.weekEvents[this.selectedGroup][lessonInDay.date][lessonNumber].optionalCabinet}}</label>
+
               <label>Преподаватель: {{
                   this.weekEvents[this.selectedGroup][lessonInDay.date][lessonNumber].mainTeacher
                 }}</label>
@@ -160,6 +161,7 @@ export default {
               mainTeacher: '',
               optionalTeacher: '',
               cabinet: '',
+              optionalCabinet: '',
               status: 0,
             }
           }
@@ -175,6 +177,7 @@ export default {
         this.weekEvents[grp][date][para].mainTeacher = res.data[j].main_emp
         this.weekEvents[grp][date][para].optionalTeacher = res.data[j].group_emp
         this.weekEvents[grp][date][para].cabinet = res.data[j].number
+        this.weekEvents[grp][date][para].optionalCabinet = res.data[j].optionalCabinet
         this.weekEvents[grp][date][para].event = res.data[j].event
       }
     },
