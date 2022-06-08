@@ -168,7 +168,7 @@ export default {
         }
       }
       for (let j in res.data) {
-
+        console.log(res.data[j])
         let date = this.DateToBD(new Date(res.data[j].date))
         console.log(date)
         let grp = res.data[j].name

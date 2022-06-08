@@ -381,7 +381,7 @@ export default {
                   teacher: elem.teacherId,
                   optionalTeacher: (elem.optionalTeacherId) ?? null,
                   cabinet: elem.cabinetId,
-                  optionalCabinet: elem.optionalCabinetId,
+                  optionalCabinet: (elem.optionalCabinetId)??null,
                   //потом добавить
                   // event:elem.event,
                   lessonNumber: j,
@@ -397,9 +397,9 @@ export default {
                 axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/createNewLesson', {
                   subject: elem.subjectId,
                   teacher: elem.teacherId,
-                  optionalTeacher: (elem.optionalTeacherId) ?? null,
+                  optionalTeacher: elem.optionalTeacherId===''?null: elem.optionalTeacherId,
                   cabinet: elem.cabinetId,
-                  optionalCabinet: elem.optionalCabinetId,
+                  optionalCabinet: elem.optionalCabinetId===''?null: elem.optionalCabinetId,
                   //потом добавить
                   // event:elem.event,
                   lessonNumber: j,
@@ -474,7 +474,11 @@ export default {
             elem.groupName = this.courses[k].groups[i].name
             elem.lessonNumber = p;
             elem.course = k;
-            if (elem.teacherId != '' || elem.cabinetId != '') {
+            if (elem.teacherId != '') {
+              if (!lessons[p]) lessons[p] = [];
+              lessons[p].push(elem)
+            }
+            if (elem.cabinetId != '') {
               if (!lessons[p]) lessons[p] = [];
               lessons[p].push(elem)
             }

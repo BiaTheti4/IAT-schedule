@@ -161,8 +161,8 @@ export default {
             elem.optional_teacher = ''
             elem.cabinet = ''
             elem.optionalCabinet = ''
-            elem.status = (groups[i].status == 1) ? 1 : 0,
-                elem.id = 0
+            elem.status = (groups[i].status == 1) ? 1 : 0
+            elem.id = 0
           }
         }
       }
@@ -170,6 +170,7 @@ export default {
         date: this.dateToDb(new Date(this.date))
       }).then((res) => {
         for (let i = 0; i < res.data.length; i++) {
+          console.log(res.data[i])
 
           let elem = this.dateCourseEvent[res.data[i].course][res.data[i].name][res.data[i].lesson_number]
 

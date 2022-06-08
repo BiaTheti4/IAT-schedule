@@ -74,7 +74,7 @@ class ScheduleService {
             ' g.course ' +
             ' from schedule_new ' +
             ' inner join employees e on schedule_new.teacher_id = e.employeeId ' +
-            ' inner join employees emp on schedule_new.optional_teacher_id = emp.employeeId ' +
+            ' left join employees emp on schedule_new.optional_teacher_id = emp.employeeId ' +
             ' inner join subjects s on schedule_new.subject_id = s.subjectId ' +
             ' inner join `groups` g on schedule_new.group_id = g.groupId ' +
             ' inner join cabinets c on schedule_new.cabinet_id = c.id ' +
