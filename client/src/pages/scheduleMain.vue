@@ -1,7 +1,7 @@
 <template>
   <!--  {{ test('ya eblan') }}-->
   <div>
-    <button @click="getWeekHours">
+    <button @click="checkDublicateTeacher">
       qweqwe
     </button>
     <div class="datePicker" id="content">
@@ -72,14 +72,14 @@
                   {{ cabinet.number }}
                 </option>
               </select>
-              <!--              доделать выбор опционального кабинета если есть опциональный преподаватель-->
-              <!--              <select class="selectdiv" @click=""-->
-              <!--                      v-model="group[para].cabinet">-->
-              <!--                <option></option>-->
-              <!--                <option v-for="cabinet in cabinets" :key="cabinet.id" :value="cabinet.id">-->
-              <!--                  {{ cabinet.number }}-->
-              <!--                </option>-->
-              <!--              </select>-->
+                            //доделать выбор опционального кабинета если есть опциональный преподаватель
+                            <select class="selectdiv" @click=""
+                                    v-model="group[para].optionalCabinetId">
+                              <option></option>
+                              <option v-for="cabinet in cabinets" :key="cabinet.id" :value="cabinet.id">
+                                {{ cabinet.number }}
+                              </option>
+                            </select>
 
               <!--постараться сделать этo-->
               <!--                        <input @change="checkDublicateCabinet(group[para].cabinet)"-->
@@ -95,6 +95,9 @@
               <div class="distant">
                 <div>дистант
                   <input type="checkbox" v-model="group[para].status"></div>
+              </div>
+              <div class="tooltip" v-if="group[para].error=1">!
+                <span class="tooltiptext">{{}}</span>
               </div>
             </template>
           </div>
@@ -115,7 +118,12 @@
     </table>
 
     <button class="button-7" @click="sendPostObject">отправить</button>
-    <button class="button-7" @click="checkEmptySelect">проверить</button>
+    <div class="tooltip">!
+      <span class="tooltiptext">1</span>
+      <span class="tooltiptext">2</span>
+      <span class="tooltiptext">3</span>
+    </div>
+
   </div>
 </template>
 
@@ -130,6 +138,7 @@ export default {
     return {
 
       date: '',
+      busyTeachers: [],
       selectedCourse: '',
       cabinets: [],
       dateCourseEvent: {},
@@ -218,6 +227,8 @@ export default {
     setEmpty(lesson) {
       lesson.cabinet = ''
       lesson.cabinetId = ''
+      lesson.optionalCabinet = ''
+      lesson.optionalCabinetId = ''
       lesson.teacher = ''
       lesson.teacherId = ''
       lesson.optionalTeacher = ''
@@ -274,6 +285,10 @@ export default {
             elem.optionalTeacher = ''
             elem.optionalTeacherId = ''
             elem.cabinet = ''
+            elem.cabinetId = ''
+            elem.optionalCabinet = ''
+            elem.optionalCabinetId = ''
+
             elem.status = (groups[i].status == 1) ? 1 : 0,
                 elem.id = 0
           }
@@ -320,6 +335,7 @@ export default {
               cabinet: '',
               cabinetId: '',
               status: false,
+              error: 0,
               id: 0
 
             }
@@ -327,6 +343,9 @@ export default {
         }
       }
       this.getWeekHours()
+    },
+    test(asd) {
+      console.log(asd)
     },
     sendPostObject() {
 
@@ -394,82 +413,61 @@ export default {
       }
     },
 
-    // checkSpaceBetween() {
-    //   //итерации по курсу
-    //
-    //   for (let k = 1; k < 5; k++) {
-    //     //группы в курсе
-    //     let groups = this.getCourses(k)
-    //     //итерации по группам
-    //     for (let i = 0; i < groups.length; i++) {
-    //       //итерации по номеру пары
-    //       let arr = []
-    //       let firstElem = ''
-    //       for (let j = 1, asd = 0; j < 8; j++, asd++) {
-    //         if (this.dateCourseEvent[k][groups[i].name][j].cabinet != ''
-    //             && this.dateCourseEvent[k][groups[i].name][j].subject != ''
-    //             && this.dateCourseEvent[k][groups[i].name][j].teacher != '') {
-    //           if (firstElem = '') firstElem = j
-    //           else
-    //             arr.push(j)
-    //         }
-    //         console.log(firstElem)
-    //         // if (arr[j] < arr.length && arr[j + 1] - arr[j] !== 1) {
-    //         //   console.log('ПРОБЕЛ МЕЖДУ ПАРАМИ')
-    //         // } else {
-    //         //   console.log('все ок')
-    //         // }
-    //
-    //       }
-    //
-    //     }
-    //
-    //   }
-    //
-    // },
-    // checkDublicateTeacher() {
-    //   for (let p = 1; p < 8; p++) {
-    //     let arrTeacher = []
-    //     for (let k = 1; k < 5; k++) {
-    //       let groups = this.getCourses(k)
-    //       for (let i = 0; i < groups.length; i++) {
-    //
-    //         let elem = this.dateCourseEvent[k][groups[i].name][p]
-    //         if (elem.teacher != '') {
-    //           let inArr = false
-    //           for (let j = 0; j < arrTeacher.length; j++) {
-    //             if (arrTeacher[j].elem.teacher == elem.teacher) {
-    //               inArr = true
-    //               console.log("повторный выбор Преподователя " + elem.teacher)
-    //               let elemArr = {
-    //                 elem: elem,
-    //                 group: groups[i].name,
-    //                 para: p,
-    //                 course: k
-    //               }
-    //               console.log(arrTeacher[j])
-    //               console.log(elemArr)
-    //             }
-    //           }
-    //           if (!inArr) {
-    //             let arrItem = {
-    //               elem: elem,
-    //               group: groups[i].name,
-    //               para: p,
-    //               course: k
-    //             }
-    //             arrTeacher.push(arrItem)
-    //           }
-    //         }
-    //       }
-    //     }
-    //     console.log("para: " + p)
-    //   }
-    //   console.log("--------------------")
-    //
-    //
-    // }
-    // ,
+    checkSpaceBetween() {
+      //итерации по курсу
+      for (let k = 1; k < 5; k++) {
+        //группы в курсе
+        let groups = this.getCourses(k)
+        //итерации по группам
+        for (let i = 0; i < groups.length; i++) {
+          //итерации по номеру пары
+          let arr = []
+          let firstElem = ''
+          for (let j = 1, asd = 0; j < 8; j++, asd++) {
+            if (this.dateCourseEvent[k][groups[i].name][j].cabinet != ''
+                && this.dateCourseEvent[k][groups[i].name][j].subject != ''
+                && this.dateCourseEvent[k][groups[i].name][j].teacher != '') {
+              if (firstElem = '') firstElem = j
+              else
+                arr.push(j)
+            }
+            console.log(firstElem)
+            // if (arr[j] < arr.length && arr[j + 1] - arr[j] !== 1) {
+            //   console.log('ПРОБЕЛ МЕЖДУ ПАРАМИ')
+            // } else {
+            //   console.log('все ок')
+            // }
+
+          }
+        }
+      }
+    },
+    checkDublicateTeacher() {
+      let arrTeacher = []
+      for (let p = 1; p < 8; p++) {
+        for (let k = 1; k < 5; k++) {
+          let groups = this.getCourses(k)
+          for (let i = 0; i < groups.length; i++) {
+            let elem = this.dateCourseEvent[k][groups[i].name][p]
+            elem.groupName=this.courses[k].groups[i].name
+            if (elem.teacherId != '') {
+              arrTeacher.push(elem)
+
+            }
+          }
+        }
+
+      }
+      for (let i = 0; i < arrTeacher.length; i++) {
+        for (let j = 0; j < arrTeacher.length; j++) {
+          if (arrTeacher[i].teacherId === arrTeacher[j].teacherId) {
+            console.log('проблема с ')
+            console.log(arrTeacher[i].groupName)
+            console.log(arrTeacher[j].groupName)
+          }
+        }
+      }
+    },
     // checkEmptySelect() {
     //   //итерации по курсу
     //   for (let k = 1; k < 5; k++) {
@@ -495,47 +493,46 @@ export default {
     // }
     // ,
 
-    // checkDublicateCabinet(cabinet) {
-    //   for (let p = 1; p < 8; p++) {
-    //     let arrCabinets = []
-    //     for (let k = 1; k < 5; k++) {
-    //       let groups = this.getCourses(k)
-    //       for (let i = 0; i < groups.length; i++) {
-    //
-    //         let elem = this.dateCourseEvent[k][groups[i].name][p]
-    //         if (elem.cabinet != '') {
-    //           let inArr = false
-    //           for (let j = 0; j < arrCabinets.length; j++) {
-    //             if (arrCabinets[j].elem.cabinet == elem.cabinet) {
-    //               inArr = true
-    //               console.log("повторный выбор кабинета " + elem.cabinet)
-    //               let elemArr = {
-    //                 elem: elem,
-    //                 group: groups[i].name,
-    //                 para: p,
-    //                 course: k
-    //               }
-    //               console.log(arrCabinets[j])
-    //               console.log(elemArr)
-    //             }
-    //           }
-    //           if (!inArr) {
-    //             let arrItem = {
-    //               elem: elem,
-    //               group: groups[i].name,
-    //               para: p,
-    //               course: k
-    //             }
-    //             arrCabinets.push(arrItem)
-    //           }
-    //         }
-    //       }
-    //     }
-    //     console.log("para: " + p)
-    //   }
-    //   console.log("--------------------")
-    // }
-    // ,
+    checkDublicateCabinet(cabinet) {
+      for (let p = 1; p < 8; p++) {
+        let arrCabinets = []
+        for (let k = 1; k < 5; k++) {
+          let groups = this.getCourses(k)
+          for (let i = 0; i < groups.length; i++) {
+            let elem = this.dateCourseEvent[k][groups[i].name][p]
+            if (elem.cabinet != '') {
+              let inArr = false
+              for (let j = 0; j < arrCabinets.length; j++) {
+                if (arrCabinets[j].elem.cabinet == elem.cabinet) {
+                  inArr = true
+                  console.log("повторный выбор кабинета " + elem.cabinet)
+                  let elemArr = {
+                    elem: elem,
+                    group: groups[i].name,
+                    para: p,
+                    course: k
+                  }
+                  console.log(arrCabinets[j])
+                  console.log(elemArr)
+                }
+              }
+              if (!inArr) {
+                let arrItem = {
+                  elem: elem,
+                  group: groups[i].name,
+                  para: p,
+                  course: k
+                }
+                arrCabinets.push(arrItem)
+              }
+            }
+          }
+        }
+        console.log("para: " + p)
+      }
+      console.log("--------------------")
+    }
+    ,
     Init() {
 
       axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/groups/all').then((res) => {
@@ -579,22 +576,12 @@ export default {
     //запросы на получение информации
 
     this.Init();
-    // console.log(this.courses[this.selectedCourse].groups[0])
-    // // for (let i=0;i<this.getCourses(this.selectedCourse).length;i++) {
-    // //   this.getWeekHours(this.getCourses(this.selectedCourse)[i])
-    // //   console.log(this.getCourses(this.selectedCourse)[i]);
-    // // }
-
-
   },
   computed: {
     env() {
       return process.env
     },
 
-    test(asd) {
-      console.log(asd)
-    },
 
   }
 
@@ -602,6 +589,37 @@ export default {
 </script>
 
 <style>
+.tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted black;
+  margin-left: 10px;
+  font-size: 30px;
+  color: #c82829;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: auto;
+  background-color: #0095ff;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 5px;
+  font-size: 20px;
+
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 1;
+  bottom: 100%;
+  left: 50%;
+  margin-left: -60px;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+
 .button-6 {
   align-items: center;
   background-color: #FFFFFF;
