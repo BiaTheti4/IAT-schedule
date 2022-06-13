@@ -2,9 +2,14 @@ const KtpService = require('../services/ktp.service')
 
 class KtpController {
     async getSubjects(req, res) {
-        const group = req.body.group
         return res.json(
-            await KtpService.getSubjectsByGroup(group)
+            await KtpService.getSubjectsByGroup(req.body.group,req.body.date)
+        )
+    }
+
+    async getEmployees(req, res) {
+        return res.json(
+            await KtpService.geEmployees()
         )
     }
 

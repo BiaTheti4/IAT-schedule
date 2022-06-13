@@ -1,11 +1,16 @@
 <template>
   <div>
     <select class="button-6" v-model="selectedGroup">
-      <option value="" selected></option>
+      <option value="" selected>Все группы</option>
+<!--      <option v-for="spec in specs[0]" :key="spec.nameShort" :value="spec.nameShort">-->
+<!--        {{ spec.nameShort }}-->
+<!--      </option>-->
+
       <option v-for="group in groups" :key="group.name" :value="group.name">
         {{ group.name }}
       </option>
     </select>
+
     <template v-if="selectedGroup===''">
       <div v-for="group in groups" :key="group">
         <h2>{{ group.name }}</h2>
@@ -18,7 +23,7 @@
           </thead>
           <tbody class="tbody_items">
           <tr v-for="lessonNumber in 7">
-            <td>{{ lessonTime[lessonNumber-1] }}</td>
+            <td>{{ lessonTime[lessonNumber - 1] }}</td>
             <td v-for="lessonInDay in week" :key="lessonInDay">
 
               <div class="event" v-if="this.weekEvents[group.name][lessonInDay.date][lessonNumber].subject!==''">
@@ -57,7 +62,8 @@
 
             <div class="event" v-if="this.weekEvents[this.selectedGroup][lessonInDay.date][lessonNumber].subject!==''">
               <label>{{ this.weekEvents[this.selectedGroup][lessonInDay.date][lessonNumber].subject }}</label>
-              <label>кабинет:{{ this.weekEvents[this.selectedGroup][lessonInDay.date][lessonNumber].cabinet }} {{this.weekEvents[this.selectedGroup][lessonInDay.date][lessonNumber].optionalCabinet}}</label>
+              <label>кабинет:{{ this.weekEvents[this.selectedGroup][lessonInDay.date][lessonNumber].cabinet }}
+                {{ this.weekEvents[this.selectedGroup][lessonInDay.date][lessonNumber].optionalCabinet }}</label>
 
               <label>Преподаватель: {{
                   this.weekEvents[this.selectedGroup][lessonInDay.date][lessonNumber].mainTeacher
@@ -80,6 +86,7 @@
     </template>
 
 
+
   </div>
 
 </template>
@@ -94,16 +101,18 @@ export default {
       weekEvents: {},
       date: '',
       selectedGroup: '',
+      selectedSpec:'',
       groups: [],
+      specs: {},
       week: [],
-      lessonTime:[
-          '08:30-10:00',
-          '10:10-11:40',
-          '12:10-13:40',
-          '13:50-15:20',
-          '15:50-17:20',
-          '17:30-19:00',
-          '19:10-20:40',
+      lessonTime: [
+        '08:30-10:00',
+        '10:10-11:40',
+        '12:10-13:40',
+        '13:50-15:20',
+        '15:50-17:20',
+        '17:30-19:00',
+        '19:10-20:40',
       ]
     }
   },
@@ -182,10 +191,18 @@ export default {
       }
     },
     Init() {
+      axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/groups/specs').then((res) => {
+
+        this.specs = res.data
+        this.specs.pop()
+      })
+
+
       //запрос на получение групп
       axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/groups/all').then(res => {
         this.groups = res.data
       })
+
       //запрос на получение расписания
       axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/week', {
         date: this.DateToBD(this.date)

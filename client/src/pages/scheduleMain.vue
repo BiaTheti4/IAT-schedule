@@ -8,12 +8,10 @@
       <form>
         <input class="button-6" type="date" @change="UpdateDateCourseEvent(date);getWeekHours() " v-model="date">
         <select class="button-6" v-model="selectedCourse"
-                @change="getSubjectsByGroup()"
-        >
+                @change="getSubjectsByGroup()">
           <option v-for="n in 5" :value="n">{{ n }} курс</option>
         </select>
       </form>
-
     </div>
     <br>
     <table class="table">
@@ -31,50 +29,55 @@
       <tbody>
       <tr v-for="para in 7" :key="para.value">
         <td class="lessonNumber">{{ this.lessonTime[para - 1] }}</td>
-        <td v-for="(group,idx) in dateCourseEvent[selectedCourse]">
+        <td v-for="(group,groupId) in dateCourseEvent[selectedCourse]">
           <div class="formSubjects">
             <select class="selectdiv"
-                    v-model="group[para].subjectId"
-                    @click="getSubjectList(idx);checkDublicateCabinet(para,group);checkDublicateTeacher(para,group)"
-                    @change="setEmpty(group[para]);getWeekHours()"
+                    v-model="group[para].ktpId"
+                    @change="performSubjectChange()"
             >
               <option></option>
-              <option v-for="subject in getSubjectList(idx)" :key="subject.subjectId" :value="subject.subjectId">
+              <option v-for="subject in getSubjectList(groupId)" :key="subject.ktpId" :value="subject.ktpId">
                 {{ subject.nameShort }}
               </option>
             </select>
-            <template v-if="group[para].subjectId">
+            <template v-if="group[para].ktpId">
 
-              <select class="selectdiv"
+              <select :class="hasConflictTeacher(group[para].teacherId,para)"
+                      @change="performSubjectChange();"
                       v-model="group[para].teacherId"
-                      @click="getTeacherBySubject(group[para].subjectId,Object.keys(dateCourseEvent[selectedCourse]),idx,group[para]);checkDublicateCabinet(para,group);checkDublicateTeacher(para,group)">
-                <option></option>
-                <option
-                    :value="group[para].teacherId">
-                  {{ group[para].teacher }}
+              >
+                <option :value="null"></option>
+                <option v-for="employeeId in getLessonEmployees(group[para])"
+                        :value="employeeId">
+                  {{ employeePairs[employeeId] }}
                 </option>
               </select>
 
 
               <select v-model="group[para].optionalTeacherId"
-                      @click="checkDublicateCabinet(para,group);checkDublicateTeacher(para,group)">
-                <option
-                    :value="group[para].optionalTeacherId">
-                  {{ group[para].optionalTeacher }}
+                      @change="performSubjectChange();"
+                      :class="hasConflictTeacher(group[para].optionalTeacherId,para)"
+              >
+                <option :value="null"></option>
+                <option v-for="employeeId in getLessonEmployees(group[para])"
+                        :value="employeeId">
+                  {{ employeePairs[employeeId] }}
                 </option>
               </select>
 
 
-              <select class="selectdiv" @click="checkDublicateCabinet(para,group);checkDublicateTeacher(para,group)"
+              <select class="selectdiv"
+                      @change="performSubjectChange();"
+                      :class="hasConflictCabinet(group[para].cabinetId,para)"
                       v-model="group[para].cabinetId">
                 <option></option>
-                <option v-if="group[para].subjectId!==''"
-                        v-for="cabinet in cabinets" :key="cabinet.id" :value="cabinet.id">
+                <option v-for="cabinet in cabinets" :key="cabinet.id" :value="cabinet.id">
                   {{ cabinet.number }}
                 </option>
               </select>
 
-              <select class="selectdiv" @click="checkDublicateCabinet(para,group);checkDublicateTeacher(para,group)"
+              <select class="selectdiv" @change="performSubjectChange();"
+                      :class="hasConflictCabinet(group[para].optionalCabinetId,para)"
                       v-model="group[para].optionalCabinetId">
                 <option></option>
                 <option v-for="cabinet in cabinets" :key="cabinet.id" :value="cabinet.id">
@@ -120,15 +123,24 @@
 
     </table>
 
+
     <button class="button-7" @click="sendPostObject">отправить</button>
-    <div class="tooltip" v-if="warnings.length!==0">!
-      <span class="tooltiptext">
-                  <span class="tooltiptext" v-for="(warn,idx) in warnings" :key="idx">
-                    <span v-for="(err,index) in warn.error" :key="index">{{ err }}</span>
+    <div class="tooltip">!
+
+
+      <span>
+                  <span class="tooltiptext" :key="idx">
+                    <span></span>
                   </span>
                 </span>
     </div>
 
+    <div>
+      Конфликты:
+    <span v-for="conflict in conflicts.details">
+      {{conflict}}
+    </span>
+    </div>
   </div>
 </template>
 
@@ -137,15 +149,21 @@
 
 import axios from "axios";
 import moment from 'moment';
+import _ from 'lodash';
 
 export default {
   data() {
     return {
-      warnings: [],
+      employeePairs: {},
+      cabinetsPairs: {},
       date: '',
-      busyTeachers: [],
       selectedCourse: '',
       cabinets: [],
+      conflicts: {
+        teachers: {},
+        cabinets: {},
+        details:[]
+      },
       dateCourseEvent: {},
       lessonTime: [
         '08:30-10:00',
@@ -156,7 +174,6 @@ export default {
         '17:30-19:00',
         '19:10-20:40',
       ],
-      groupHours: {},
       courses: {
         1: {groups: []},
         2: {groups: []},
@@ -177,7 +194,84 @@ export default {
       let startWeekDate = startDate.add(diffWeeks, 'w');
       let endWeekDate = startWeekDate.clone().add(6, 'd');
       return [startWeekDate.format('YYYY-MM-DD'), endWeekDate.format('YYYY-MM-DD')]
+    },
+    performSubjectChange() {
+      this.getWeekHours();
+      this.checkConflict();
+    },
+    checkConflict() {
+      let conflict = {
+        teachers: {},
+        cabinets: {},
+        details: []
+      };
+      _.each(this.dateCourseEvent, (courses) => {
+        _.each(courses, (groups => {
+          _.each(groups, (pair, pairNum) => {
+            if (pair.ktpId > 0) {
+              let key;
 
+              if (pair.teacherId) {
+                key = pair.teacherId + '_' + pairNum;
+                if (!conflict.teachers[key]) {
+                  conflict.teachers[key] = [];
+                }
+                conflict.teachers[key].push(pair);
+              }
+              if (pair.optionalTeacherId > 0 && pair.teacherId !== pair.optionalTeacherId) {
+                key = pair.optionalTeacherId + '_' + pairNum;
+                if (!conflict.teachers[key]) {
+                  conflict.teachers[key] = [];
+                }
+                conflict.teachers[key].push(pair);
+              }
+              // cabinets
+              if (pair.cabinetId > 0) {
+                key = pair.cabinetId + '_' + pairNum;
+                if (!conflict.cabinets[key]) {
+                  conflict.cabinets[key] = [];
+                }
+                conflict.cabinets[key].push(pair);
+              }
+              if (pair.optionalCabinetId > 0 && pair.cabinetId !== pair.optionalCabinetId) {
+                key = pair.optionalCabinetId + '_' + pairNum;
+                if (!conflict.cabinets[key]) {
+                  conflict.cabinets[key] = [];
+                }
+                conflict.cabinets[key].push(pair);
+              }
+            }
+          })
+        }))
+      })
+
+      _.each(conflict.teachers, (teachers, key) => {
+        if (teachers.length > 1) {
+          let groups = teachers.map(item => item.group).join(', ')
+          let teacherName = this.employeePairs[_.split(String(key), '_', 1)[0]]
+          let detail = `Преподаватель: ${teacherName} в группах: ${groups}`
+          conflict.details.push(detail)
+        }
+      })
+      _.each(conflict.cabinets, (cabinets, key) => {
+        if (cabinets.length > 1) {
+          let cabinetId = _.split(String(key), '_', 1)[0]
+          let groups = cabinets.map(item => item.group).join(', ')
+          let cabinetNumber = (_.find(this.cabinets, (item) => String(item.id) === cabinetId)).number
+          let detail = `Кабинет: ${cabinetNumber} в группах:  ${groups}`
+          conflict.details.push(detail)
+        }
+
+      })
+      this.conflicts = conflict;
+    },
+    getLessonEmployees(lessonData) {
+      let row = _.find(this.courses[this.selectedCourse].groups, row => lessonData.groupId === row.groupId);
+      if (!row) {
+        return [];
+      }
+      let subject = _.find(row.subjects, (subject) => subject.ktpId === lessonData.ktpId);
+      return subject ? subject.employees.theory : [];
     },
     getWeekHours() {
       let week = this.getStudyWeek()
@@ -191,9 +285,9 @@ export default {
           currentDate: this.date
         }).then((res) => {
               this.courses[this.selectedCourse].groups[i].hours = res.data[0][0].hours
-              let groupName = this.courses[this.selectedCourse].groups[i].name;
+              let groupName = this.courses[this.selectedCourse].groups[i].id;
               for (let lessonNumber = 1; lessonNumber < 8; lessonNumber++) {
-                if (this.dateCourseEvent[this.selectedCourse][groupName][lessonNumber].subjectId !== '') {
+                if (this.dateCourseEvent[this.selectedCourse][groupId][lessonNumber].subjectId !== '') {
                   this.courses[this.selectedCourse].groups[i].hours += 1
                   // console.log(this.courses[this.selectedCourse].groups[i].name)
                   // console.log(this.dateCourseEvent[this.selectedCourse].group[lessonNumber].subjectId)
@@ -219,14 +313,15 @@ export default {
       }
     },
     async getSubjectsByGroup() {
-      for (let group in this.courses[this.selectedCourse].groups) {
+      this.courses[this.selectedCourse].groups.forEach((group) => {
         axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/ktp/getSubjects', {
-          group: this.courses[this.selectedCourse].groups[group].name
+          group: group.groupId,
+          date: this.date
         }).then((res) => {
-              this.courses[this.selectedCourse].groups[group].subjects = res.data
+              group.subjects = res.data
             }
         )
-      }
+      })
 
     },
     setEmpty(lesson) {
@@ -242,17 +337,9 @@ export default {
     },
 
     // в test лежит название группы
-    getSubjectList(test) {
-      let course = this.selectedCourse;
-      for (let i in this.courses[course].groups) {
-        if (this.courses[course].groups[i].name === test) {
-          return this.courses[course].groups[i].subjects
-        } else {
-          i++
-        }
-      }
-      console.log(test)
-      return this.courses[this.selectedCourse].groups[group]?.subjects
+    getSubjectList(groupId) {
+      let row = _.find(this.courses[this.selectedCourse].groups, row => row.groupId == groupId);
+      return row.subjects;
     },
     getTeacherName(id) {
       axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/ktp/getTeachers', {
@@ -278,51 +365,28 @@ export default {
     },
     UpdateDateCourseEvent() {
       this.selectedCourse = 1
-      for (let k = 1; k < 5; k++) {
-        let groups = this.getCourses(k)
-        for (let i = 0; i < groups.length; i++) {
-          for (let j = 1; j < 8; j++) {
-            let elem = this.dateCourseEvent[k][groups[i].name][j]
-            elem.subject = ''
-            elem.subjectId = ''
-            elem.teacher = ''
-            elem.teacherId = ''
-            elem.optionalTeacher = ''
-            elem.optionalTeacherId = ''
-            elem.cabinet = ''
-            elem.cabinetId = ''
-            elem.optionalCabinet = ''
-            elem.optionalCabinetId = ''
-
-            elem.status = (groups[i].status == 1) ? 1 : 0,
-                elem.id = 0
-          }
-        }
-      }
       axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/getCurrentSchedule', {
         date: this.date
       }).then((res) => {
-        for (let i = 0; i < res.data.length; i++) {
-          let elem = this.dateCourseEvent[res.data[i].course][res.data[i].name][res.data[i].lesson_number]
-
-          elem.subject = res.data[i].subject
-          elem.subjectId = res.data[i].subject_id
-          elem.teacher = res.data[i].main_emp
-          elem.teacherId = res.data[i].teacher_id
-          elem.optionalTeacher = res.data[i].group_emp
-          elem.optionalTeacherId = res.data[i].optional_teacher_id
-          elem.cabinet = res.data[i].number
-          elem.cabinetId = res.data[i].cabinet_id
-          elem.optionalCabinet = res.data[i].optional_cabinet
-          elem.optionalCabinetId = res.data[i].optional_cabinet_id
-          if (res.data[i].status == 1) {
-            elem.status = true
-          } else {
-            elem.status = false
+        res.data.forEach(function (row) {
+          let element = _.get(this.dateCourseEvent, [row.course, row.groupId, row.lesson_number], false);
+          if (element) {
+            element.subject = row.subject;
+            element.ktpId = row.ktpId;
+            element.subjectId = row.subject_id;
+            element.teacher = row.main_emp;
+            element.teacherId = row.teacher_id;
+            element.optionalTeacher = row.group_emp;
+            element.optionalTeacherId = row.optional_teacher_id;
+            element.cabinet = row.number;
+            element.cabinetId = row.cabinet_id;
+            element.optionalCabinet = row.optional_cabinet;
+            element.optionalCabinetId = row.optional_cabinet_id;
+            element.status = row.status == 1;
           }
-          elem.id = res.data[i].id;
-        }
+        });
       })
+      this.getWeekHours()
     },
     initDateCourseEvent() {
       this.dateCourseEvent = {}
@@ -330,19 +394,22 @@ export default {
         this.dateCourseEvent[k] = {}
         let groups = this.getCourses(k)
         for (let i = 0; i < groups.length; i++) {
-          this.dateCourseEvent[k][groups[i].name] = {}
+          this.dateCourseEvent[k][groups[i].groupId] = {}
           for (let j = 1; j < 8; j++) {
-            this.dateCourseEvent[k][groups[i].name][j] = {
+            this.dateCourseEvent[k][groups[i].groupId][j] = {
+              group: groups[i].name,
+              groupId: groups[i].groupId,
               subject: '',
-              subjectId: '',
+              subjectId: null,
+              ktpId: null,
               teacher: '',
-              teacherId: '',
+              teacherId: null,
               optionalTeacher: '',
-              optionalTeacherId: '',
+              optionalTeacherId: null,
               cabinet: '',
-              cabinetId: '',
+              cabinetId: null,
               optionalCabinet: '',
-              optionalCabinetId: '',
+              optionalCabinetId: null,
               status: false,
               error: [],
               id: 0
@@ -352,6 +419,18 @@ export default {
         }
       }
       this.getWeekHours()
+    },
+    hasConflictTeacher(teacherId, pair) {
+      return {
+        'selectdiv': true,
+        'conflict': _.get(this.conflicts, ['teachers', teacherId + '_' + pair], 0).length > 1,
+      }
+    },
+    hasConflictCabinet(cabinetId, pair) {
+      return {
+        'selectdiv': true,
+        'conflict': _.get(this.conflicts, ['cabinets', cabinetId + '_' + pair], 0).length > 1,
+      }
     },
     test(asd) {
       console.log(asd)
@@ -381,7 +460,7 @@ export default {
                   teacher: elem.teacherId,
                   optionalTeacher: (elem.optionalTeacherId) ?? null,
                   cabinet: elem.cabinetId,
-                  optionalCabinet: (elem.optionalCabinetId)??null,
+                  optionalCabinet: (elem.optionalCabinetId) ?? null,
                   //потом добавить
                   // event:elem.event,
                   lessonNumber: j,
@@ -397,9 +476,9 @@ export default {
                 axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/createNewLesson', {
                   subject: elem.subjectId,
                   teacher: elem.teacherId,
-                  optionalTeacher: elem.optionalTeacherId===''?null: elem.optionalTeacherId,
+                  optionalTeacher: elem.optionalTeacherId === '' ? null : elem.optionalTeacherId,
                   cabinet: elem.cabinetId,
-                  optionalCabinet: elem.optionalCabinetId===''?null: elem.optionalCabinetId,
+                  optionalCabinet: elem.optionalCabinetId === '' ? null : elem.optionalCabinetId,
                   //потом добавить
                   // event:elem.event,
                   lessonNumber: j,
@@ -435,9 +514,9 @@ export default {
           let arr = []
           let firstElem = ''
           for (let j = 1, asd = 0; j < 8; j++, asd++) {
-            if (this.dateCourseEvent[k][groups[i].name][j].cabinet != ''
-                && this.dateCourseEvent[k][groups[i].name][j].subject != ''
-                && this.dateCourseEvent[k][groups[i].name][j].teacher != '') {
+            if (this.dateCourseEvent[k][groups[i].name][j].cabinet !== ''
+                && this.dateCourseEvent[k][groups[i].name][j].subject !== ''
+                && this.dateCourseEvent[k][groups[i].name][j].teacher !== '') {
               if (firstElem = '') firstElem = j
               else
                 arr.push(j)
@@ -452,98 +531,6 @@ export default {
           }
         }
       }
-    },
-    checkDublicateTeacher(lesson) {
-
-      // for(let course =1;course<this.courses.length;course++){
-      //   for (let group=0;group<this.courses[course].length;group++){
-      //
-      //   }
-      // }
-      let lessons = {}
-      for (let i in this.warnings) {
-        this.warnings[i].error = ''
-      }
-      this.warnings = []
-
-      for (let p = 1; p < 8; p++) {
-        for (let k = 1; k < 5; k++) {
-          let groups = this.getCourses(k)
-          for (let i = 0; i < groups.length; i++) {
-            let elem = this.dateCourseEvent[k][groups[i].name][p]
-            elem.groupName = this.courses[k].groups[i].name
-            elem.lessonNumber = p;
-            elem.course = k;
-            if (elem.teacherId != '') {
-              if (!lessons[p]) lessons[p] = [];
-              lessons[p].push(elem)
-            }
-            if (elem.cabinetId != '') {
-              if (!lessons[p]) lessons[p] = [];
-              lessons[p].push(elem)
-            }
-          }
-        }
-      }
-      console.log(lessons)
-
-      for (let p in lessons) {
-        for (let i = 0; i < lessons[p].length; i++) {
-          for (let j = i + 1; j < lessons[p].length; j++) {
-            if (lessons[p][i].teacherId === lessons[p][j].teacherId) {
-              if (!this.warnings.includes(lessons[p][i])) this.warnings.push(lessons[p][i])
-              if (!this.warnings.includes(lessons[p][j])) this.warnings.push(lessons[p][j])
-              lessons[p][i].error.push('состыковка преподавателей с группой ' + lessons[p][j].groupName + ' пара №' + lessons[p][j].lessonNumber)
-              lessons[p][j].error.push('состыковка преподавателей с группой ' + lessons[p][i].groupName + ' пара №' + lessons[p][i].lessonNumber)
-            }
-            if (lessons[p][i].teacherId === lessons[p][j].optionalTeacherId) {
-              if (!this.warnings.includes(lessons[p][i])) this.warnings.push(lessons[p][i])
-              if (!this.warnings.includes(lessons[p][j])) this.warnings.push(lessons[p][j])
-              lessons[p][i].error.push('состыковка преподавателей с группой ' + lessons[p][j].groupName + ' пара №' + lessons[p][j].lessonNumber)
-              lessons[p][j].error.push('состыковка преподавателей с группой ' + lessons[p][i].groupName + ' пара №' + lessons[p][i].lessonNumber)
-            }
-            if (lessons[p][i].optionalTeacherId === lessons[p][j].teacherId) {
-              if (!this.warnings.includes(lessons[p][i])) this.warnings.push(lessons[p][i])
-              if (!this.warnings.includes(lessons[p][j])) this.warnings.push(lessons[p][j])
-              lessons[p][i].error.push('состыковка преподавателей с группой ' + lessons[p][j].groupName + ' пара №' + lessons[p][j].lessonNumber)
-              lessons[p][j].error.push('состыковка преподавателей с группой ' + lessons[p][i].groupName + ' пара №' + lessons[p][i].lessonNumber)
-            }
-            if (lessons[p][i].optionalTeacherId === lessons[p][j].optionalTeacherId) {
-              if (!this.warnings.includes(lessons[p][i])) this.warnings.push(lessons[p][i])
-              if (!this.warnings.includes(lessons[p][j])) this.warnings.push(lessons[p][j])
-              lessons[p][i].error.push('состыковка преподавателей с группой ' + lessons[p][j].groupName + ' пара №' + lessons[p][j].lessonNumber)
-              lessons[p][j].error.push('состыковка преподавателей с группой ' + lessons[p][i].groupName + ' пара №' + lessons[p][i].lessonNumber)
-            }
-            //cabinets
-            if (lessons[p][i].cabinetId === lessons[p][j].cabinetId) {
-              if (!this.warnings.includes(lessons[p][i])) this.warnings.push(lessons[p][i])
-              if (!this.warnings.includes(lessons[p][j])) this.warnings.push(lessons[p][j])
-              lessons[p][i].error.push('состыковка кабинетов с группой ' + lessons[p][j].groupName + ' пара №' + lessons[p][j].lessonNumber)
-              lessons[p][j].error.push('состыковка кабинетов с группой ' + lessons[p][i].groupName + ' пара №' + lessons[p][i].lessonNumber)
-            }
-            if (lessons[p][i].cabinetId === lessons[p][j].optionalCabinetId) {
-              if (!this.warnings.includes(lessons[p][i])) this.warnings.push(lessons[p][i])
-              if (!this.warnings.includes(lessons[p][j])) this.warnings.push(lessons[p][j])
-              lessons[p][i].error.push('состыковка кабинетов с группой ' + lessons[p][j].groupName + ' пара №' + lessons[p][j].lessonNumber)
-              lessons[p][j].error.push('состыковка кабинетов с группой ' + lessons[p][i].groupName + ' пара №' + lessons[p][i].lessonNumber)
-            }
-            if (lessons[p][i].optionalCabinetId === lessons[p][j].cabinetId) {
-              if (!this.warnings.includes(lessons[p][i])) this.warnings.push(lessons[p][i])
-              if (!this.warnings.includes(lessons[p][j])) this.warnings.push(lessons[p][j])
-              lessons[p][i].error.push('состыковка кабинетов с группой ' + lessons[p][j].groupName + ' пара №' + lessons[p][j].lessonNumber)
-              lessons[p][j].error.push('состыковка кабинетов с группой ' + lessons[p][i].groupName + ' пара №' + lessons[p][i].lessonNumber)
-            }
-            if (lessons[p][i].optionalCabinetId === lessons[p][j].optionalCabinetId) {
-              if (!this.warnings.includes(lessons[p][i])) this.warnings.push(lessons[p][i])
-              if (!this.warnings.includes(lessons[p][j])) this.warnings.push(lessons[p][j])
-              lessons[p][i].error.push('состыковка кабинетов с группой ' + lessons[p][j].groupName + ' пара №' + lessons[p][j].lessonNumber)
-              lessons[p][j].error.push('состыковка кабинетов с группой ' + lessons[p][i].groupName + ' пара №' + lessons[p][i].lessonNumber)
-            }
-
-          }
-        }
-      }
-
     },
     // checkEmptySelect() {
     //   //итерации по курсу
@@ -571,43 +558,43 @@ export default {
     // ,
 
     checkDublicateCabinet(cabinet) {
-      for (let p = 1; p < 8; p++) {
-        let arrCabinets = []
-        for (let k = 1; k < 5; k++) {
-          let groups = this.getCourses(k)
-          for (let i = 0; i < groups.length; i++) {
-            let elem = this.dateCourseEvent[k][groups[i].name][p]
-            if (elem.cabinet != '') {
-              let inArr = false
-              for (let j = 0; j < arrCabinets.length; j++) {
-                if (arrCabinets[j].elem.cabinet == elem.cabinet) {
-                  inArr = true
-                  console.log("повторный выбор кабинета " + elem.cabinet)
-                  let elemArr = {
-                    elem: elem,
-                    group: groups[i].name,
-                    para: p,
-                    course: k
-                  }
-                  console.log(arrCabinets[j])
-                  console.log(elemArr)
-                }
-              }
-              if (!inArr) {
-                let arrItem = {
-                  elem: elem,
-                  group: groups[i].name,
-                  para: p,
-                  course: k
-                }
-                arrCabinets.push(arrItem)
-              }
-            }
-          }
-        }
-        // console.log("para: " + p)
-      }
-      // console.log("--------------------")
+      // for (let p = 1; p < 8; p++) {
+      //   let arrCabinets = []
+      //   for (let k = 1; k < 5; k++) {
+      //     let groups = this.getCourses(k)
+      //     for (let i = 0; i < groups.length; i++) {
+      //       let elem = this.dateCourseEvent[k][groups[i].name][p]
+      //       if (elem.cabinet != '') {
+      //         let inArr = false
+      //         for (let j = 0; j < arrCabinets.length; j++) {
+      //           if (arrCabinets[j].elem.cabinet == elem.cabinet) {
+      //             inArr = true
+      //             console.log("повторный выбор кабинета " + elem.cabinet)
+      //             let elemArr = {
+      //               elem: elem,
+      //               group: groups[i].name,
+      //               para: p,
+      //               course: k
+      //             }
+      //             console.log(arrCabinets[j])
+      //             console.log(elemArr)
+      //           }
+      //         }
+      //         if (!inArr) {
+      //           let arrItem = {
+      //             elem: elem,
+      //             group: groups[i].name,
+      //             para: p,
+      //             course: k
+      //           }
+      //           arrCabinets.push(arrItem)
+      //         }
+      //       }
+      //     }
+      //   }
+      //   // console.log("para: " + p)
+      // }
+      // // console.log("--------------------")
     }
     ,
     Init() {
@@ -619,6 +606,7 @@ export default {
               this.courses[gr.course].groups.push({...gr, subjects: [], hours: 0})
 
             }
+
             this.getSubjectsByGroup()
             this.initDateCourseEvent();
             this.UpdateDateCourseEvent();
@@ -626,26 +614,28 @@ export default {
       )
 
     },
+    initCabinets() {
+      //получение текущей даты
+      axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/cabinets/all').then((res) => {
+        _.each(res.data, (cabinet) => {
+          this.cabinetsPairs[cabinet.id] = cabinet.number
+        })
+        this.cabinets = res.data
+      })
+    },
+    initEmployees() {
+      axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/ktp/getEmployees').then((res) => {
+        this.employeePairs = res.data;
+      })
+    }
   },
   mounted() {
-
-    //получение текущей даты
-    let today = new Date();
-    axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/cabinets/all').then((res) => {
-      // console.log(res.data)
-      for (let i = 0; i < res.data.length; i++) {
-        let cb = {
-          id: res.data[i].id,
-          number: res.data[i].number
-        }
-        this.cabinets.push(cb)
-        // this.courses[gr.course].groups.push(gr)
-      }
-    })
+    this.initEmployees();
+    this.initCabinets();
     this.initDateCourseEvent();
     this.UpdateDateCourseEvent();
 
-
+    let today = new Date();
     this.date = today.getFullYear() + '-' + (today.getMonth() + 1 > 9 ? today.getMonth() : "0" + (today.getMonth() + 1)) + '-' + (today.getDate() > 9 ? today.getDate() : "0" + today.getDate());
 
     //установка текущего курса по умолчанию на 1
@@ -655,6 +645,11 @@ export default {
     this.Init();
   },
   computed: {
+    orderedCabinets() {
+      console.log(_.orderBy(this.cabinetsPairs))
+      return _.orderBy(this.cabinetsPairs)
+
+    },
     env() {
       return process.env
     },
@@ -898,6 +893,12 @@ select::-ms-expand {
   display: flex;
   flex-direction: column;
   justify-items: center;
+}
+
+select.conflict {
+  border-color: #ff3333;
+  border-width: 2px;
+  background-color: #ffcccc;
 }
 
 </style>

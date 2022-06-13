@@ -6,6 +6,11 @@ class GroupsController {
             await GroupService.getGroups()
         )
     }
+    async getSpecs(req, res) {
+        return res.json(
+            await GroupService.getSpecs()
+        )
+    }
 }
 
 module.exports = new GroupsController()

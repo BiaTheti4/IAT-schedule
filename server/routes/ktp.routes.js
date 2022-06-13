@@ -3,6 +3,7 @@ const express = require('express'),
     KtpController = require('../controllers/ktpController')
 
 router.post('/getTeachers/', KtpController.getTeachers)
-router.post('/getSubjects',KtpController.getSubjects)
+router.post('/getSubjects', KtpController.getSubjects)
+router.get('/getEmployees', KtpController.getEmployees)
 
 module.exports = router

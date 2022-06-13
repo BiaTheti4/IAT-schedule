@@ -23,12 +23,18 @@ class GroupsService {
                     }
                 ]
             },
+            order:[
+                ['groupId','asc']
+            ],
             include: [
                 {
                     model: specs,
                 }
             ]
         });
+    }
+    async getSpecs(req,res){
+        return  await sequelize.query('select nameShort from specs where active=1 and code<>0')
     }
 }
 
