@@ -9,5 +9,6 @@ router.post('/week', ScheduleController.getWeekSchedule)
 router.post('/getPrintSchedule', ScheduleController.getPrintSchedule)
 router.post('/getWeekHours', ScheduleController.getWeekHours)
 router.post('/deleteSchedule',ScheduleController.deleteSchedule)
+router.get('/getLessonId',ScheduleController.getLessonId)
 
 module.exports = router

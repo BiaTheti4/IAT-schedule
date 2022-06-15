@@ -5,8 +5,7 @@ class ScheduleService {
         return await sequelize.query(
             'select schedule_new.id,' +
             'schedule_new.date,' +
-            'schedule_new.subject_id,' +
-            's.name as subject,' +
+            'schedule_new.ktp_id,' +
             'g.groupId,' +
             'g.name,' +
             'g.course,' +
@@ -21,12 +20,13 @@ class ScheduleService {
             'schedule_new.teacher_id,' +
             'concat(emp.last_name, \' \', left(emp.first_name,1),".", \' \', left(emp.fathers_name,1),".") as group_emp, ' +
             'schedule_new.optional_teacher_id from schedule_new ' +
-            '    inner join employees e on schedule_new.teacher_id = e.employeeId ' +
-            '    left join employees emp on schedule_new.optional_teacher_id=emp.employeeId ' +
-            '    inner join cabinets c on schedule_new.cabinet_id = c.id ' +
-            '    left join cabinets cab on schedule_new.optional_cabinet_id=cab.id ' +
-            '    inner join `groups` g on schedule_new.group_id = g.groupId ' +
-            '    inner join subjects s on schedule_new.subject_id = s.subjectId ' +
+            ' inner join employees e on schedule_new.teacher_id = e.employeeId ' +
+            ' left join employees emp on schedule_new.optional_teacher_id=emp.employeeId ' +
+            ' inner join cabinets c on schedule_new.cabinet_id = c.id ' +
+            ' left join cabinets cab on schedule_new.optional_cabinet_id=cab.id ' +
+            ' inner join `groups` g on schedule_new.group_id = g.groupId ' +
+            ' inner join ktp k on schedule_new.ktp_id = k.ktpId ' +
+
             ' where date=:date', {
                 replacements: {date: String(date)},
                 type: sequelize.QueryTypes.SELECT
@@ -46,12 +46,13 @@ class ScheduleService {
             'concat(e.last_name, \' \', e.first_name, \' \', e.fathers_name) as main_emp,' +
             ' concat(emp.last_name, \' \', emp.first_name, \' \', emp.fathers_name) as group_emp' +
             ' from schedule_new' +
-            '    inner join employees e on schedule_new.teacher_id = e.employeeId ' +
-            '    left join employees emp on schedule_new.optional_teacher_id=emp.employeeId ' +
-            '    inner join cabinets c on schedule_new.cabinet_id = c.id ' +
+            ' inner join employees e on schedule_new.teacher_id = e.employeeId ' +
+            ' left join employees emp on schedule_new.optional_teacher_id=emp.employeeId ' +
+            ' inner join cabinets c on schedule_new.cabinet_id = c.id ' +
             ' left join cabinets cab on schedule_new.optional_cabinet_id=cab.id ' +
-            '    inner join `groups` g on schedule_new.group_id = g.groupId ' +
-            '    inner join subjects s on schedule_new.subject_id = s.subjectId ' +
+            ' inner join `groups` g on schedule_new.group_id = g.groupId ' +
+            ' inner join ktp k on schedule_new.ktp_id=k.ktpId '+
+            ' inner join subjects s on k.subjectId = s.subjectId ' +
             ' where date>=:date', {
                 replacements: {date: String(date)},
                 type: sequelize.QueryTypes.SELECT
@@ -75,7 +76,8 @@ class ScheduleService {
             ' from schedule_new ' +
             ' inner join employees e on schedule_new.teacher_id = e.employeeId ' +
             ' left join employees emp on schedule_new.optional_teacher_id = emp.employeeId ' +
-            ' inner join subjects s on schedule_new.subject_id = s.subjectId ' +
+            ' inner join ktp k on schedule_new.ktp_id=k.ktpId '+
+            ' inner join subjects s on k.subjectId = s.subjectId ' +
             ' inner join `groups` g on schedule_new.group_id = g.groupId ' +
             ' inner join cabinets c on schedule_new.cabinet_id = c.id ' +
             ' left join cabinets cab on schedule_new.optional_cabinet_id=cab.id ' +
@@ -87,9 +89,10 @@ class ScheduleService {
     }
 
     async createNewLesson(lesson) {
+
         return await sequelize.query(
-            'insert into schedule_new(date, status,lesson_number,teacher_id,optional_teacher_id,subject_id,group_id,cabinet_id,optional_cabinet_id)' +
-            `values (:date,:status,:lesson,:teacher,:optional_teacher,:subject,:group,:cabinet,:optionalCabinet)`,
+            'insert into schedule_new(date, status,lesson_number,teacher_id,optional_teacher_id,ktp_id,group_id,cabinet_id,optional_cabinet_id)' +
+            `values (:date,:status,:lesson,:teacher,:optional_teacher,:ktp,:group,:cabinet,:optionalCabinet)`,
             {
                 replacements: {
                     date: lesson.date,
@@ -98,7 +101,7 @@ class ScheduleService {
                     lesson: lesson.lessonNumber,
                     teacher: lesson.teacher,
                     optional_teacher: lesson.optionalTeacher,
-                    subject: lesson.subject,
+                    ktp: lesson.ktp,
                     group: lesson.groupId,
                     cabinet: lesson.cabinet,
                     optionalCabinet: lesson.optionalCabinet
@@ -129,16 +132,22 @@ class ScheduleService {
             }
         )
     }
+    async getLessonId() {
+        return await sequelize.query(
+            'select max(id) as id from schedule_new',{
+                type: sequelize.QueryTypes.select
+            }
+        )
+    }
 
     async updateSchedule(lesson) {
-        console.log(lesson)
         return await sequelize.query(
             'update schedule_new set ' +
             'status=:status,' +
             'lesson_number=:lesson,' +
             'teacher_id=:teacher,' +
             'optional_teacher_id=:optional_teacher,' +
-            'subject_id=:subject,' +
+            'ktp_id=:ktp,' +
             'group_id=:group,' +
             'cabinet_id=:cabinet ' +
             'where id=:id', {
@@ -150,7 +159,7 @@ class ScheduleService {
                     lesson: lesson.lessonNumber,
                     teacher: lesson.teacher,
                     optional_teacher: lesson.optionalTeacher,
-                    subject: lesson.subject,
+                    ktp: lesson.ktp,
                     group: lesson.groupId,
                     cabinet: lesson.cabinet
                 },

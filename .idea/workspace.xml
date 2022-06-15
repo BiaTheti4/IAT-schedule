@@ -1,20 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="cd559433-e689-413e-a053-fa218f6bfea0" name="Changes" comment="fixed print page(bug with view)">
-      <change afterPath="$PROJECT_DIR$/client/src/components/modal.vue" afterDir="false" />
+    <list default="true" id="cd559433-e689-413e-a053-fa218f6bfea0" name="Changes" comment="created checking conflicts with teachers/cabinets and created final conflict summary conflicts">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/client/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/pages/scheduleMain.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/scheduleMain.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/pages/scheduleView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/scheduleView.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/controllers/groups.controller.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/controllers/groups.controller.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/controllers/ktpController.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/controllers/ktpController.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/server/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/server/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/routes/groups.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/groups.routes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/routes/ktp.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/ktp.routes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/services/groups.service.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/groups.service.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/services/ktp.service.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/ktp.service.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/controllers/schedule.controller.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/controllers/schedule.controller.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/routes/schedule.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/schedule.routes.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/services/schedule.service.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/schedule.service.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -75,6 +67,9 @@
       <workItem from="1654838844812" duration="880000" />
       <workItem from="1654908945172" duration="16429000" />
       <workItem from="1655019803621" duration="12827000" />
+      <workItem from="1655085138572" duration="1686000" />
+      <workItem from="1655122739888" duration="4708000" />
+      <workItem from="1655256638680" duration="8692000" />
     </task>
     <task id="LOCAL-00001" summary="completed counting hours per study week for every group">
       <created>1654137105903</created>
@@ -111,7 +106,14 @@
       <option name="project" value="LOCAL" />
       <updated>1654714980750</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="created checking conflicts with teachers/cabinets and created final conflict summary conflicts">
+      <created>1655085375749</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1655085375749</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -133,7 +135,8 @@
     <MESSAGE value="added optional cabinet" />
     <MESSAGE value="added checking dublicate teacher/cabinets" />
     <MESSAGE value="fixed print page(bug with view)" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed print page(bug with view)" />
+    <MESSAGE value="created checking conflicts with teachers/cabinets and created final conflict summary conflicts" />
+    <option name="LAST_COMMIT_MESSAGE" value="created checking conflicts with teachers/cabinets and created final conflict summary conflicts" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

@@ -30,10 +30,10 @@
       <tr v-for="para in 7" :key="para.value">
         <td class="lessonNumber">{{ this.lessonTime[para - 1] }}</td>
         <td v-for="(group,groupId) in dateCourseEvent[selectedCourse]">
-          <div class="formSubjects">
+          <div :class="isChanged(group[para])">
             <select class="selectdiv"
                     v-model="group[para].ktpId"
-                    @change="performSubjectChange()"
+                    @change="performSubjectChange(group[para],$event)"
             >
               <option></option>
               <option v-for="subject in getSubjectList(groupId)" :key="subject.ktpId" :value="subject.ktpId">
@@ -43,7 +43,7 @@
             <template v-if="group[para].ktpId">
 
               <select :class="hasConflictTeacher(group[para].teacherId,para)"
-                      @change="performSubjectChange();"
+                      @change="performSubjectChange(group[para],$event);"
                       v-model="group[para].teacherId"
               >
                 <option :value="null"></option>
@@ -55,7 +55,7 @@
 
 
               <select v-model="group[para].optionalTeacherId"
-                      @change="performSubjectChange();"
+                      @change="performSubjectChange(group[para],$event);"
                       :class="hasConflictTeacher(group[para].optionalTeacherId,para)"
               >
                 <option :value="null"></option>
@@ -67,7 +67,7 @@
 
 
               <select class="selectdiv"
-                      @change="performSubjectChange();"
+                      @change="performSubjectChange(group[para],$event);"
                       :class="hasConflictCabinet(group[para].cabinetId,para)"
                       v-model="group[para].cabinetId">
                 <option></option>
@@ -76,7 +76,7 @@
                 </option>
               </select>
 
-              <select class="selectdiv" @change="performSubjectChange();"
+              <select class="selectdiv" @change="performSubjectChange(group[para],$event);"
                       :class="hasConflictCabinet(group[para].optionalCabinetId,para)"
                       v-model="group[para].optionalCabinetId">
                 <option></option>
@@ -124,7 +124,7 @@
     </table>
 
 
-    <button class="button-7" @click="sendPostObject">отправить</button>
+    <button class="button-7" @click="sendPostObject">Сохранить</button>
     <div class="tooltip">!
 
 
@@ -135,10 +135,9 @@
                 </span>
     </div>
 
-    <div>
-      Конфликты:
-    <span v-for="conflict in conflicts.details">
-      {{conflict}}
+    <div class="alertBlocks">
+      <span class="alert" v-for="conflict in conflicts.details">
+        <span class="sign">!</span><strong>{{ conflict }}</strong>
     </span>
     </div>
   </div>
@@ -162,7 +161,7 @@ export default {
       conflicts: {
         teachers: {},
         cabinets: {},
-        details:[]
+        details: []
       },
       dateCourseEvent: {},
       lessonTime: [
@@ -195,7 +194,7 @@ export default {
       let endWeekDate = startWeekDate.clone().add(6, 'd');
       return [startWeekDate.format('YYYY-MM-DD'), endWeekDate.format('YYYY-MM-DD')]
     },
-    performSubjectChange() {
+    performSubjectChange(lesson, event) {
       this.getWeekHours();
       this.checkConflict();
     },
@@ -249,16 +248,19 @@ export default {
         if (teachers.length > 1) {
           let groups = teachers.map(item => item.group).join(', ')
           let teacherName = this.employeePairs[_.split(String(key), '_', 1)[0]]
-          let detail = `Преподаватель: ${teacherName} в группах: ${groups}`
+          let lessonNumber = _.split(String(key), '_')[1]
+          let detail = `Пара ${lessonNumber} Преподаватель: ${teacherName} в группах: ${groups}`
           conflict.details.push(detail)
         }
       })
       _.each(conflict.cabinets, (cabinets, key) => {
         if (cabinets.length > 1) {
           let cabinetId = _.split(String(key), '_', 1)[0]
+          let lessonNumber = _.split(String(key), '_')[1]
+
           let groups = cabinets.map(item => item.group).join(', ')
           let cabinetNumber = (_.find(this.cabinets, (item) => String(item.id) === cabinetId)).number
-          let detail = `Кабинет: ${cabinetNumber} в группах:  ${groups}`
+          let detail = `Пара ${lessonNumber} Кабинет: ${cabinetNumber} в группах:  ${groups}`
           conflict.details.push(detail)
         }
 
@@ -271,7 +273,7 @@ export default {
         return [];
       }
       let subject = _.find(row.subjects, (subject) => subject.ktpId === lessonData.ktpId);
-      return subject ? subject.employees.theory : [];
+      return subject ? subject.employees.practice : [];
     },
     getWeekHours() {
       let week = this.getStudyWeek()
@@ -287,10 +289,8 @@ export default {
               this.courses[this.selectedCourse].groups[i].hours = res.data[0][0].hours
               let groupName = this.courses[this.selectedCourse].groups[i].id;
               for (let lessonNumber = 1; lessonNumber < 8; lessonNumber++) {
-                if (this.dateCourseEvent[this.selectedCourse][groupId][lessonNumber].subjectId !== '') {
+                if (this.dateCourseEvent[this.selectedCourse][groupId][lessonNumber].ktpId !== '') {
                   this.courses[this.selectedCourse].groups[i].hours += 1
-                  // console.log(this.courses[this.selectedCourse].groups[i].name)
-                  // console.log(this.dateCourseEvent[this.selectedCourse].group[lessonNumber].subjectId)
                 }
               }
             }
@@ -364,16 +364,41 @@ export default {
       ).catch(err => console.warn(err))
     },
     UpdateDateCourseEvent() {
+      // for (let k = 1; k < 5; k++) {
+      //   let groups = this.getCourses(k)
+      //   for (let i = 0; i < groups.length; i++) {
+      //     for (let j = 1; j < 8; j++) {
+      //
+      _.each(this.dateCourseEvent, (course) => {
+        _.each(course, (group) => {
+          _.each(group, (lesson) => {
+            let elem = lesson
+            elem.subject = ''
+            elem.ktpId = ''
+            elem.subjectId = ''
+            elem.teacher = ''
+            elem.teacherId = ''
+            elem.optionalTeacher = ''
+            elem.optionalTeacherId = ''
+            elem.cabinet = ''
+            elem.optionalCabinet = ''
+            elem.status = 0
+            elem.id = 0
+          })
+        })
+      })
+
+      this.conflicts.cabinets = {}
+      this.conflicts.details = []
+      this.conflicts.teachers = {}
       this.selectedCourse = 1
       axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/getCurrentSchedule', {
         date: this.date
       }).then((res) => {
-        res.data.forEach(function (row) {
+        _.each(res.data, (row) => {
           let element = _.get(this.dateCourseEvent, [row.course, row.groupId, row.lesson_number], false);
           if (element) {
-            element.subject = row.subject;
-            element.ktpId = row.ktpId;
-            element.subjectId = row.subject_id;
+            element.ktpId = row.ktp_id;
             element.teacher = row.main_emp;
             element.teacherId = row.teacher_id;
             element.optionalTeacher = row.group_emp;
@@ -382,9 +407,11 @@ export default {
             element.cabinetId = row.cabinet_id;
             element.optionalCabinet = row.optional_cabinet;
             element.optionalCabinetId = row.optional_cabinet_id;
+            element.isChanged=0;
             element.status = row.status == 1;
           }
-        });
+
+        })
       })
       this.getWeekHours()
     },
@@ -419,78 +446,101 @@ export default {
         }
       }
       this.getWeekHours()
+    }
+    ,
+    isChanged(lesson, event) {
+      console.log('старый')
+      console.log(event)
+      console.log('новый')
+      console.log(lesson)
+      // if (lesson.id > 0) {
+      //   if (lesson.ktpId !== event.target.ktpId) {
+      //     return {'changed': true}
+      //   } else if (lesson.teacherId !== event.target.teacherId) {
+      //     return {'changed': true}
+      //   } else if (lesson.optionalTeacherId !== event.target.optionalTeacherId) {
+      //     return {'changed': true}
+      //   } else if (lesson.cabinetId !== event.target.cabinetId) {
+      //     return {'changed': true}
+      //   } else if (lesson.optionalCabinetId !== event.target.optionalCabinetId) {
+      //     return {'changed': true}
+      //   } else if (lesson.ktpId !== event.target.ktpId) {
+      //     return {'changed': true}
+      //   }else{
+      //     return {'formSubjects':true}
+      //   }
+      // }
+
     },
     hasConflictTeacher(teacherId, pair) {
       return {
         'selectdiv': true,
         'conflict': _.get(this.conflicts, ['teachers', teacherId + '_' + pair], 0).length > 1,
       }
-    },
+    }
+    ,
     hasConflictCabinet(cabinetId, pair) {
       return {
         'selectdiv': true,
         'conflict': _.get(this.conflicts, ['cabinets', cabinetId + '_' + pair], 0).length > 1,
       }
-    },
+    }
+    ,
     test(asd) {
       console.log(asd)
-    },
+    }
+    ,
     sendPostObject() {
-
-      //итерации по курсу
-      for (let k = 1; k < 5; k++) {
-        //группы в курсе
-        let groups = this.getCourses(k)
-        //итерации по группам
-        for (let i = 0; i < groups.length; i++) {
-          //итерации по номеру пары
-          for (let j = 1; j < 8; j++) {
-            //информация о паре выбранной группы
-            let elem = this.dateCourseEvent[k][groups[i].name][j]
-            //проверка на пустой предмет
-            let notEmpty = (elem.subjectId != '' && elem.teacherId != '' && elem.cabinetId != '')
-            //проверка на пустой  элемент расписания
+      _.each(this.dateCourseEvent, (course) => {
+        _.each(course, (group) => {
+          _.each(group, (lesson, key) => {
+            let elem = lesson
+            let notEmpty = (elem.ktpId != '' && elem.teacherId != '' && elem.cabinetId != null)
             if (notEmpty) {
               //если пара уже была, но изменили данные внутри
               if (elem.id != 0 || elem.id != '') {
                 //update
                 axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/updateSchedule', {
                   id: elem.id,
-                  subject: elem.subjectId,
+                  ktp: elem.ktpId,
                   teacher: elem.teacherId,
                   optionalTeacher: (elem.optionalTeacherId) ?? null,
                   cabinet: elem.cabinetId,
                   optionalCabinet: (elem.optionalCabinetId) ?? null,
                   //потом добавить
                   // event:elem.event,
-                  lessonNumber: j,
-                  groupId: groups[i].groupId,
-                  status: (elem.status == true) ? 1 : 0,
+                  lessonNumber: key,
+                  groupId: elem.groupId,
+                  status: (elem.status === true) ? 1 : 0,
                   date: this.date
                 }).then((res) => {
-                  console.log(elem.subject + ' успешно добавлено')
+                  console.log(elem.subject + ' успешно обновлено')
                 })
                 //если пары не было, добавили новую
               } else {
-
+                console.log(elem.ktpId)
                 axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/createNewLesson', {
-                  subject: elem.subjectId,
+                  ktp: elem.ktpId,
                   teacher: elem.teacherId,
                   optionalTeacher: elem.optionalTeacherId === '' ? null : elem.optionalTeacherId,
                   cabinet: elem.cabinetId,
                   optionalCabinet: elem.optionalCabinetId === '' ? null : elem.optionalCabinetId,
                   //потом добавить
                   // event:elem.event,
-                  lessonNumber: j,
-                  groupId: groups[i].groupId,
-                  status: (elem.status == true) ? 1 : 0,
+                  lessonNumber: key,
+                  groupId: elem.groupId,
+                  status: (elem.status === true) ? 1 : 0,
                   date: this.date
                 }).then((res) => {
                   console.log(elem.subject + ' успешно добавлено')
+                  axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/getLessonId').then((res)=> {
+                     elem.id=res.data[0][0].id
+                  })
                 })
               }
             } else {
-              if (elem.id != '' && elem.subjectId == '') {
+              if (elem.id != '' && elem.ktpId == '') {
+
                 axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/deleteSchedule', {
                   id: elem.id
                 }).then((res) => {
@@ -498,9 +548,74 @@ export default {
                 })
               }
             }
-          }
-        }
-      }
+          })
+        })
+      })
+      //итерации по курсу
+      //       for (let k = 1; k < 5; k++)
+      //   {
+      //     //группы в курсе
+      //     let groups = this.getCourses(k)
+      //     //итерации по группам
+      //     for (let i = 0; i < groups.length; i++) {
+      //       //итерации по номеру пары
+      //       for (let j = 1; j < 8; j++) {
+      //         //информация о паре выбранной группы
+      //         let elem = this.dateCourseEvent[k][groups[i].name][j]
+      //         //проверка на пустой предмет
+      //         let notEmpty = (elem.subjectId != '' && elem.teacherId != '' && elem.cabinetId != '')
+      //         //проверка на пустой  элемент расписания
+      //         if (notEmpty) {
+      //           //если пара уже была, но изменили данные внутри
+      //           if (elem.id != 0 || elem.id != '') {
+      //             //update
+      //             axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/updateSchedule', {
+      //               id: elem.id,
+      //               subject: elem.subjectId,
+      //               teacher: elem.teacherId,
+      //               optionalTeacher: (elem.optionalTeacherId) ?? null,
+      //               cabinet: elem.cabinetId,
+      //               optionalCabinet: (elem.optionalCabinetId) ?? null,
+      //               //потом добавить
+      //               // event:elem.event,
+      //               lessonNumber: j,
+      //               groupId: groups[i].groupId,
+      //               status: (elem.status == true) ? 1 : 0,
+      //               date: this.date
+      //             }).then((res) => {
+      //               console.log(elem.subject + ' успешно добавлено')
+      //             })
+      //             //если пары не было, добавили новую
+      //           } else {
+      //
+      //             axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/createNewLesson', {
+      //               subject: elem.subjectId,
+      //               teacher: elem.teacherId,
+      //               optionalTeacher: elem.optionalTeacherId === '' ? null : elem.optionalTeacherId,
+      //               cabinet: elem.cabinetId,
+      //               optionalCabinet: elem.optionalCabinetId === '' ? null : elem.optionalCabinetId,
+      //               //потом добавить
+      //               // event:elem.event,
+      //               lessonNumber: j,
+      //               groupId: groups[i].groupId,
+      //               status: (elem.status == true) ? 1 : 0,
+      //               date: this.date
+      //             }).then((res) => {
+      //               console.log(elem.subject + ' успешно добавлено')
+      //             })
+      //           }
+      //         } else {
+      //           if (elem.id != '' && elem.subjectId == '') {
+      //             axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/deleteSchedule', {
+      //               id: elem.id
+      //             }).then((res) => {
+      //               console.log(elem.id + ' ' + elem.subject + ' ' + ' успешно удалено')
+      //             })
+      //           }
+      //         }
+      //       }
+      //     }
+      //   }
     },
 
     checkSpaceBetween() {
@@ -531,31 +646,32 @@ export default {
           }
         }
       }
-    },
-    // checkEmptySelect() {
-    //   //итерации по курсу
-    //   for (let k = 1; k < 5; k++) {
-    //     //группы в курсе
-    //     let groups = this.getCourses(k)
-    //     //итерации по группам
-    //     for (let i = 0; i < groups.length; i++) {
-    //       //итерации по номеру пары
-    //       for (let j = 1; j < 8; j++) {
-    //         //информация о паре выбранной группы
-    //         let elem = this.dateCourseEvent[k][groups[i].name][j]
-    //
-    //         //проверка на пустой предмет
-    //         let correct = ((elem.subject == '' && elem.teacher == '' && elem.cabinet == '') || (elem.subject != '' && elem.teacher != '' && elem.cabinet != ''))
-    //
-    //         //проверка на пустой  элемент расписания
-    //         if (!correct) {
-    //           alert('Некорректно заполнена пара' + '\n' + 'группа: ' + groups[i].name + '\n' + 'пара:' + j)
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
-    // ,
+    }
+    ,
+// checkEmptySelect() {
+//   //итерации по курсу
+//   for (let k = 1; k < 5; k++) {
+//     //группы в курсе
+//     let groups = this.getCourses(k)
+//     //итерации по группам
+//     for (let i = 0; i < groups.length; i++) {
+//       //итерации по номеру пары
+//       for (let j = 1; j < 8; j++) {
+//         //информация о паре выбранной группы
+//         let elem = this.dateCourseEvent[k][groups[i].name][j]
+//
+//         //проверка на пустой предмет
+//         let correct = ((elem.subject == '' && elem.teacher == '' && elem.cabinet == '') || (elem.subject != '' && elem.teacher != '' && elem.cabinet != ''))
+//
+//         //проверка на пустой  элемент расписания
+//         if (!correct) {
+//           alert('Некорректно заполнена пара' + '\n' + 'группа: ' + groups[i].name + '\n' + 'пара:' + j)
+//         }
+//       }
+//     }
+//   }
+// }
+// ,
 
     checkDublicateCabinet(cabinet) {
       // for (let p = 1; p < 8; p++) {
@@ -613,7 +729,8 @@ export default {
           }
       )
 
-    },
+    }
+    ,
     initCabinets() {
       //получение текущей даты
       axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/cabinets/all').then((res) => {
@@ -622,7 +739,8 @@ export default {
         })
         this.cabinets = res.data
       })
-    },
+    }
+    ,
     initEmployees() {
       axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/ktp/getEmployees').then((res) => {
         this.employeePairs = res.data;
@@ -643,16 +761,18 @@ export default {
     //запросы на получение информации
 
     this.Init();
-  },
+  }
+  ,
   computed: {
     orderedCabinets() {
-      console.log(_.orderBy(this.cabinetsPairs))
       return _.orderBy(this.cabinetsPairs)
 
-    },
+    }
+    ,
     env() {
       return process.env
-    },
+    }
+    ,
 
 
   }
@@ -661,6 +781,36 @@ export default {
 </script>
 
 <style>
+.changed{
+  display: flex;
+  flex-direction: column;
+  margin: 2px;
+  background: #ffa52f;
+}
+.alertBlocks {
+  display: flex;
+  flex-direction: column;
+  margin-top: 35px;
+}
+
+.alert {
+  padding: 20px;
+  background-color: #f44336;
+  color: white;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  font-size: 25px;
+  margin-top: 5px;
+}
+
+.sign {
+  font-size: 40px;
+  color: white;
+  margin-right: 15px;
+}
+
 .tooltip {
   position: relative;
   display: inline-block;
@@ -690,6 +840,18 @@ export default {
   bottom: 100%;
   left: 50%;
   margin-left: -60px;
+}
+
+
+.closebtn {
+  margin-left: 15px;
+  color: white;
+  font-weight: bold;
+  float: right;
+  font-size: 22px;
+  line-height: 20px;
+  cursor: pointer;
+  transition: 0.3s;
 }
 
 .tooltip .tooltiptext > span {

@@ -16,6 +16,7 @@ class ScheduleController {
         )
     }
 
+
     async createNewLesson(req, res) {
         return res.json(
             await ScheduleService.createNewLesson(req.body)
@@ -28,13 +29,14 @@ class ScheduleController {
             await ScheduleService.updateSchedule(lesson)
         )
     }
+
     async getWeekHours(req, res) {
-        const startWeek  = req.body.startWeek
+        const startWeek = req.body.startWeek
         const endWeek = req.body.endWeek
         const groupId = req.body.groupId
         const currentDate = req.body.currentDate
         return res.json(
-            await ScheduleService.getWeekHours(currentDate,startWeek, endWeek,groupId)
+            await ScheduleService.getWeekHours(currentDate, startWeek, endWeek, groupId)
         )
     }
 
@@ -44,11 +46,18 @@ class ScheduleController {
             await ScheduleService.deleteSchedule(lessonId)
         )
     }
-    async getPrintSchedule(req,res){
-        const date=req.body.date
+
+    async getPrintSchedule(req, res) {
+        const date = req.body.date
         return res.json(
             await ScheduleService.getPrintSchedule(date)
         )
     }
+    async getLessonId(req, res) {
+        return res.json(
+            await ScheduleService.getLessonId()
+        )
+    }
 }
+
 module.exports = new ScheduleController()
