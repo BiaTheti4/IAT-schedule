@@ -7,14 +7,17 @@ const routes = [
     {
         path: '/',
         component: scheduleMain,
+        name:scheduleMain.name
     },
     {
         path: '/schedule',
         component: scheduleView,
+        name:scheduleView.name
     },
     {
         path: '/print',
         component: print,
+        name:print.name
     },
 
 ]

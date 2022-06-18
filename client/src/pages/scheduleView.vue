@@ -2,13 +2,13 @@
   <div>
     <select class="button-6" v-model="selectedGroup">
       <option value="" selected>Все группы</option>
-<!--      <option v-for="spec in specs[0]" :key="spec.nameShort" :value="spec.nameShort">-->
-<!--        {{ spec.nameShort }}-->
-<!--      </option>-->
-
       <option v-for="group in groups" :key="group.name" :value="group.name">
         {{ group.name }}
       </option>
+    </select>
+    <select class="button-6" v-model="selectedCourse">
+      <option value="" selected>Все курсы</option>
+
     </select>
 
     <template v-if="selectedGroup===''">
@@ -86,7 +86,6 @@
     </template>
 
 
-
   </div>
 
 </template>
@@ -101,7 +100,7 @@ export default {
       weekEvents: {},
       date: '',
       selectedGroup: '',
-      selectedSpec:'',
+      selectedSpec: '',
       groups: [],
       specs: {},
       week: [],
@@ -130,9 +129,8 @@ export default {
     },
 //получение рабочей недели без воскресенья
     getWorkWeek() {
-
       let day = new Date();
-      if (this.getWeekDay(day) === 'вс') day.setDate(day.getDate() + 1)
+      if (day.getDay() === 0) day.setDate(day.getDate() + 1)
       console.log(day)
       let objectDate = {
         date: this.DateToBD(day),
@@ -191,11 +189,11 @@ export default {
       }
     },
     Init() {
-      axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/groups/specs').then((res) => {
-
-        this.specs = res.data
-        this.specs.pop()
-      })
+      // axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/groups/specs').then((res) => {
+      //
+      //   this.specs = res.data
+      //   this.specs.pop()
+      // })
 
 
       //запрос на получение групп

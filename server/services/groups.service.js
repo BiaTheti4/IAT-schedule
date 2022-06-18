@@ -23,8 +23,8 @@ class GroupsService {
                     }
                 ]
             },
-            order:[
-                ['groupId','asc']
+            order: [
+                ['name', 'asc']
             ],
             include: [
                 {
@@ -33,8 +33,9 @@ class GroupsService {
             ]
         });
     }
-    async getSpecs(req,res){
-        return  await sequelize.query('select nameShort from specs where active=1 and code<>0')
+
+    async getSpecs(req, res) {
+            return await sequelize.query('select nameShort from specs where active=1 and code<>0')
     }
 }
 

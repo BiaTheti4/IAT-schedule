@@ -9,7 +9,7 @@ class KtpController {
 
     async getEmployees(req, res) {
         return res.json(
-            await KtpService.geEmployees()
+            await KtpService.getEmployees()
         )
     }
 
