@@ -104,11 +104,16 @@ class ScheduleService {
             ' lesson_number, ' +
             ' concat(e.last_name, \' \', left(e.first_name, 1), \'.\', \' \', left(e.fathers_name, 1), \'.\') as employee, ' +
             ' e.employeeId as emp_id, ' +
-            ' if(cab.number is null, c.number, concat(c.number, \' \', cab.number)) as cab_numbers ' +
-            'from schedule_new\n' +
+            ' if(cab.number is null, c.number, concat(c.number, \' \', cab.number)) as cab_numbers, ' +
+            's.nameShort, ' +
+            'g.name ' +
+            'from schedule_new ' +
             ' inner join employees e on schedule_new.teacher_id = e.employeeId ' +
             ' inner join cabinets c on schedule_new.cabinet_id = c.id ' +
             ' left join cabinets cab on schedule_new.optional_cabinet_id = cab.id ' +
+            'inner join ktp k on schedule_new.ktp_id = k.ktpId ' +
+            'inner join subjects s on k.subjectId = s.subjectId ' +
+            'inner join groups g on k.groupId = g.groupId ' +
             'where date >= :dateStart ' +
             '  and date <= :dateEnd ' +
             'union ' +
@@ -116,13 +121,65 @@ class ScheduleService {
             'lesson_number, ' +
             'concat(emp.last_name, \' \', left(emp.first_name, 1), \'.\', \' \', left(emp.fathers_name, 1), \'.\') as employee, ' +
             'emp.employeeId as emp_id, ' +
-            'if(cab.number is null, c.number, concat(c.number, \' \', cab.number)) as cab_numbers ' +
+            'if(cab.number is null, c.number, concat(c.number, \' \', cab.number)) as cab_numbers, ' +
+            's.nameShort, ' +
+            'g.name ' +
             'from schedule_new ' +
-            'right join employees emp on schedule_new.optional_teacher_id = emp.employeeId ' +
+            'inner join employees emp on schedule_new.optional_teacher_id = emp.employeeId ' +
             'inner join cabinets c on schedule_new.cabinet_id = c.id ' +
             'left join cabinets cab on schedule_new.optional_cabinet_id = cab.id ' +
-            'where date >= :dateStart\n' +
+            'inner join ktp k on schedule_new.ktp_id = k.ktpId ' +
+            'inner join subjects s on k.subjectId = s.subjectId ' +
+            'inner join groups g on k.groupId = g.groupId ' +
+            'where date >= :dateStart ' +
             '  and date <= :dateEnd', {
+                replacements: {
+                    dateStart: String(dateStart),
+                    dateEnd: String(dateEnd)
+                },
+                type: sequelize.QueryTypes.SELECT
+            }
+        )
+    }
+
+    async getCabinetSchedule(dateStart, dateEnd) {
+        return await sequelize.query(
+            'select date, ' +
+            'lesson_number, ' +
+            'c.number                                                                                          as cabinet, ' +
+            's.nameShort, ' +
+            'g.name, ' +
+            'concat(e.last_name, \' \', left(e.first_name, 1), \'.\', \' \', left(e.fathers_name, 1), \'.\')           as main, ' +
+            'if(emp.employeeId is null, null, ' +
+            'concat(emp.last_name, \' \', left(emp.first_name, 1), \'.\', \' \', left(emp.fathers_name, 1), \'.\')) as group_emp ' +
+            'from schedule_new ' +
+            'inner join cabinets c on schedule_new.cabinet_id = c.id ' +
+            'inner join ktp k on schedule_new.ktp_id = k.ktpId ' +
+            'inner join subjects s on k.subjectId = s.subjectId ' +
+            'inner join groups g on k.groupId = g.groupId ' +
+            'inner join employees e on schedule_new.teacher_id = e.employeeId ' +
+            'left join employees emp on schedule_new.optional_teacher_id = emp.employeeId ' +
+            'where date >= :dateStart ' +
+            'and date <= :dateEnd ' +
+            'union ' +
+            'select date, ' +
+            'lesson_number, ' +
+            'cab.number                                                                                        as cabinet, ' +
+            's.nameShort, ' +
+            'g.name, ' +
+            'concat(e.last_name, \' \', left(e.first_name, 1), \'.\', \' \', left(e.fathers_name, 1), \'.\')           as main, ' +
+            'if(emp.employeeId is null, null, ' +
+            'concat(emp.last_name, \' \', left(emp.first_name, 1), \'.\', \' \', left(emp.fathers_name, 1), \'.\')) as group_emp ' +
+            'from schedule_new ' +
+            'inner join cabinets cab on schedule_new.optional_cabinet_id = cab.id ' +
+            'inner join ktp k on schedule_new.ktp_id = k.ktpId ' +
+            'inner join subjects s on k.subjectId = s.subjectId ' +
+            'inner join groups g on k.groupId = g.groupId ' +
+            'inner join employees e on schedule_new.teacher_id = e.employeeId ' +
+            'left join employees emp on schedule_new.optional_teacher_id = emp.employeeId ' +
+            'where date >= :dateStart ' +
+            'and date <= :dateEnd ' +
+            'group by cabinet', {
                 replacements: {
                     dateStart: String(dateStart),
                     dateEnd: String(dateEnd)

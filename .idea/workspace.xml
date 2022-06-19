@@ -1,25 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="82751e04-6a83-4686-87b4-99fd08dc81c1" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/client/src/pages/cabinetBusyness.vue" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/pages/teacherBusyness.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/journal-schedule.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/journal-schedule.iml" afterDir="false" />
+    <list default="true" id="82751e04-6a83-4686-87b4-99fd08dc81c1" name="Changes" comment="**Created new page which shows busyness of cabinets">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/client/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/components/modalComponent.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/components/modalComponent.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/components/navbar.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/components/navbar.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/pages/print.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/print.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/pages/scheduleMain.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/scheduleMain.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/pages/cabinetBusyness.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/cabinetBusyness.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/pages/scheduleView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/scheduleView.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/pages/test.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/test.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/router/router.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/router/router.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/controllers/employees.controller.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/controllers/employees.controller.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/pages/teacherBusyness.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/teacherBusyness.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/controllers/schedule.controller.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/controllers/schedule.controller.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/routes/employees.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/employees.routes.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/routes/schedule.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/schedule.routes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/services/employees.service.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/employees.service.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/services/ktp.service.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/ktp.service.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/services/schedule.service.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/schedule.service.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -56,11 +44,37 @@
       <option name="presentableId" value="Default" />
       <updated>1655579082201</updated>
       <workItem from="1655579084089" duration="2040000" />
-      <workItem from="1655614910917" duration="18540000" />
+      <workItem from="1655614910917" duration="25005000" />
+      <workItem from="1655640907758" duration="178000" />
+      <workItem from="1655653271376" duration="1136000" />
     </task>
+    <task id="LOCAL-00001" summary="**Added style for modalComponent.vue and &lt;td&gt; in scheduleMain.vue&#10;**Added style definitions in scheduleMain.vue&#10;**Added style counting hours in scheduleMain.vue&#10;**Created new page which shows busyness of employeees&#10;**added backend queries and changed some logic inside">
+      <created>1655633964622</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1655633964622</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="**Added style for modalComponent.vue and &lt;td&gt; in scheduleMain.vue&#10;**Added style definitions in scheduleMain.vue&#10;**Added style counting hours in scheduleMain.vue&#10;**Created new page which shows busyness of employeees&#10;**added backend queries and changed some logic inside" />
+    <MESSAGE value="**Created new page which shows busyness of cabinets" />
+    <option name="LAST_COMMIT_MESSAGE" value="**Created new page which shows busyness of cabinets" />
   </component>
 </project>

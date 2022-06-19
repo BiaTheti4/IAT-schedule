@@ -25,7 +25,12 @@
           <tr v-for="lessonNumber in 7">
             <td>{{ lessonTime[lessonNumber - 1] }}</td>
             <td v-for="lessonInDay in week" :key="lessonInDay">
-              {{ dateCourseEvent[idx][lessonInDay.date][lessonNumber].cabinet }}
+              <div class="info" v-if="dateCourseEvent[idx][lessonInDay.date][lessonNumber].group!==''">
+                <span>группа: {{ dateCourseEvent[idx][lessonInDay.date][lessonNumber].group }}</span>
+                <span>{{ dateCourseEvent[idx][lessonInDay.date][lessonNumber].subject }}</span>
+                <span>кабинет: {{ dateCourseEvent[idx][lessonInDay.date][lessonNumber].cabinet }}</span>
+              </div>
+
             </td>
           </tr>
           </tbody>
@@ -45,7 +50,11 @@
         <tr v-for="lessonNumber in 7">
           <td>{{ lessonTime[lessonNumber - 1] }}</td>
           <td v-for="lessonInDay in week" :key="lessonInDay">
-            {{ dateCourseEvent[selectedEmployee][lessonInDay.date][lessonNumber].cabinet }}
+            <div class="info" v-if="dateCourseEvent[selectedEmployee][lessonInDay.date][lessonNumber].group!==''">
+              <span>группа: {{ dateCourseEvent[selectedEmployee][lessonInDay.date][lessonNumber].group }}</span>
+              <span>{{ dateCourseEvent[selectedEmployee][lessonInDay.date][lessonNumber].subject }}</span>
+              <span>кабинет: {{ dateCourseEvent[selectedEmployee][lessonInDay.date][lessonNumber].cabinet }}</span>
+            </div>
           </td>
         </tr>
         </tbody>
@@ -123,6 +132,8 @@ export default {
             this.dateCourseEvent[id][date.date][p] = {}
             this.dateCourseEvent[id][date.date][p].teacher = ''
             this.dateCourseEvent[id][date.date][p].cabinet = ''
+            this.dateCourseEvent[id][date.date][p].group = ''
+            this.dateCourseEvent[id][date.date][p].subject = ''
           }
 
         })
@@ -136,11 +147,13 @@ export default {
         dateStart: dateStart,
         dateEnd: dateEnd
       }).then((res) => {
-
+        console.log(res.data)
         for (let i = 0; i < res.data.length; i++) {
 
           this.dateCourseEvent[res.data[i].emp_id][res.data[i].date][res.data[i].lesson_number].teacher = res.data[i].employee
           this.dateCourseEvent[res.data[i].emp_id][res.data[i].date][res.data[i].lesson_number].cabinet = res.data[i].cab_numbers
+          this.dateCourseEvent[res.data[i].emp_id][res.data[i].date][res.data[i].lesson_number].group = res.data[i].name
+          this.dateCourseEvent[res.data[i].emp_id][res.data[i].date][res.data[i].lesson_number].subject = res.data[i].nameShort
         }
         this.isLoaded = true;
       })
@@ -171,5 +184,8 @@ export default {
 </script>
 
 <style scoped>
-
+.info{
+  display: flex;
+  flex-direction: column;
+}
 </style>

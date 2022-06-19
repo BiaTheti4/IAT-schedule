@@ -28,6 +28,7 @@
                 <div class="event" v-if="weekEvents[group.name][lessonInDay.date][lessonNumber].subject!==''">
                   <label>{{ weekEvents[group.name][lessonInDay.date][lessonNumber].subject }}</label>
                   <label>кабинет:{{ weekEvents[group.name][lessonInDay.date][lessonNumber].cabinet }}</label>
+                  <label v-if=" weekEvents[group.name][lessonInDay.date][lessonNumber].optionalCabinet">второй кабинет:{{ weekEvents[group.name][lessonInDay.date][lessonNumber].optionalCabinet }}</label>
                   <label>Преподаватель: {{
                       weekEvents[group.name][lessonInDay.date][lessonNumber].mainTeacher
                     }}</label>
@@ -69,7 +70,7 @@
               <label>Преподаватель: {{
                   this.weekEvents[this.selectedGroup][lessonInDay.date][lessonNumber].mainTeacher
                 }}</label>
-              <label v-if=" this.weekEvents[this.selectedGroup][lessonInDay.date][lessonNumber].optionalTeacher!==''">Преподаватель
+              <label v-if=" this.weekEvents[this.selectedGroup][lessonInDay.date][lessonNumber].optionalTeacher!==null">Преподаватель
                 в группе: {{
                   this.weekEvents[this.selectedGroup][lessonInDay.date][lessonNumber].optionalTeacher
                 }}</label>
@@ -189,7 +190,7 @@ export default {
         this.weekEvents[grp][date][para].mainTeacher = lesson.main_emp
         this.weekEvents[grp][date][para].optionalTeacher = lesson.group_emp
         this.weekEvents[grp][date][para].cabinet = lesson.number
-        this.weekEvents[grp][date][para].optionalCabinet = lesson.optionalCabinet
+        this.weekEvents[grp][date][para].optionalCabinet = lesson.optional_cabinet
         this.weekEvents[grp][date][para].event = lesson.event
       })
 

@@ -19,7 +19,15 @@ class ScheduleController {
         let dateStart = req.body.dateStart
         let dateEnd = req.body.dateEnd
         return res.json(
-            await ScheduleService.getEmployeeSchedule(dateStart,dateEnd)
+            await ScheduleService.getEmployeeSchedule(dateStart, dateEnd)
+        )
+    }
+
+    async getCabinetSchedule(req, res) {
+        let dateStart = req.body.dateStart
+        let dateEnd = req.body.dateEnd
+        return res.json(
+            await ScheduleService.getCabinetSchedule(dateStart, dateEnd)
         )
     }
 
