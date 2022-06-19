@@ -30,7 +30,7 @@
           <div class="formSubjects">
             <select class="selectdiv"
                     v-model="group[para].ktpId"
-                    @change="performSubjectChange(group[para])"
+                    @change="performSubjectChange(group[para]);setEmptyByKtp(group[para]);"
             >
               <option value="" selected>-нет-</option>
               <option v-for="subject in getSubjectList(groupId)" :key="subject.ktpId" :value="subject.ktpId">
@@ -177,6 +177,12 @@ export default {
         this.sendPostObject();
       }
     },
+    setEmptyByKtp(pair){
+      pair.teacherId=''
+      pair.optionalTeacherId=''
+      pair.cabinetId=''
+      pair.optionalCabinetId=''
+    },
     openModal() {
       if (this.conflicts.details.length > 0) {
         this.modal = 1;
@@ -186,6 +192,7 @@ export default {
     },
     changeDate() {
       this.UpdateDateCourseEvent();
+      this.getWeekHours()
     },
     getStudyWeek() {
       let dt = moment(this.date);
@@ -298,6 +305,7 @@ export default {
             let hours = _.get(data, [group.groupId, 'hours'], {});
             let hoursCount = 0;
             _.each(hours, (hour, day) => {
+              console.log(day)
               hoursCount += (day != this.date ? hour : 0);
             });
             group.otherDayHours = hoursCount;
@@ -461,7 +469,8 @@ export default {
       if(pair.isChanged===0){
         return{'usual':true}
       }
-      if(pair.ktpId!==''&&(pair.cabinetId===''||pair.teacherId==='')){
+      console.log(pair)
+      if(pair.ktpId!==''&&(pair.cabinetId==''||pair.teacherId=='')){
         return{'notFullForm':true}
       }
     },
@@ -484,9 +493,9 @@ export default {
                   id: elem.id,
                   ktp: elem.ktpId,
                   teacher: elem.teacherId,
-                  optionalTeacher: elem.optionalTeacherId!==null?elem.optionalTeacherId: null,
+                  optionalTeacher: elem.optionalTeacherId!==''?elem.optionalTeacherId: null,
                   cabinet: elem.cabinetId,
-                  optionalCabinet: elem.optionalCabinetId!==null ? elem.optionalCabinetId : null,
+                  optionalCabinet: elem.optionalCabinetId!=='' ? elem.optionalCabinetId : null,
                   //потом добавить
                   // event:elem.event,
                   lessonNumber: key,
@@ -497,7 +506,7 @@ export default {
                   // toaster.success('Расписание сохранено')
                 })
                 //если пары не было, добавили новую
-              } else {
+              } else if(elem.ktpId!==''&&elem.cabinetId!==''&&elem.teacherId!==''){
                 axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/createNewLesson', {
                   ktp: elem.ktpId,
                   teacher: elem.teacherId,

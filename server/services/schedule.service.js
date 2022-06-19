@@ -49,16 +49,21 @@ class ScheduleService {
 
     async getWeekSchedule(date) {
         let dateEnd = moment(date).add(7, 'days').format('YYYY-MM-DD');
+
         return this.getScheduleOnPeriod(date, dateEnd);
     }
 
     async getStudyWeekSchedule(date) {
-        let dates = this.getStudyWeek();
+
+        let dates = this.getStudyWeek(date);
+        // console.log(dates)
         return this.getScheduleOnPeriod(dates[0], dates[1]);
     }
 
     getStudyWeek(date) {
-        let dt = moment(this.date);
+        // console.log(date.date)
+        let dt = moment(date.date);
+        console.log(dt)
         let year = dt.year();
         if (dt.month() < 8) {
             year--;
@@ -190,16 +195,15 @@ class ScheduleService {
     }
 
     async createNewLesson(lesson) {
-        console.log(lesson.optionalTeacher > 0 || null)
         let result = await ScheduleModel.create({
             date: lesson.date,
             status: lesson.status,
-            lesson_number: lesson.lessonNumber,
+            lesson_number: parseInt(lesson.lessonNumber),
             teacher_id: lesson.teacher,
-            optional_teacher_id: lesson.optionalTeacher !== null ? lesson.optionalTeacher : null,
+            optional_teacher_id: lesson.optionalTeacher !== '' ? lesson.optionalTeacher : null,
             group_id: lesson.groupId,
             cabinet_id: lesson.cabinet,
-            optional_cabinet_id: lesson.optionalCabinet !== null ? lesson.optionalCabinet : null,
+            optional_cabinet_id: lesson.optionalCabinet !== '' ? lesson.optionalCabinet : null,
             ktp_id: lesson.ktp,
         });
 
@@ -230,6 +234,7 @@ class ScheduleService {
         let result = {};
 
         data.forEach((row) => {
+
             if (!result[row.groupId]) {
                 result[row.groupId] = {
                     groupId: row.groupId,
