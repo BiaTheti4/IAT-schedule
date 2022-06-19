@@ -94,39 +94,6 @@ export default {
       return date.getFullYear() + '-' + (date.getMonth() + 1 > 9 ? date.getMonth() : "0" + (date.getMonth() + 1)) + '-' + (date.getDate() > 9 ? date.getDate() : "0" + date.getDate());
     },
 
-    getTeacher(t) {
-      let teacherId = t
-      let teacherName = ''
-      for (let i = 0; i < this.teachers.length; i++) {
-        if (this.teachers[i].id === teacherId) {
-          teacherName = this.teachers[i].name
-          break
-        }
-      }
-      return (teacherName)
-    },
-    getSubject(s) {
-      let subjectId = s
-      let subjectName = ''
-      for (let i = 0; i < this.subjects.length; i++) {
-        if (this.subjects[i].id === subjectId) {
-          subjectName = this.subjects[i].name
-          break
-        }
-      }
-      return (subjectName)
-    },
-    getCabinet(c) {
-      let cabinetId = c
-      let cabinetName = ''
-      for (let i = 0; i < this.cabinets.length; i++) {
-        if (this.cabinets[i].id === cabinetId) {
-          cabinetName = this.cabinets[i].name
-          break
-        }
-      }
-      return (cabinetName)
-    },
     getDay() {
       let day = this.date;
       let fullDate = (day.getDate() > 9 ? day.getDate() : "0" + day.getDate() + '.' + (day.getMonth() + 1) + '.' + day.getFullYear());
@@ -222,13 +189,6 @@ export default {
     },
 
 
-    // возврат дня недели для удобного составления расписания
-    // getDayWeek() {
-    //   let today = new Date();
-    //   let days = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
-    //   let date = new Date(2021, 0, 16);
-    //   alert(days[date.getDay()]);
-    // }
 
   },
   mounted() {

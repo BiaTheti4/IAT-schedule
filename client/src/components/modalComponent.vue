@@ -5,17 +5,17 @@
     <div id="openModal" class="modalDialog">
       <div>
         <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLiveLabel">Уведомление</h5>
-          <a href="#close" type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <h5 class="modal-title" id="exampleModalLiveLabel">Конфликт кабинетов/преподавателей</h5>
+          <a @click="close()" type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">×</span>
           </a>
         </div>
         <div class="modal-body">
-          <p>{{ this.modalProp }}</p>
+В расписание присутствуют конфликты
         </div>
         <div class="modal-footer">
-          <button type="button" @click="agreeModal()" class="btn btn-light">ДА</button>
-          <button type="button" class="btn btn-secondary" @click="close()" data-dismiss="modal">Нет</button>
+          <button type="button" @click="agreeModal()" class="button">Сохранить</button>
+          <button type="button" class="button" @click="close()" data-dismiss="modal">Отмена</button>
         </div>
       </div>
     </div>
@@ -45,20 +45,53 @@ a.disabled {
   cursor: default; /* устанавливаем курсор в виде стрелки */
   color: #999; /* цвет текста для нективной ссылки */
 }
+.modal-header{
 
-.count {
-  background: #f8463f;
-  border-radius: 100%;
-  width: 18px;
-  height: 18px;
-  display: block;
-  font-size: 11px;
+  padding: 1px 15px;
+  background-color: #d9edf7;
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+}
+.modal-title{
+
+}
+.modal-body{
+  padding-top: 50px;
+  padding-bottom: 50px;
+  padding-left: 15px;
+}
+
+.modal-footer{
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+padding-left: 10px;
+  padding-bottom: 15px;
+}
+.button{
+  background-color: #0095ff;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  box-shadow: rgba(255, 255, 255, .4) 0 1px 0 0 inset;
+  box-sizing: border-box;
   color: #fff;
-  line-height: 18px;
+  cursor: pointer;
+  display: inline-block;
+  font-family: -apple-system, system-ui, "Segoe UI", "Liberation Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.15385;
+  margin: 0 0 0 5px;
+  outline: none;
+  padding: 8px .8em;
+  position: relative;
   text-align: center;
-  position: absolute;
-  margin-left: 62px;
-  margin-top: -37px;
+  text-decoration: none;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  vertical-align: baseline;
+  white-space: nowrap;
 }
 
 .modalDialog {
@@ -76,6 +109,7 @@ a.disabled {
   display: block;
   pointer-events: auto;
   overflow: auto;
+
 }
 
 .modalDialog:target {
@@ -87,7 +121,7 @@ a.disabled {
   width: 700px;
   position: relative;
   margin: 10% auto;
-  border-radius: .3rem;
+  border-radius: 15px;
   background: #fff;
   background: -moz-linear-gradient(#fff, #999);
   background: -webkit-linear-gradient(#fff, #999);
@@ -104,5 +138,9 @@ a.disabled {
   font-weight: 100;
   color: #000;
   font-size: 26px;
+  cursor: pointer;
+}
+.modal-footer >button{
+  margin-right: 30px;
 }
 </style>

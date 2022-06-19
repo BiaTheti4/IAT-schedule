@@ -24,7 +24,8 @@ class KtpService {
         let eduYear = this.currentYear(date);
         let data = await sequelize.query(
             'select s.nameShort, s.subjectId, k.ktpId, k.employeeId,k.group_employee,k.group_k_employee,k.grouped,k.grouped_k, k.semester,k.groupId, ' +
-            '(select week from curriculum_course_split as ccs inner join curriculum c on ccs.curriculumId = c.id where c.specId = g.specId and c.year = k.year and c.learning_type = g.type and ccs.course = ceil(k.semester / 2) limit 1) as split_week, ' +
+            '(select week from curriculum_course_split as ccs inner join curriculum c on ccs.curriculumId = c.id where c.specId = g.specId and c.year = k.year and c.learning_type = g.type ' +
+            'and ccs.course = ceil(k.semester / 2) limit 1) as split_week, ' +
             'cp.type as practice_type, if(cs.id > 0, cs.code, sm.code) as subject_code ' +
             'from subjects s ' +
             'inner join ktp k on s.subjectId = k.subjectId ' +
@@ -122,7 +123,6 @@ class KtpService {
         );
         let result = {};
         data.forEach(function (row) {
-            console.log(row);
             result[row.employeeId] = row.fio;
         });
         return result;

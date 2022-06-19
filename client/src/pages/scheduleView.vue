@@ -6,43 +6,44 @@
         {{ group.name }}
       </option>
     </select>
-    <select class="button-6" v-model="selectedCourse">
-      <option value="" selected>Все курсы</option>
 
-    </select>
 
     <template v-if="selectedGroup===''">
-      <div v-for="group in groups" :key="group">
-        <h2>{{ group.name }}</h2>
-        <table class="table">
-          <thead class="thead_items">
-          <tr>
-            <th class="first_column">пара</th>
-            <th class="other_columns" v-for="day in week" :key="day.date">{{ day.date }} ({{ day.weekDay }})</th>
-          </tr>
-          </thead>
-          <tbody class="tbody_items">
-          <tr v-for="lessonNumber in 7">
-            <td>{{ lessonTime[lessonNumber - 1] }}</td>
-            <td v-for="lessonInDay in week" :key="lessonInDay">
 
-              <div class="event" v-if="this.weekEvents[group.name][lessonInDay.date][lessonNumber].subject!==''">
-                <label>{{ this.weekEvents[group.name][lessonInDay.date][lessonNumber].subject }}</label>
-                <label>кабинет:{{ this.weekEvents[group.name][lessonInDay.date][lessonNumber].cabinet }}</label>
-                <label>Преподаватель: {{
-                    this.weekEvents[group.name][lessonInDay.date][lessonNumber].mainTeacher
-                  }}</label>
-                <label v-if=" this.weekEvents[group.name][lessonInDay.date][lessonNumber].optionalTeacher">Преподаватель
-                  в группе: {{ this.weekEvents[group.name][lessonInDay.date][lessonNumber].optionalTeacher }}</label>
-                <label class="distant" v-if="this.weekEvents[group.name][lessonInDay.date][lessonNumber].status=0">Дистант</label>
-              </div>
-              <div class="event_none" v-if="this.weekEvents[group.name][lessonInDay.date][lessonNumber].subject===''">
-                <label>нет</label>
-              </div>
-            </td>
-          </tr>
-          </tbody>
-        </table>
+      <div v-for="group in groups" :key="group">
+        <template v-if="isLoaded">
+        <h2>{{ group.name }}</h2>
+
+          <table class="table">
+            <thead class="thead_items">
+            <tr>
+              <th class="first_column">пара</th>
+              <th class="other_columns" v-for="day in week" :key="day.date">{{ day.date }} ({{ day.weekDay }})</th>
+            </tr>
+            </thead>
+            <tbody class="tbody_items">
+            <tr v-for="lessonNumber in 7">
+              <td>{{ lessonTime[lessonNumber - 1] }}</td>
+              <td v-for="lessonInDay in week" :key="lessonInDay">
+                <div class="event" v-if="weekEvents[group.name][lessonInDay.date][lessonNumber].subject!==''">
+                  <label>{{ weekEvents[group.name][lessonInDay.date][lessonNumber].subject }}</label>
+                  <label>кабинет:{{ weekEvents[group.name][lessonInDay.date][lessonNumber].cabinet }}</label>
+                  <label>Преподаватель: {{
+                      weekEvents[group.name][lessonInDay.date][lessonNumber].mainTeacher
+                    }}</label>
+                  <label v-if=" weekEvents[group.name][lessonInDay.date][lessonNumber].optionalTeacher">Преподаватель
+                    в группе: {{ weekEvents[group.name][lessonInDay.date][lessonNumber].optionalTeacher }}</label>
+                  <label class="distant"
+                         v-if="weekEvents[group.name][lessonInDay.date][lessonNumber].status=0">Дистант</label>
+                </div>
+                <div class="event_none" v-else>
+                  <label>нет</label>
+                </div>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </template>
       </div>
     </template>
 
@@ -92,6 +93,7 @@
 
 <script>
 import axios from "axios";
+import _ from "lodash";
 
 export default {
   name: "scheduleView",
@@ -104,6 +106,7 @@ export default {
       groups: [],
       specs: {},
       week: [],
+      isLoaded: false,
       lessonTime: [
         '08:30-10:00',
         '10:10-11:40',
@@ -116,6 +119,7 @@ export default {
     }
   },
   methods: {
+
     //возврат дня недели для удобного составления расписания
     getWeekDay(date) {
       let days = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
@@ -131,7 +135,7 @@ export default {
     getWorkWeek() {
       let day = new Date();
       if (day.getDay() === 0) day.setDate(day.getDate() + 1)
-      console.log(day)
+
       let objectDate = {
         date: this.DateToBD(day),
         weekDay: this.getWeekDay(day),
@@ -148,14 +152,11 @@ export default {
         }
         if (objectDate.weekDay === 'вс') continue
         this.week.push(objectDate)
-
       }
-      // console.log(this.week)
-
     },
+
     //инициализация объектов для занятий
     initDateCourseEvent(res) {
-
       for (let g = 0; g < this.groups.length; g++) {
         this.weekEvents[this.groups[g].name] = {}
         let grp = this.weekEvents[this.groups[g].name]
@@ -174,33 +175,34 @@ export default {
           }
         }
       }
-      for (let j in res.data) {
-        console.log(res.data[j])
-        let date = this.DateToBD(new Date(res.data[j].date))
-        console.log(date)
-        let grp = res.data[j].name
-        let para = res.data[j].lesson_number
-        this.weekEvents[grp][date][para].subject = res.data[j].subject_name
-        this.weekEvents[grp][date][para].mainTeacher = res.data[j].main_emp
-        this.weekEvents[grp][date][para].optionalTeacher = res.data[j].group_emp
-        this.weekEvents[grp][date][para].cabinet = res.data[j].number
-        this.weekEvents[grp][date][para].optionalCabinet = res.data[j].optionalCabinet
-        this.weekEvents[grp][date][para].event = res.data[j].event
-      }
+      this.updateDateCourseEvent(res)
+    },
+    updateDateCourseEvent(res) {
+
+      _.each(res.data,(lesson)=>{
+        console.log(lesson)
+        let date = lesson.date
+        let grp = lesson.name
+        let para = lesson.lesson_number
+
+        this.weekEvents[grp][date][para].subject = lesson.nameShort
+        this.weekEvents[grp][date][para].mainTeacher = lesson.main_emp
+        this.weekEvents[grp][date][para].optionalTeacher = lesson.group_emp
+        this.weekEvents[grp][date][para].cabinet = lesson.number
+        this.weekEvents[grp][date][para].optionalCabinet = lesson.optionalCabinet
+        this.weekEvents[grp][date][para].event = lesson.event
+      })
+
+
+
+      this.isLoaded = true;
     },
     Init() {
-      // axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/groups/specs').then((res) => {
-      //
-      //   this.specs = res.data
-      //   this.specs.pop()
-      // })
-
-
+      this.isLoaded = false;
       //запрос на получение групп
       axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/groups/all').then(res => {
         this.groups = res.data
       })
-
       //запрос на получение расписания
       axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/week', {
         date: this.DateToBD(this.date)
@@ -208,9 +210,7 @@ export default {
         this.initDateCourseEvent(res)
       })
     },
-    groupList(selected) {
-      return selected
-    }
+
 
   },
   computed: {

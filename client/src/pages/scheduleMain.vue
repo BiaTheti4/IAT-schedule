@@ -26,7 +26,7 @@
       <tbody>
       <tr v-for="para in 7" :key="para.value">
         <td class="lessonNumber">{{ this.lessonTime[para - 1] }}</td>
-        <td v-for="(group,groupId,idx) in dateCourseEvent[selectedCourse]" :class="group[para].isChanged?changed:usual">
+        <td v-for="(group,groupId,idx) in dateCourseEvent[selectedCourse]" :class="cellInfo(group[para])">
           <div class="formSubjects">
             <select class="selectdiv"
                     v-model="group[para].ktpId"
@@ -69,7 +69,7 @@
                       @change="performSubjectChange(group[para]);"
                       :class="hasConflictCabinet(group[para].cabinetId,para)"
                       v-model="group[para].cabinetId">
-                <option></option>
+                <option value="" disabled selected>-кабинет-</option>
                 <option v-for="cabinet in cabinets" :key="cabinet.id" :value="cabinet.id">
                   {{ cabinet.number }}
                 </option>
@@ -79,22 +79,13 @@
                       v-if="group[para].cabinetId>0"
                       :class="hasConflictCabinet(group[para].optionalCabinetId,para)"
                       v-model="group[para].optionalCabinetId">
-                <option></option>
+
+                <option value="" disabled selected>-второй кабинет-</option>
+                <option :value="null"></option>
                 <option v-for="cabinet in cabinets" :key="cabinet.id" :value="cabinet.id">
                   {{ cabinet.number }}
                 </option>
               </select>
-
-              <!--постараться сделать этo-->
-              <!--                        <input @change="checkDublicateCabinet(group[para].cabinet)"-->
-              <!--                               v-model="group[para].cabinet" :list="group[para].id"/>-->
-              <!--                        <datalist>-->
-
-              <!--                          <option></option>-->
-              <!--                          <option v-for="cabinet in cabinets" :key="cabinet.id" :value="cabinet.id">-->
-              <!--                            {{ cabinet.name }}-->
-              <!--                          </option>-->
-              <!--                        </datalist>-->
 
               <div class="distant" v-if="false">
                 <div>дистант
@@ -107,10 +98,10 @@
       </tr>
       <tr>
         <td>
-          Количество часов в неделю:
+          Нагрузка(час):
         </td>
-        <td v-for="(group) in getCourses(selectedCourse)" :key="group">
-          {{ group.hours * 2 }}
+        <td v-for="(group) in getCourses(selectedCourse)" :key="group" :class="warnHours(group)">
+          {{ group.hours + group.otherDayHours }}
         </td>
       </tr>
       </tbody>
@@ -195,7 +186,6 @@ export default {
     },
     changeDate() {
       this.UpdateDateCourseEvent();
-      this.getWeekHours()
     },
     getStudyWeek() {
       let dt = moment(this.date);
@@ -213,21 +203,8 @@ export default {
       if (lesson.id > 0) lesson.isChanged = 1;
       if (lesson.ktpId == '') this.setEmpty(lesson)
 
-      this.getWeekHours();
       this.checkConflict();
-    },
-    async doDelete() {
-      const ok = await this.$refs.confirmDialogue.show({
-        title: 'Конфликт',
-        message: 'Вы уверены что хотите сохранить сообщение?.',
-        okButton: 'Да',
-      })
-      // If you throw an error, the method will terminate here unless you surround it wil try/catch
-      if (ok) {
-        alert('Успешно сохранено.')
-      } else {
-        alert('Нет')
-      }
+
     },
     checkConflict() {
       let conflict = {
@@ -236,10 +213,13 @@ export default {
         details: []
       };
 
-      _.each(this.dateCourseEvent, (courses) => {
-        _.each(courses, (groups => {
+      _.each(this.dateCourseEvent, (courses, courseNum) => {
+        _.each(courses, (groups, groupId) => {
+          let groupRow = this.courses[courseNum].groups[groupId]
+          groupRow.hours = 0;
           _.each(groups, (pair, pairNum) => {
             if (pair.ktpId > 0) {
+              groupRow.hours += 2;
               let key;
 
               if (pair.teacherId) {
@@ -273,7 +253,7 @@ export default {
               }
             }
           })
-        }))
+        })
       })
 
       _.each(conflict.teachers, (teachers, key) => {
@@ -304,35 +284,26 @@ export default {
       if (!row) {
         return [];
       }
-      // console.log(lessonData.ktpId)
-      console.log(_.find(row.subjects, (subject) => subject.ktpId == lessonData.ktpId))
       let subject = _.find(row.subjects, (subject) => subject.ktpId == lessonData.ktpId);
-      // console.log(subject.employees.practice)
-      // console.log(subject ? subject.employees.practice : [])
       return subject ? subject.employees.practice : [];
     },
     getWeekHours() {
-      let week = this.getStudyWeek()
-
-      for (let i = 0; i < this.getCourses(this.selectedCourse).length; i++) {
-        let groupId = this.getCourses(this.selectedCourse)[i].groupId
-
-        axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/getWeekHours', {
-          startWeek: week[0],
-          endWeek: week[1],
-          groupId: groupId,
-          currentDate: this.date
-        }).then((res) => {
-              // this.courses[this.selectedCourse].groups[i].hours = res.data[0][0].hours
-              // let groupName = this.courses[this.selectedCourse].groups[i].id;
-              // for (let lessonNumber = 1; lessonNumber < 8; lessonNumber++) {
-              //   if (this.dateCourseEvent[this.selectedCourse][groupId][lessonNumber].ktpId !== '') {
-              //     this.courses[this.selectedCourse].groups[i].hours += 1
-              //   }
-              // }
-            }
-        )
-      }
+      let courses = this.courses;
+      axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/getWeekHours', {
+        date: this.date
+      }).then((res) => {
+        let data = res.data;
+        _.each(courses, (courseGroups, course) => {
+          _.each(courseGroups.groups, (group) => {
+            let hours = _.get(data, [group.groupId, 'hours'], {});
+            let hoursCount = 0;
+            _.each(hours, (hour, day) => {
+              hoursCount += (day != this.date ? hour : 0);
+            });
+            group.otherDayHours = hoursCount;
+          })
+        })
+      });
     },
 
     getCourses(course) {
@@ -356,7 +327,6 @@ export default {
       }).then((res) => {
         _.each(res.data, (group) => {
           if (!_.get(courses, [group.course, 'groups', group.groupId], false)) {
-            console.log(group);
           } else {
             courses[group.course].groups[group.groupId].subjects = group.subjects
           }
@@ -424,10 +394,10 @@ export default {
             element.isChanged = 0;
             element.status = row.status == 1;
           }
-          this.checkConflict();
         })
+        this.checkConflict();
+        this.getWeekHours();
       })
-      this.getWeekHours()
     },
     initDateCourseEvent() {
       this.dateCourseEvent = {}
@@ -459,7 +429,16 @@ export default {
           }
         })
       }
-      this.getWeekHours()
+    },
+    warnHours(group) {
+      let sum = group.hours + group.otherDayHours
+      if (sum < 36) {
+        return {'tooLow': true}
+      } else if (sum === 36) {
+        return {'normal': true}
+      } else {
+        return {'tooMuch': true}
+      }
     },
     hasConflictTeacher(teacherId, pair) {
       return {
@@ -475,8 +454,18 @@ export default {
       }
     }
     ,
+    cellInfo(pair){
+      if(pair.isChanged===1){
+        return{'changed':true}
+      }
+      if(pair.isChanged===0){
+        return{'usual':true}
+      }
+      if(pair.ktpId!==''&&(pair.cabinetId===''||pair.teacherId==='')){
+        return{'notFullForm':true}
+      }
+    },
     test(asd) {
-      console.log(asd)
     }
     ,
     sendPostObject() {
@@ -488,16 +477,16 @@ export default {
             if (notEmpty) {
               //если пара уже была, но изменили данные внутри
               if (elem.id != 0 || elem.id != '') {
+                console.log(elem)
                 //update
                 if (elem.isChanged > 0) elem.isChanged = 0
-                console.log(elem)
                 axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/updateSchedule', {
                   id: elem.id,
                   ktp: elem.ktpId,
                   teacher: elem.teacherId,
-                  optionalTeacher: (elem.optionalTeacherId) ?? null,
+                  optionalTeacher: elem.optionalTeacherId!==null?elem.optionalTeacherId: null,
                   cabinet: elem.cabinetId,
-                  optionalCabinet: (elem.optionalCabinetId) ? elem.optionalCabinetId : null,
+                  optionalCabinet: elem.optionalCabinetId!==null ? elem.optionalCabinetId : null,
                   //потом добавить
                   // event:elem.event,
                   lessonNumber: key,
@@ -509,13 +498,12 @@ export default {
                 })
                 //если пары не было, добавили новую
               } else {
-                console.log(elem.ktpId)
                 axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/createNewLesson', {
                   ktp: elem.ktpId,
                   teacher: elem.teacherId,
-                  optionalTeacher: elem.optionalTeacherId == '' ? null : elem.optionalTeacherId,
+                  optionalTeacher: elem.optionalTeacherId!==null?elem.optionalTeacherId: null,
                   cabinet: elem.cabinetId,
-                  optionalCabinet: elem.optionalCabinetId == '' ? null : elem.optionalCabinetId,
+                  optionalCabinet: elem.optionalCabinetId!==null ? elem.optionalCabinetId : null,
                   //потом добавить
                   // event:elem.event,
                   lessonNumber: key,
@@ -533,7 +521,6 @@ export default {
                 axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/deleteSchedule', {
                   id: elem.id
                 }).then((res) => {
-                  console.log(elem.id + ' ' + elem.subject + ' ' + ' успешно удалено')
                 })
               }
             }
@@ -547,7 +534,6 @@ export default {
     initGroups() {
 
       axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/groups/all').then((res) => {
-            // console.log(res.data)
             for (let i = 0; i < res.data.length; i++) {
               let gr = res.data[i]
               this.courses[gr.course].groups[gr.groupId] = {...gr, subjects: [], hours: 0};
@@ -587,20 +573,15 @@ export default {
     //установка текущего курса по умолчанию на 1
     //запросы на получение информации
 
-  }
-  ,
+  },
   computed: {
     orderedCabinets() {
       return _.orderBy(this.cabinetsPairs)
 
-    }
-    ,
+    },
     env() {
       return process.env
-    }
-    ,
-
-
+    },
   }
 
 }
@@ -611,9 +592,30 @@ export default {
   border-radius: 10px;
   background: #ffe3c5;
 }
+.notFullForm {
+  border-radius: 10px;
+  background: #ff576e;
+}
 
 .usual {
   border-radius: 10px;
+}
+
+.tooLow {
+  background-color: #efbd58;
+}
+
+.normal {
+  background-color: #8bf68b;
+}
+
+.tooMuch {
+  background-color: #ac3232;
+}
+
+.table tbody td {
+  padding: 5px 10px;
+
 }
 
 .alertBlocks {
@@ -630,7 +632,7 @@ export default {
   display: flex;
   flex-direction: row;
   align-items: center;
-  font-size: 25px;
+  font-size: 19px;
   margin-top: 5px;
 }
 
@@ -755,7 +757,7 @@ export default {
   font-weight: bold;
   text-align: left;
   border: none;
-  padding: 10px 15px;
+  padding: 5px 10px;
   background: #D9EDF7;
   font-size: 14px;
   border-top: 1px solid #ddd;
@@ -781,7 +783,7 @@ export default {
 .table tbody td {
   text-align: left;
   border: none;
-  padding: 10px 15px;
+  padding: 5px 10px;
   font-size: 14px;
   vertical-align: top;
 }

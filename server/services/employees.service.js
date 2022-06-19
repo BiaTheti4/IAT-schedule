@@ -10,6 +10,32 @@ class EmployeesService {
             'ORDER BY last_name ASC, first_name ASC, fathers_name ASC')
     }
 
+    async getBusynessEmployees(dateStart,dateEnd) {
+
+        return await sequelize.query('select schedule_new.teacher_id, ' +
+            ' concat(e.last_name, \' \', left(e.first_name, 1), ".", \' \', left(e.fathers_name, 1),".") as fio '+
+            'from schedule_new ' +
+            'inner join employees e on schedule_new.teacher_id = e.employeeId ' +
+            'where date >= :dateStart ' +
+            'and date <= :dateEnd ' +
+            'union ' +
+            'select schedule_new.optional_teacher_id, ' +
+            ' concat(e.last_name, \' \', left(e.first_name, 1), ".", \' \', left(e.fathers_name, 1),".") as fio '+
+            'from schedule_new ' +
+            'inner join employees e on schedule_new.optional_teacher_id = e.employeeId ' +
+            'where date >= :dateStart ' +
+            'and date <= :dateEnd ' +
+            'group by fio ' +
+            'order by fio asc', {
+                replacements: {
+                    dateStart: String(dateStart),
+                    dateEnd: String(dateEnd),
+                },
+                type: sequelize.QueryTypes.SELECT
+            }
+        );
+    }
+
     async getTeacherName(teacherId) {
         return await sequelize.query('select concat(last_name, \' \',first_name, \' \',fathers_name) from employees where employeeId=:id', {
                 replacements: {

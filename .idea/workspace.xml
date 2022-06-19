@@ -1,20 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="cd559433-e689-413e-a053-fa218f6bfea0" name="Changes" comment="fixed get current schedule&#10;added warnings with teachers/cabinets under table">
-      <change afterPath="$PROJECT_DIR$/client/src/components/modalComponent.vue" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/models/schedule.model.js" afterDir="false" />
+    <list default="true" id="82751e04-6a83-4686-87b4-99fd08dc81c1" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/client/src/pages/cabinetBusyness.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/pages/teacherBusyness.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/journal-schedule.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/journal-schedule.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/client/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/client/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/components/modal.vue" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/components/modalComponent.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/components/modalComponent.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/components/navbar.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/components/navbar.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/pages/print.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/print.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/pages/scheduleMain.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/scheduleMain.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/pages/scheduleView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/scheduleView.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/pages/test.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/test.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/router/router.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/router/router.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/controllers/ktpController.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/controllers/ktpController.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/controllers/employees.controller.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/controllers/employees.controller.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/controllers/schedule.controller.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/controllers/schedule.controller.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/routes/employees.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/employees.routes.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/routes/schedule.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/schedule.routes.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/services/employees.service.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/employees.service.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/services/groups.service.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/groups.service.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/services/ktp.service.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/ktp.service.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/services/schedule.service.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/schedule.service.js" afterDir="false" />
     </list>
@@ -23,176 +27,40 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="FileTemplateManagerImpl">
-    <option name="RECENT_TEMPLATES">
-      <list>
-        <option value="Vue Single File Component" />
-      </list>
-    </option>
-  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
-  </component>
-  <component name="JsBowerSettings">
-    <bower-package value="" />
-    <bower.json value="" />
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
-  <component name="ProjectId" id="29wG959Crx0rKOPfpl2mW2McIfP" />
+  <component name="ProjectId" id="2AlLANBr7qBa6BHNWnzUOqGfFVG" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_MARK_IGNORED_FILES_AS_EXCLUDED": "true",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "last_opened_file_path": "D:/dev/projects/journal-schedule/server/models",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.standard": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.standard": "",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_interpreter_path": "node",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "settings.javascript.linters.eslint",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
-  <component name="RecentsManager">
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="D:\dev\projects\journal-schedule\server\models" />
-      <recent name="D:\dev\projects\journal-schedule\client\src\components" />
-    </key>
-  </component>
+}</component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="cd559433-e689-413e-a053-fa218f6bfea0" name="Changes" comment="" />
-      <created>1654016581931</created>
+      <changelist id="82751e04-6a83-4686-87b4-99fd08dc81c1" name="Changes" comment="" />
+      <created>1655579082201</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1654016581931</updated>
-      <workItem from="1654016583700" duration="174000" />
-      <workItem from="1654017146800" duration="7000" />
-      <workItem from="1654045670960" duration="9314000" />
-      <workItem from="1654130524952" duration="17463000" />
-      <workItem from="1654233732488" duration="1773000" />
-      <workItem from="1654509342948" duration="655000" />
-      <workItem from="1654561761561" duration="1233000" />
-      <workItem from="1654654735869" duration="14990000" />
-      <workItem from="1654738178252" duration="934000" />
-      <workItem from="1654838844812" duration="880000" />
-      <workItem from="1654908945172" duration="16429000" />
-      <workItem from="1655019803621" duration="12827000" />
-      <workItem from="1655085138572" duration="1686000" />
-      <workItem from="1655122739888" duration="4708000" />
-      <workItem from="1655256638680" duration="12642000" />
-      <workItem from="1655301805891" duration="2626000" />
-      <workItem from="1655342625583" duration="15530000" />
-      <workItem from="1655518520173" duration="3833000" />
-      <workItem from="1655522399656" duration="13948000" />
+      <updated>1655579082201</updated>
+      <workItem from="1655579084089" duration="2040000" />
+      <workItem from="1655614910917" duration="18540000" />
     </task>
-    <task id="LOCAL-00001" summary="completed counting hours per study week for every group">
-      <created>1654137105903</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1654137105903</updated>
-    </task>
-    <task id="LOCAL-00002" summary="added optional cabinet">
-      <created>1654656100415</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1654656100415</updated>
-    </task>
-    <task id="LOCAL-00003" summary="added checking dublicate teacher/cabinets">
-      <created>1654712025993</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1654712025993</updated>
-    </task>
-    <task id="LOCAL-00004" summary="fixed print page(bug with view)">
-      <created>1654714915183</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1654714915183</updated>
-    </task>
-    <task id="LOCAL-00005" summary="fixed print page(bug with view)">
-      <created>1654714980750</created>
-      <option name="number" value="00005" />
-      <option name="presentableId" value="LOCAL-00005" />
-      <option name="project" value="LOCAL" />
-      <updated>1654714980750</updated>
-    </task>
-    <task id="LOCAL-00006" summary="created checking conflicts with teachers/cabinets and created final conflict summary conflicts">
-      <created>1655085375749</created>
-      <option name="number" value="00006" />
-      <option name="presentableId" value="LOCAL-00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1655085375749</updated>
-    </task>
-    <task id="LOCAL-00007" summary="fixed get current schedule&#10;added warnings with teachers/cabinets under table">
-      <created>1655270540179</created>
-      <option name="number" value="00007" />
-      <option name="presentableId" value="LOCAL-00007" />
-      <option name="project" value="LOCAL" />
-      <updated>1655270540179</updated>
-    </task>
-    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
-  </component>
-  <component name="Vcs.Log.Tabs.Properties">
-    <option name="TAB_STATES">
-      <map>
-        <entry key="MAIN">
-          <value>
-            <State />
-          </value>
-        </entry>
-      </map>
-    </option>
-  </component>
-  <component name="VcsManagerConfiguration">
-    <MESSAGE value="completed counting hours per study week for every group" />
-    <MESSAGE value="added optional cabinet" />
-    <MESSAGE value="added checking dublicate teacher/cabinets" />
-    <MESSAGE value="fixed print page(bug with view)" />
-    <MESSAGE value="created checking conflicts with teachers/cabinets and created final conflict summary conflicts" />
-    <MESSAGE value="fixed get current schedule&#10;added warnings with teachers/cabinets under table" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed get current schedule&#10;added warnings with teachers/cabinets under table" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/client/src/pages/scheduleMain.vue</url>
-          <line>201</line>
-          <properties lambdaOrdinal="-1" />
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/server/services/schedule.service.js</url>
-          <line>102</line>
-          <properties lambdaOrdinal="-1" />
-          <option name="timeStamp" value="2" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
-  </component>
-  <component name="XSLT-Support.FileAssociations.UIState">
-    <expand />
-    <select />
   </component>
 </project>

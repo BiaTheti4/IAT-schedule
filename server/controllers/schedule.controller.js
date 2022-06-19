@@ -6,13 +6,20 @@ class ScheduleController {
         return res.json(
             await ScheduleService.getCurrentSchedule(date)
         )
-
     }
 
     async getWeekSchedule(req, res) {
         const date = req.body.date
         return res.json(
             await ScheduleService.getWeekSchedule(date)
+        )
+    }
+
+    async getEmployeeSchedule(req, res) {
+        let dateStart = req.body.dateStart
+        let dateEnd = req.body.dateEnd
+        return res.json(
+            await ScheduleService.getEmployeeSchedule(dateStart,dateEnd)
         )
     }
 
@@ -31,12 +38,8 @@ class ScheduleController {
     }
 
     async getWeekHours(req, res) {
-        const startWeek = req.body.startWeek
-        const endWeek = req.body.endWeek
-        const groupId = req.body.groupId
-        const currentDate = req.body.currentDate
         return res.json(
-            await ScheduleService.getWeekHours(currentDate, startWeek, endWeek, groupId)
+            await ScheduleService.getWeekHours(req.body)
         )
     }
 
@@ -53,6 +56,7 @@ class ScheduleController {
             await ScheduleService.getPrintSchedule(date)
         )
     }
+
     async getLessonId(req, res) {
         return res.json(
             await ScheduleService.getLessonId()

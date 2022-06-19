@@ -5,5 +5,6 @@ const express = require('express'),
 
 router.get('/all', EmployeesController.getEmployees)
 router.get('/teacher', EmployeesController.getTeacherName)
+router.post('/busynessEmployees', EmployeesController.getBusynessEmployees)
 
 module.exports = router

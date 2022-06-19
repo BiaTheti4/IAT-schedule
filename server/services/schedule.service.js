@@ -14,7 +14,9 @@ class ScheduleService {
             'sch.ktp_id,' +
             'g.groupId,' +
             'g.name,' +
-            'g.course,' +
+            's.nameShort,' +
+            'k.semester,' +
+            'CEIL(k.semester/2) as course,' +
             'sch.status,' +
             'sch.event,' +
             'sch.cabinet_id,' +
@@ -32,6 +34,7 @@ class ScheduleService {
             ' left join cabinets cab on sch.optional_cabinet_id=cab.id ' +
             ' inner join `groups` g on sch.group_id = g.groupId ' +
             ' inner join ktp k on sch.ktp_id = k.ktpId ' +
+            ' inner join subjects s on s.subjectId = k.subjectId ' +
 
             ' where date>=:dateStart AND date<=:dateEnd', {
                 replacements: {
@@ -95,16 +98,51 @@ class ScheduleService {
         )
     }
 
+    async getEmployeeSchedule(dateStart, dateEnd) {
+        return await sequelize.query(
+            'select date, ' +
+            ' lesson_number, ' +
+            ' concat(e.last_name, \' \', left(e.first_name, 1), \'.\', \' \', left(e.fathers_name, 1), \'.\') as employee, ' +
+            ' e.employeeId as emp_id, ' +
+            ' if(cab.number is null, c.number, concat(c.number, \' \', cab.number)) as cab_numbers ' +
+            'from schedule_new\n' +
+            ' inner join employees e on schedule_new.teacher_id = e.employeeId ' +
+            ' inner join cabinets c on schedule_new.cabinet_id = c.id ' +
+            ' left join cabinets cab on schedule_new.optional_cabinet_id = cab.id ' +
+            'where date >= :dateStart ' +
+            '  and date <= :dateEnd ' +
+            'union ' +
+            'select date, ' +
+            'lesson_number, ' +
+            'concat(emp.last_name, \' \', left(emp.first_name, 1), \'.\', \' \', left(emp.fathers_name, 1), \'.\') as employee, ' +
+            'emp.employeeId as emp_id, ' +
+            'if(cab.number is null, c.number, concat(c.number, \' \', cab.number)) as cab_numbers ' +
+            'from schedule_new ' +
+            'right join employees emp on schedule_new.optional_teacher_id = emp.employeeId ' +
+            'inner join cabinets c on schedule_new.cabinet_id = c.id ' +
+            'left join cabinets cab on schedule_new.optional_cabinet_id = cab.id ' +
+            'where date >= :dateStart\n' +
+            '  and date <= :dateEnd', {
+                replacements: {
+                    dateStart: String(dateStart),
+                    dateEnd: String(dateEnd)
+                },
+                type: sequelize.QueryTypes.SELECT
+            }
+        )
+    }
+
     async createNewLesson(lesson) {
+        console.log(lesson.optionalTeacher > 0 || null)
         let result = await ScheduleModel.create({
             date: lesson.date,
             status: lesson.status,
             lesson_number: lesson.lessonNumber,
             teacher_id: lesson.teacher,
-            optional_teacher_id: lesson.optionalTeacher > 0 || null,
+            optional_teacher_id: lesson.optionalTeacher !== null ? lesson.optionalTeacher : null,
             group_id: lesson.groupId,
             cabinet_id: lesson.cabinet,
-            optional_cabinet_id: lesson.optionalCabinet > 0 || null,
+            optional_cabinet_id: lesson.optionalCabinet !== null ? lesson.optionalCabinet : null,
             ktp_id: lesson.ktp,
         });
 
@@ -130,26 +168,24 @@ class ScheduleService {
         // )
     }
 
-    async getWeekHours(currentDate, startWeek, endWeek, groupId) {
+    async getWeekHours(date) {
+        let data = await this.getStudyWeekSchedule(date);
+        let result = {};
 
-        return await sequelize.query(
-            'select count(date) as hours ' +
-            'from schedule_new s ' +
-            'where s.group_id=:group and ' +
-            '(s.date between :start and :end ) and ' +
-            's.date <> :currentDate '
-            , {
-                replacements: {
-                    currentDate: String(currentDate),
-                    start: String(startWeek),
-                    end: String(endWeek),
-                    group: groupId,
-
-                },
-                type: sequelize.QueryTypes.update
-
+        data.forEach((row) => {
+            if (!result[row.groupId]) {
+                result[row.groupId] = {
+                    groupId: row.groupId,
+                    course: row.course,
+                    hours: {},
+                };
             }
-        )
+            if (!result[row.groupId].hours[row.date]) {
+                result[row.groupId].hours[row.date] = 0;
+            }
+            result[row.groupId].hours[row.date] += 2;
+        });
+        return result;
     }
 
     async getLessonId() {
@@ -161,16 +197,16 @@ class ScheduleService {
     }
 
     async updateSchedule(lesson) {
-        console.log(lesson)
+
         return await ScheduleModel.update({
-                date: lesson.date,
+
                 status: lesson.status,
                 lesson_number: lesson.lessonNumber,
                 teacher_id: lesson.teacher,
-                optional_teacher_id: lesson.optionalTeacher > 0 || null,
+                optional_teacher_id: lesson.optionalTeacher !== null ? lesson.optionalTeacher : null,
                 group_id: lesson.groupId,
                 cabinet_id: lesson.cabinet,
-                optional_cabinet_id: lesson.optionalCabinet > 0 || null,
+                optional_cabinet_id: lesson.optionalCabinet !== null ? lesson.optionalCabinet : null,
                 ktp_id: lesson.ktp,
             },
             {

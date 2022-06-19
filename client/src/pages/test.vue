@@ -19,7 +19,6 @@ export default {
   },
   methods:{
     sendInfo(){
-      // console.log(1,1,'jopa')
       axios.patch("http://localhost:5000/test", {
         text: this.testText,
         id: this.testId,
