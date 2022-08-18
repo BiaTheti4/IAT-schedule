@@ -1,8 +1,8 @@
 module.exports = {
-    HOST: "10.100.3.80",
-    USER: "theti",
-    PASSWORD: "5800281020",
-    DB: "journal_schedule",
+    HOST: "127.0.0.1",
+    USER: "root",
+    PASSWORD: "",
+    DB: "DBNAME",
     dialect: "mysql",
     logging: false,
     pool: {
