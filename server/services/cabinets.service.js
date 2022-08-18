@@ -1,9 +1,9 @@
-const Cabinets = require("../models/cabinets.model");
+const {models} = require("../models/index");
 
 class CabinetsService {
 //получение списка кабинетов
     async getCabinets() {
-        return await Cabinets.findAll({
+        return await models.cabinet.findAll({
             attributes: ['id', 'number'],
             order: [
                 ['number', 'asc']

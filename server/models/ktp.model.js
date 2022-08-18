@@ -1,19 +1,16 @@
-const db = require('./index.js')
-const {DataTypes, Sequelize} = require("sequelize");
+const {DataTypes} = require("sequelize");
 
-
-const Ktp = db.define('ktp', {
-    ktpId: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
-    groupId: {type: DataTypes.STRING,foreignKey:true},
-    employeeId: {type: DataTypes.STRING,foreignKey:true},
-    subjectId: {type: DataTypes.STRING,foreignKey:true},
-    group_employee:{type:DataTypes.INTEGER.UNSIGNED},
-    year:{type:DataTypes.INTEGER.UNSIGNED},
-
-
-
-})
-
-
-module.exports = Ktp
-
+module.exports = (sequelize) => {
+    sequelize.define('ktp', {
+        ktpId: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+        groupId: {type: DataTypes.INTEGER},
+        employeeId: {type: DataTypes.INTEGER},
+        subjectId: {type: DataTypes.INTEGER},
+        group_employee: {type: DataTypes.INTEGER},
+        group_k_employee: {type: DataTypes.INTEGER},
+        year: {type: DataTypes.INTEGER},
+        semester: {type: DataTypes.INTEGER},
+    }, {
+        tableName: 'ktp'
+    })
+}

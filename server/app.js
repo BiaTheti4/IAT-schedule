@@ -17,7 +17,7 @@ app.use('/api', routes)
 const start = async () => {
     try {
         await sequelize.authenticate()
-        await sequelize.sync()
+        // await sequelize.sync() // remove create table
         app.listen(port, host, () => console.log(`Server started on port : http://${host}:${port}`))
     } catch (e) {
         console.log(e)

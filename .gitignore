@@ -2,3 +2,4 @@
 .idea
 /server/.env
 .gitignore
+/server/config/db.config.js

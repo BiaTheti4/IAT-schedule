@@ -1,6 +1,6 @@
 const sequelize = require("../models");
 const moment = require('moment');
-const ScheduleModel = require("../models/schedule.model");
+const {models} = require("../models/index");
 
 class ScheduleService {
     async getCurrentSchedule(date) {
@@ -195,7 +195,7 @@ class ScheduleService {
     }
 
     async createNewLesson(lesson) {
-        let result = await ScheduleModel.create({
+        return await models.schedule.create({
             date: lesson.date,
             status: lesson.status,
             lesson_number: parseInt(lesson.lessonNumber),
@@ -206,27 +206,6 @@ class ScheduleService {
             optional_cabinet_id: lesson.optionalCabinet !== '' ? lesson.optionalCabinet : null,
             ktp_id: lesson.ktp,
         });
-
-        return result;
-
-        // return await sequelize.query(
-        //     'insert into schedule_new(date, status,lesson_number,teacher_id,optional_teacher_id,ktp_id,group_id,cabinet_id,optional_cabinet_id)' +
-        //     `values (:date,:status,:lesson,:teacher,:optional_teacher,:ktp,:group,:cabinet,:optionalCabinet)`,
-        //     {
-        //         replacements: {
-        //             date: lesson.date,
-        //             status: lesson.status,
-        //             lesson: lesson.lessonNumber,
-        //             teacher: lesson.teacher,
-        //             optional_teacher: lesson.optionalTeacher,
-        //             ktp: lesson.ktp,
-        //             group: lesson.groupId,
-        //             cabinet: lesson.cabinet,
-        //             optionalCabinet: lesson.optionalCabinet
-        //         },
-        //         type: sequelize.QueryTypes.insert
-        //     }
-        // )
     }
 
     async getWeekHours(date) {
