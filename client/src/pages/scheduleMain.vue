@@ -358,7 +358,7 @@ export default {
           let lessonNumber = _.split(String(key), '_')[1]
 
           let groups = cabinets.map(item => item.group).join(', ')
-          let cabinetNumber = (_.find(this.cabinets, (item) => String(item.id) == cabinetId)).number
+          let cabinetNumber = (_.find(this.cabinets, (item) => +item.id === +cabinetId)).number
           let detail = `Пара ${lessonNumber} Кабинет: ${cabinetNumber} в группах:  ${groups}`
           conflict.details.push(detail)
         }
@@ -371,7 +371,7 @@ export default {
       if (!row) {
         return [];
       }
-      let subject = _.find(row.subjects, (subject) => subject.ktpId == lessonData.ktpId);
+      let subject = _.find(row.subjects, (subject) => +subject.ktpId === +lessonData.ktpId);
       return subject ? subject.employees.practice : [];
     },
     getWeekHours() {
@@ -487,7 +487,7 @@ export default {
             element.optionalCabinet = row.optional_cabinet;
             element.optionalCabinetId = row.optional_cabinet_id;
             element.isChanged = 0;
-            element.status = row.status == 1;
+            element.status = +row.status === 1;
           }
         })
         this.featureSchedule = res.data.feature;
@@ -583,7 +583,7 @@ export default {
         axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/updateSchedule', {
           data: updateData,
           date: this.date
-        }).then((res) => {
+        }).then(() => {
           toaster.success('Расписание сохранено')
           this.isLoading = false;
         })
