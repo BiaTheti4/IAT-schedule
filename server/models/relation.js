@@ -8,14 +8,13 @@ function applyExtraSetup(sequelize) {
         ktp,
         ktp_block,
         ktp_theme,
+        ktp_type,
         ktp_list,
         spec,
         subject,
         work_program_list,
         work_program_practice_lists,
     } = sequelize.models;
-
-    console.log(sequelize.models);
 
 
     cabinet.hasMany(cabinet_material, {
@@ -98,6 +97,15 @@ function applyExtraSetup(sequelize) {
     ktp_list.hasOne(work_program_list, {
         as: 'workProgramList'
     });
+    ktp_list.hasOne(ktp_type, {
+        foreignKey: 'typeId',
+        sourceKey: 'typeId',
+        as: 'ktpType'
+    });
+    ktp_type.belongsTo(ktp_list, {
+        as: 'lists',
+        foreignKey: 'typeId'
+    });
     work_program_list.belongsTo(ktp_list, {
         foreignKey: 'workProgramListId',
         as: 'ktpList'
@@ -113,6 +121,7 @@ function applyExtraSetup(sequelize) {
         foreignKey: 'workProgramPracticeListId',
         as: 'workProgramPracticeList'
     });
+
     work_program_practice_lists.belongsTo(ktp_list, {
         foreignKey: 'workProgramPracticeListId',
         as: 'ktpList'

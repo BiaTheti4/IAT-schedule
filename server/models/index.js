@@ -27,6 +27,7 @@ const modelDefiners = [
     require('./ktp.model.js'),
     require('./ktp-block.model.js'),
     require('./ktp-list.model.js'),
+    require('./ktp-type.model.js'),
     require('./ktp-theme.model.js'),
     require('./schedule.model.js'),
     require('./spec.model.js'),

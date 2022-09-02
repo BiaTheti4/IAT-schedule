@@ -1,9 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="82751e04-6a83-4686-87b4-99fd08dc81c1" name="Changes" comment="**Fixed some bugs">
+    <list default="true" id="82751e04-6a83-4686-87b4-99fd08dc81c1" name="Changes" comment="* correct data store of schedule &#10;* add information about category of lesson">
+      <change afterPath="$PROJECT_DIR$/server/models/ktp-type.model.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/client/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/client/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/components/modalComponent.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/components/modalComponent.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/pages/scheduleMain.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/scheduleMain.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/pages/teacherBusyness.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/teacherBusyness.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/.env" beforeDir="false" afterPath="$PROJECT_DIR$/server/.env" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/controllers/schedule.controller.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/controllers/schedule.controller.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/models/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/models/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/models/ktp-list.model.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/models/ktp-list.model.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/models/relation.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/models/relation.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/models/schedule.model.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/models/schedule.model.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/routes/ktp.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/ktp.routes.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/routes/schedule.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/schedule.routes.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/services/employees.service.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/employees.service.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/services/ktp.service.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/ktp.service.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/services/schedule.service.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/schedule.service.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -18,19 +33,66 @@
     <option name="stateVersion" value="1" />
   </component>
   <component name="ProjectId" id="2AlLANBr7qBa6BHNWnzUOqGfFVG" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "last_opened_file_path": "S:/web/projects/IAT-schedule/server/models",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "project.propDebugger",
+    "ts.external.directory.path": "C:\\Users\\Bpeg\\AppData\\Local\\JetBrains\\Toolbox\\apps\\WebStorm\\ch-0\\222.3739.57\\plugins\\JavaScriptLanguage\\jsLanguageServicesImpl\\external",
+    "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "mysql"
+    ]
   }
-}</component>
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="S:\web\projects\IAT-schedule\server\models" />
+      <recent name="S:\web\projects\IAT-schedule\server\config" />
+    </key>
+  </component>
+  <component name="RunManager" selected="npm.back-front">
+    <configuration name="Run server" type="CompoundRunConfigurationType">
+      <toRun name="back-front" type="js.build_tools.npm" />
+      <toRun name="front-serve" type="js.build_tools.npm" />
+      <method v="2" />
+    </configuration>
+    <configuration name="back-front" type="js.build_tools.npm">
+      <package-json value="$PROJECT_DIR$/server/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="dev" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <configuration name="front-serve" type="js.build_tools.npm">
+      <package-json value="$PROJECT_DIR$/client/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="serve" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Compound.Run server" />
+      <item itemvalue="npm.front-serve" />
+      <item itemvalue="npm.back-front" />
+    </list>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -44,6 +106,17 @@
       <workItem from="1655640907758" duration="178000" />
       <workItem from="1655653271376" duration="1763000" />
       <workItem from="1655656612786" duration="4548000" />
+      <workItem from="1660788118129" duration="1270000" />
+      <workItem from="1660789419465" duration="18907000" />
+      <workItem from="1660981997461" duration="6000" />
+      <workItem from="1661129732921" duration="8667000" />
+      <workItem from="1661215011702" duration="9709000" />
+      <workItem from="1661359837220" duration="1611000" />
+      <workItem from="1661475179365" duration="6513000" />
+      <workItem from="1661703977562" duration="18380000" />
+      <workItem from="1661819025533" duration="27686000" />
+      <workItem from="1661933067600" duration="812000" />
+      <workItem from="1661991511562" duration="20747000" />
     </task>
     <task id="LOCAL-00001" summary="**Added style for modalComponent.vue and &lt;td&gt; in scheduleMain.vue&#10;**Added style definitions in scheduleMain.vue&#10;**Added style counting hours in scheduleMain.vue&#10;**Created new page which shows busyness of employeees&#10;**added backend queries and changed some logic inside">
       <created>1655633964622</created>
@@ -59,7 +132,21 @@
       <option name="project" value="LOCAL" />
       <updated>1655654457974</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="* remove config from backend&#10;* add db config example">
+      <created>1660788900373</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1660788900373</updated>
+    </task>
+    <task id="LOCAL-00004" summary="* correct models, models relations&#10;* disable start database sync (create tables) &#10;* refactor services from raw to sequelize queries (simple queries)">
+      <created>1660820415694</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1660820415694</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -80,16 +167,25 @@
     <MESSAGE value="**Added style for modalComponent.vue and &lt;td&gt; in scheduleMain.vue&#10;**Added style definitions in scheduleMain.vue&#10;**Added style counting hours in scheduleMain.vue&#10;**Created new page which shows busyness of employeees&#10;**added backend queries and changed some logic inside" />
     <MESSAGE value="**Created new page which shows busyness of cabinets" />
     <MESSAGE value="**Fixed some bugs" />
-    <option name="LAST_COMMIT_MESSAGE" value="**Fixed some bugs" />
+    <MESSAGE value="* remove config from backend&#10;* add db config example" />
+    <MESSAGE value="* correct models, models relations&#10;* disable start database sync (create tables)" />
+    <MESSAGE value="* correct models, models relations&#10;* disable start database sync (create tables) &#10;* refactor services from raw to sequelize queries (simple queries)" />
+    <MESSAGE value="* correct data store of schedule &#10;* add information about category of lesson" />
+    <option name="LAST_COMMIT_MESSAGE" value="* correct data store of schedule &#10;* add information about category of lesson" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/client/src/pages/teacherBusyness.vue</url>
+          <line>163</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/server/services/schedule.service.js</url>
-          <line>59</line>
+          <line>313</line>
           <properties lambdaOrdinal="-1" />
-          <option name="timeStamp" value="1" />
+          <option name="timeStamp" value="7" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

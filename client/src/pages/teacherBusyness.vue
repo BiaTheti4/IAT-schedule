@@ -10,8 +10,8 @@
 
     </form>
   </div>
-  <div v-if="isLoaded==true">
-    <div v-if="selectedEmployee==''">
+  <div v-if="isLoaded===true">
+    <div v-if="selectedEmployee===''">
       <div v-for="(teacher,idx) in teachers" :key="teacher">
         <h1>{{ teacher }}</h1>
         <table class="table">
@@ -160,6 +160,7 @@ export default {
 
     },
     getBusynessEmployees() {
+      console.log(this.env);
       axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/ktp/getEmployees').then((res) => {
         this.teachers = res.data;
         this.initDateCourseEvent()

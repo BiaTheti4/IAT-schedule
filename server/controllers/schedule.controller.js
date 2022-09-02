@@ -2,9 +2,11 @@ const ScheduleService = require('../services/schedule.service')
 
 class ScheduleController {
     async getCurrentSchedule(req, res) {
-        const date = req.body.date
-        return res.json(
-            await ScheduleService.getCurrentSchedule(date)
+        const date = req.query.date
+        return res.json({
+                current: await ScheduleService.getCurrentSchedule(date),
+                feature: await ScheduleService.getScheduleFeature()
+            }
         )
     }
 
@@ -39,9 +41,9 @@ class ScheduleController {
     }
 
     async updateSchedule(req, res) {
-        const lesson = req.body
+        const lessons = req.body.data
         return res.json(
-            await ScheduleService.updateSchedule(lesson)
+            await ScheduleService.updateSchedule(lessons, req.body.date)
         )
     }
 

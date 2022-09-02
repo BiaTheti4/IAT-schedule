@@ -11,10 +11,47 @@ const PRACTICE_CODES = {
 };
 
 class KtpService {
+
+    async isNeedSecondEmployee(listId) {
+        const {ktp_type} = sequelize.models
+        let ktpListRow = await ktp_type.findByPk(listId)
+        if (!ktpListRow) {
+            return false;
+        }
+
+        let ktpType = ktpListRow.getKtpType();
+        let isPractice = this.isPractice(ktpType.category);
+        let isCourse = this.isCourse(ktpType.category);
+
+        if (isPractice || isCourse) {
+            let ktpRow = ktpListRow.getKtpTheme().getKtpBlock().getKtp();
+            if (isPractice && ktpRow.grouped) {
+                return true;
+            }
+            if (isCourse && ktpRow.grouped_k) {
+                return true;
+            }
+        }
+        return false;
+
+    }
+
+    isTheory(type) {
+        return type === 't' || type === 'c' || type === 's';
+    }
+
+    isPractice(type) {
+        return type === 'l' || type === 'p';
+    }
+
+    isCourse(type) {
+        return type === 'k';
+    }
+
     currentYear(date) {
         let dt = moment(date);
         let year = dt.year();
-        if (dt.month() < 9) {
+        if (dt.month() < 7) {
             year--;
         }
         return year;
@@ -23,18 +60,38 @@ class KtpService {
     async getSubjectsByGroup(group, date) {
         let eduYear = this.currentYear(date);
         let data = await sequelize.query(
-            'select s.nameShort, s.subjectId, k.ktpId, k.employeeId,k.group_employee,k.group_k_employee,k.grouped,k.grouped_k, k.semester,k.groupId, ' +
-            '(select week from curriculum_course_split as ccs inner join curriculum c on ccs.curriculumId = c.id where c.specId = g.specId and c.year = k.year and c.learning_type = g.type ' +
-            'and ccs.course = ceil(k.semester / 2) limit 1) as split_week, ' +
-            'cp.type as practice_type, if(cs.id > 0, cs.code, sm.code) as subject_code ' +
-            'from subjects s ' +
-            'inner join ktp k on s.subjectId = k.subjectId ' +
-            'inner join groups g on g.groupId = k.groupId ' +
-            'left join curriculum_subjects cs on k.curriculumSubjectId = cs.id ' +
-            'left join curriculum_module_practice cp on k.curriculumPracticeId = cp.id ' +
-            'left join standard_modules sm on cp.moduleId = sm.id ' +
-            'where k.year=:date and k.committed=1 and g.type=:groupType and g.specId!=:doSpecId ' +
-            'group by k.ktpId', {
+            `SELECT s.nameShort,
+                    s.subjectId,
+                    k.ktpId,
+                    k.employeeId,
+                    k.group_employee,
+                    k.group_k_employee,
+                    k.grouped,
+                    k.grouped_k,
+                    k.semester,
+                    k.groupId,
+                    (SELECT week
+                     FROM curriculum_course_split AS ccs
+                              INNER JOIN curriculum c ON ccs.curriculumId = c.id
+                     WHERE c.specId = g.specId
+                       AND c.year = k.year
+                       AND c.learning_type = g.type
+                       AND ccs.course = CEIL(k.semester / 2)
+                     LIMIT 1)                       AS split_week,
+                    cp.type                         AS practice_type,
+                    IF(cs.id > 0, cs.code, sm.code) AS subject_code
+             FROM subjects s
+                      INNER JOIN ktp k
+                                 ON s.subjectId = k.subjectId
+                      INNER JOIN \`groups\` g ON g.groupId = k.groupId
+                      LEFT JOIN curriculum_subjects cs ON k.curriculumSubjectId = cs.id
+                      LEFT JOIN curriculum_module_practice cp ON k.curriculumPracticeId = cp.id
+                      LEFT JOIN standard_modules sm ON cp.moduleId = sm.id
+             WHERE k.year = :date
+               AND k.committed = 1
+               AND g.type = :groupType
+               AND g.specId != :doSpecId
+             GROUP BY k.ktpId`, {
                 replacements: {
                     doSpecId: DO_SPEC_ID,
                     groupType: GROUP_FULL_TIME,
@@ -46,7 +103,7 @@ class KtpService {
         let result = {};
         let weekNumber = this.getWeekNumber(date);
         data.forEach(function (row) {
-            if ((weekNumber < row.split_week && row.semester % 2 == 0) ||
+            if ((weekNumber < row.split_week && row.semester % 2 === 0) ||
                 (weekNumber >= row.split_week && row.semester % 2 !== 0)
             ) {
                 //skip
@@ -70,7 +127,7 @@ class KtpService {
                     subjects: [],
                 };
             }
-            let name = '';
+            let name;
             if (row.practice_type > 0) {
                 name = PRACTICE_CODES[row.practice_type] + '.' +
                     (row.subject_code < 10 ? '0' : '') + row.subject_code +
@@ -90,17 +147,18 @@ class KtpService {
 
     async getTeachersByKtp(subjectId, groupName) {
         return await sequelize.query(
-            'select ' +
-            'ktp.employeeId, ' +
-            'concat(e.last_name, \' \', left(e.first_name,1),".", \' \', left(e.fathers_name,1),".") as main_emp, ' +
-            'ktp.group_employee, ' +
-            'concat(emp.last_name, \' \', left(emp.first_name,1),".", \' \', left(emp.fathers_name,1),".") as group_emp ' +
-            'from ktp ' +
-            'inner join `employees` e on ktp.employeeId = e.employeeId ' +
-            'left join `employees` emp on ktp.group_employee = emp.employeeId ' +
-            'inner join `groups` g on g.groupId = ktp.groupId ' +
-            'where ktp.subjectId=:subject and g.name=:group ' +
-            'group by e.employeeId', {
+            `SELECT ktp.employeeId,
+                    CONCAT(e.last_name, ' ', LEFT(e.first_name, 1), '.', ' ', LEFT(e.fathers_name, 1), '.') AS main_emp,
+                    ktp.group_employee,
+                    CONCAT(emp.last_name, ' ', LEFT(emp.first_name, 1), '.', ' ', LEFT(emp.fathers_name, 1),
+                           '.')                                                                             AS group_emp
+             FROM ktp
+                      INNER JOIN employees e ON ktp.employeeId = e.employeeId
+                      LEFT JOIN employees emp ON ktp.group_employee = emp.employeeId
+                      INNER JOIN \`groups\` g ON g.groupId = ktp.groupId
+             WHERE ktp.subjectId = :subject
+               AND g.name = :group
+             GROUP BY e.employeeId`, {
                 replacements: {
                     subject: subjectId,
                     group: groupName
@@ -111,11 +169,16 @@ class KtpService {
     }
 
     async getEmployees() {
-        let data = await sequelize.query('SELECT e.employeeId, CONCAT(e.last_name," ", SUBSTR(e.first_name, 1, 1),".",' +
-            ' SUBSTR(e.fathers_name, 1, 1),".") as fio FROM employees AS e' +
-            ' INNER JOIN employee_contracts AS ec ON ec.employeeId = e.employeeId AND ec.status = 3' +
-            ' inner join posts p on ec.contractPostId = p.postId ' +
-            'WHERE (e.status = 2) and p.isTeacher = 1',
+        let data = await sequelize.query(
+            `SELECT e.employeeId,
+                    CONCAT(e.last_name, ' ', SUBSTR(e.first_name, 1, 1), '.',
+                           SUBSTR(e.fathers_name, 1, 1), '.') AS fio
+             FROM employees AS e
+                      INNER JOIN employee_contracts AS ec
+                                 ON ec.employeeId = e.employeeId AND ec.status = 3
+                      INNER JOIN posts p ON ec.contractPostId = p.postId
+             WHERE (e.status = 2)
+               AND p.isTeacher = 1`,
             {
                 replacements: {},
                 type: sequelize.QueryTypes.SELECT

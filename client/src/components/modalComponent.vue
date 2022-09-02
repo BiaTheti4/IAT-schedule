@@ -11,7 +11,7 @@
           </a>
         </div>
         <div class="modal-body">
-В расписание присутствуют конфликты
+          В расписание присутствуют конфликты
         </div>
         <div class="modal-footer">
           <button type="button" @click="agreeModal()" class="button">Сохранить</button>
@@ -45,30 +45,34 @@ a.disabled {
   cursor: default; /* устанавливаем курсор в виде стрелки */
   color: #999; /* цвет текста для нективной ссылки */
 }
-.modal-header{
+
+.modal-header {
 
   padding: 1px 15px;
   background-color: #d9edf7;
   border-top-left-radius: 15px;
   border-top-right-radius: 15px;
 }
-.modal-title{
+
+.modal-title {
 
 }
-.modal-body{
+
+.modal-body {
   padding-top: 50px;
   padding-bottom: 50px;
   padding-left: 15px;
 }
 
-.modal-footer{
+.modal-footer {
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
-padding-left: 10px;
+  padding-left: 10px;
   padding-bottom: 15px;
 }
-.button{
+
+.button {
   background-color: #0095ff;
   border: 1px solid transparent;
   border-radius: 3px;
@@ -140,7 +144,8 @@ padding-left: 10px;
   font-size: 26px;
   cursor: pointer;
 }
-.modal-footer >button{
+
+.modal-footer > button {
   margin-right: 30px;
 }
 </style>
