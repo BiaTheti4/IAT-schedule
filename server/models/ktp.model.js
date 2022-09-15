@@ -10,6 +10,8 @@ module.exports = (sequelize) => {
         group_k_employee: {type: DataTypes.INTEGER},
         year: {type: DataTypes.INTEGER},
         semester: {type: DataTypes.INTEGER},
+        grouped: {type: DataTypes.INTEGER},
+        grouped_k: {type: DataTypes.INTEGER},
     }, {
         tableName: 'ktp'
     })

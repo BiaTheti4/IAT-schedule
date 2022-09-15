@@ -1,16 +1,16 @@
 <template>
   <div>
-    <table class="table">
+    <table class="border-collapse border border-slate-500 rounded-sm">
       <thead class="thead_items">
       <tr>
-        <th>ФИО преподавателя</th>
-        <th>Преподаваемые дисциплины</th>
-        <th>Статус дееспособности</th>
+        <th class="bg-sky-300 border border-sky-600 p-1">ФИО преподавателя</th>
+        <th class="bg-sky-300 border border-sky-600 p-1">Преподаваемые дисциплины</th>
+        <th class="bg-sky-300 border border-sky-600 p-1">Статус дееспособности</th>
       </tr>
       </thead>
       <tbody>
       <tr v-for="teacher in teachers" :key="teacher">
-        <td>{{ teacher.name }}</td>
+        <td class="bg-sky-100 border border-sky-600 p-1">{{ teacher.name }}</td>
         <td>
           Дисцилпина_name
         </td>

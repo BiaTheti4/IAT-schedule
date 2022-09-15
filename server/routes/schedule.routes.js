@@ -3,14 +3,14 @@ const express = require('express'),
     ScheduleController = require('../controllers/schedule.controller')
 
 router.get('/getCurrentSchedule', ScheduleController.getCurrentSchedule)
-router.post('/createNewLesson', ScheduleController.createNewLesson)
+router.get('/period', ScheduleController.getSchedule)
 router.post('/updateSchedule', ScheduleController.updateSchedule)
-router.post('/week', ScheduleController.getWeekSchedule)
-router.post('/getPrintSchedule', ScheduleController.getPrintSchedule)
+// router.post('/week', ScheduleController.getWeekSchedule)
+// router.post('/getPrintSchedule', ScheduleController.getPrintSchedule)
 router.get('/getWeekHours', ScheduleController.getWeekHours)
-router.post('/deleteSchedule',ScheduleController.deleteSchedule)
-router.get('/getLessonId',ScheduleController.getLessonId)
-router.post('/getEmployeeSchedule',ScheduleController.getEmployeeSchedule)
-router.post('/getCabinetSchedule',ScheduleController.getCabinetSchedule)
+// router.post('/deleteSchedule',ScheduleController.deleteSchedule)
+// router.get('/getLessonId',ScheduleController.getLessonId)
+// router.post('/getEmployeeSchedule',ScheduleController.getEmployeeSchedule)
+// router.post('/getCabinetSchedule',ScheduleController.getCabinetSchedule)
 
 module.exports = router

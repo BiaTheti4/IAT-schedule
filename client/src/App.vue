@@ -1,38 +1,27 @@
 <template>
-  <navbar></navbar>
-  <div class="app">
+  <navbar/>
+  <loading v-model:active="isLoading"
+           :is-full-page="true"/>
+  <div class="container mt-14">
     <router-view></router-view>
   </div>
 </template>
 <script>
 
 import navbar from "@/components/navbar";
-
-
+import Loading from 'vue-loading-overlay';
+import 'vue-loading-overlay/dist/vue-loading.css';
 
 export default {
 
-  components:{
+  components: {
     navbar,
+    Loading
   }
 }
 
 </script>
 
 <style scoped>
-* {
-@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400&display=swap');
-  font-family: 'Source Sans 3', sans-serif;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-body{
-  margin:0;
-  padding:0;
 
-}
-.app {
-  padding: 0px;
-}
 </style>

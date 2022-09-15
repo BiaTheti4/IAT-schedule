@@ -1,55 +1,32 @@
 <template>
   <div>
-    <nav class="navbar">
-      <router-link class="links" to="/">Расписание</router-link>
-      <router-link class="links" to="/schedule">Просмотр расписания</router-link>
-      <router-link class="links" to="/teachers">Занятость преподавателей</router-link>
-      <router-link class="links" to="/cabinets">Занятость кабинетов</router-link>
-      <router-link class="links" to="/print">Печать расписания</router-link>
+    <nav class="bg-gray-800 p-2 mt-0 fixed w-full z-10 top-0">
+      <div class="container flex flex-no-wrap items-start">
+        <div class="flex w-full justify-between">
+          <ul class="list-reset flex justify-between flex-1 md:flex-none items-center">
+            <li class="mr-3">
+              <router-link
+                  v-for="link in navList"
+                  class="inline-block px-4 text-white no-underline"
+                  :to="link.link">
+                {{ link.title }}
+              </router-link>
+            </li>
+          </ul>
+        </div>
+      </div>
     </nav>
   </div>
 </template>
-<script>
-export default {
-  name: "nav-bar"
-}
+<script setup>
+
+const navList = [
+  {link: '/', title: 'Расписание'},
+  {link: '/schedule', title: 'Просмотр расписания'},
+  {link: '/teachers', title: 'Занятость преподавателей'},
+  {link: '/cabinets', title: 'Занятость кабинетов'},
+  {link: '/print', title: 'Печать расписания'},
+];
+
 </script>
 
-<style scoped>
-.navbar {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  background: #d9edf7;
-  margin-right: 10px;
-  margin-bottom: 20px;
-}
-
-.group_first {
-  display: flex;
-  flex-direction: row;
-  background: #D9EDF7;
-  align-items: center;
-}
-
-.group_second {
-  display: flex;
-  flex-direction: row;
-  margin-right: 20px;
-  background: #294A70;
-}
-
-.links {
-  padding: 10px 15px;
-  background: none;
-  border-color: #8cedff;
-  color: black;
-  margin-left: 10px;
-  text-decoration: none
-}
-
-.links:hover {
-  transition: 0.3s;
-  background: #7ac3ee;
-}
-</style>

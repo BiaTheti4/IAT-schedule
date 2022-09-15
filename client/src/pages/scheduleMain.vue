@@ -3,14 +3,28 @@
     <loading v-model:active="isLoading"
              :is-full-page="true"/>
 
-    <div class="datePicker" id="content">
-      <form>
-        <input class="button-6" type="date" @change="changeDate() " v-model="date">
-        <select class="button-6" v-model="selectedCourse">
-          <option v-for="n in 4" :value="n">{{ n }} курс</option>
-        </select>
-      </form>
-    </div>
+    <form>
+      <div class="flex" id="content">
+        <div class="w-64 flex-initial">
+          <Datepicker
+              :modelValue="date"
+              locale="ru-RU"
+              :enableTimePicker="false"
+              :disabledWeekDays="[0]"
+              position="left"
+              format="dd.MM.yyyy"
+              :autoApply="true"
+              :clearable="false"
+              @update:modelValue="changeDate"
+          />
+        </div>
+        <div class="datePickerChild">
+          <select class="button-6" v-model="selectedCourse">
+            <option v-for="n in 4" :value="n">{{ n }} курс</option>
+          </select>
+        </div>
+      </div>
+    </form>
     <br>
     <table class="table">
       <thead>
@@ -26,10 +40,10 @@
 
       <tbody>
       <tr v-for="lessonNumber in 7" :key="lessonNumber.value">
-        <td class="lessonNumber">{{ this.lessonTime[lessonNumber - 1] }}</td>
+        <td class="lessonNumber">{{ lessonTime[lessonNumber - 1] }}</td>
         <td v-for="(group,groupId) in dateCourseEvent[selectedCourse]" :class="cellInfo(group[lessonNumber])">
           <div class="formSubjects">
-            <div v-if="group[lessonNumber].ktpId" style="float:left">{{ group[lessonNumber].label.join('/') }}</div>
+            <div v-if="group[lessonNumber].ktpId" style="float:left">{{ getLabel(group[lessonNumber]) }}</div>
 
             <select class="selectdiv"
                     v-model="group[lessonNumber].ktpId"
@@ -49,7 +63,7 @@
                 <option value="" disabled selected>-преподаватель-</option>
                 <option v-for="employeeId in getLessonEmployees(group[lessonNumber])"
                         :value="employeeId">
-                  {{ employeePairs[employeeId] }}
+                  {{ teacherPairs[employeeId] }}
                 </option>
               </select>
 
@@ -63,7 +77,7 @@
                 <option :value="null"></option>
                 <option v-for="employeeId in getLessonEmployees(group[lessonNumber])"
                         :value="employeeId">
-                  {{ employeePairs[employeeId] }}
+                  {{ teacherPairs[employeeId] }}
                 </option>
               </select>
 
@@ -128,8 +142,10 @@ import moment from 'moment';
 import _ from 'lodash';
 import {createToaster} from "@meforma/vue-toaster";
 import ModalComponent from "@/components/modalComponent";
-import Loading from 'vue-loading-overlay';
-import 'vue-loading-overlay/dist/vue-loading.css';
+
+import TeacherMixin from './../mixins/teachers.mixin'
+import CabinetsMixin from "@/mixins/cabints.mixin";
+import LessonTime from "@/enums/LessonTime";
 
 
 const toaster = createToaster({
@@ -139,37 +155,24 @@ const toaster = createToaster({
   pauseOnHover: false
 });
 export default {
+  mixins: [TeacherMixin, CabinetsMixin],
   components: {
     ModalComponent,
-    Loading
-
   },
   data() {
     return {
-      isLoading: false,
+      lessonTime: LessonTime,
       modal: 0,
       changed: 'changed',
       usual: 'usual',
-      employeePairs: {},
-      cabinetsPairs: {},
       date: moment().format('YYYY-MM-DD'),
       selectedCourse: '',
-      cabinets: [],
       conflicts: {
         teachers: {},
         cabinets: {},
         details: []
       },
       dateCourseEvent: {},
-      lessonTime: [
-        '08:30-10:00',
-        '10:10-11:40',
-        '12:10-13:40',
-        '13:50-15:20',
-        '15:50-17:20',
-        '17:30-19:00',
-        '19:10-20:40',
-      ],
       courses: {
         1: {groups: {}},
         2: {groups: {}},
@@ -194,18 +197,18 @@ export default {
           alert('не найден КТП');
           return false;
         }
-        let lastListId = false;
+        let lastHour = false;
         for (let number = lessonNumber - 1; number >= 1; number--) {
           let row = _.get(this.dateCourseEvent, [this.selectedCourse, pair.groupId, number], false);
-          if (row.ktpId > 0) {
-            lastListId = row.list_id;
+          if (row.ktpId > 0 && +row.ktpId === +pair.ktpId) {
+            lastHour = row.lastHour;
             break;
           }
         }
         let pairIds = [];
         let index = 0;
-        if (lastListId) {
-          index = _.findIndex(ktpRow, (row) => +row.list_id === +lastListId)
+        if (lastHour) {
+          index = _.findIndex(ktpRow, (row) => +row.hour === +lastHour)
           if (index === -1) {
             alert('Не нашлись следующие темы занятий');
             return;
@@ -220,10 +223,12 @@ export default {
         pair.optionalTeacherId = '';
         if ((this.isPractice(ktpRow[index].category) || this.isPractice(ktpRow[index + 1].category)) && ktpRow[index]['practice_employee'] > 0) {
           pair.optionalTeacherId = ktpRow[index]['practice_employee']
+          pair.optionalCabinetId = ktpRow[index]['cabinet_optional_need'] ?? ""
           needSubgroup = ktpRow[index]['main_employee'] !== ktpRow[index]['practice_employee'];
         }
         if ((this.isCourse(ktpRow[index].category) || this.isCourse(ktpRow[index + 1].category)) && ktpRow[index]['course_employee'] > 0) {
           needSubgroup = ktpRow[index]['main_employee'] !== ktpRow[index]['course_employee'];
+          pair.optionalCabinetId = ktpRow[index]['cabinet_optional_need'] ?? ""
           pair.optionalTeacherId = ktpRow[index]['course_employee']
         }
         pair.teacherId = ktpRow[index]['main_employee'];
@@ -233,6 +238,7 @@ export default {
         pair.label = types;
         pair.ids = pairIds;
         pair.list_id = ktpRow[index + 1].list_id
+        pair.lastHour = ktpRow[index + 1].hour
       } else {
         pair.teacherId = ''
         pair.optionalTeacherId = ''
@@ -240,7 +246,8 @@ export default {
         pair.optionalCabinetId = ''
         pair.label = '';
         pair.needSubgroup = false;
-        pair.ids = [];
+        pair.lastHour = null;
+        // pair.ids = []; // need to stay - for save
         pair.list_id = '';
 
       }
@@ -252,6 +259,13 @@ export default {
     },
     isCourse(type) {
       return type === 'k';
+    },
+    getLabel(scheduleRow) {
+      let labels = scheduleRow.label;
+      if (_.isArray(labels)) {
+        return labels.join('/');
+      }
+      return '';
     },
     getTypeLabel(type) {
       if (this.isTheory(type)) {
@@ -270,21 +284,24 @@ export default {
         this.saveSchedule();
       }
     },
-    changeDate() {
-      this.UpdateDateCourseEvent();
-      this.getWeekHours()
-    },
-    getStudyWeek() {
-      let dt = moment(this.date);
-      let year = dt.year();
-      if (dt.month() < 8) {
-        year--;
+    changeDate(date) {
+      if (date === undefined) {
+        date = new Date();
       }
-      let startDate = moment(year + '-09-01');// start week
-      let diffWeeks = dt.diff(startDate, 'weeks');
-      let startWeekDate = startDate.add(diffWeeks, 'w');
-      let endWeekDate = startWeekDate.clone().add(6, 'd');
-      return [startWeekDate.format('YYYY-MM-DD'), endWeekDate.format('YYYY-MM-DD')]
+      let dateString = moment(date).format('YYYY-MM-DD');
+      if (this.date !== dateString) {
+        let changes = this.getChanges();
+        if (changes.length > 0) {
+          if (!confirm('Вы внесли изменения и не сохранили расписание. Смена даты откатит все изменения. Продолжить?')) {
+            return;
+          }
+          for (let row of changes) {
+            row.isChanged = false;
+          }
+        }
+      }
+      this.date = dateString;
+      this.UpdateDateCourseEvent();
     },
     performSubjectChange(lesson) {
       lesson.isChanged = 1;
@@ -306,7 +323,7 @@ export default {
           groupRow.hours = 0;
           _.each(groups, (pair, pairNum) => {
             if (pair.ktpId > 0) {
-              groupRow.hours += 2;
+              groupRow.hours += 2;// add current hours on day to all part
               let key;
 
               if (pair.teacherId) {
@@ -346,7 +363,7 @@ export default {
       _.each(conflict.teachers, (teachers, key) => {
         if (teachers.length > 1) {
           let groups = teachers.map(item => item.group).join(', ')
-          let teacherName = this.employeePairs[_.split(String(key), '_', 1)[0]]
+          let teacherName = this.teacherPairs[_.split(String(key), '_', 1)[0]]
           let lessonNumber = _.split(String(key), '_')[1]
           let detail = `Пара ${lessonNumber} Преподаватель: ${teacherName} в группах: ${groups}`
           conflict.details.push(detail)
@@ -377,17 +394,18 @@ export default {
     getWeekHours() {
       let courses = this.courses;
       this.isLoading = true;
-      axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/getWeekHours', {
-        date: this.date
+      axios.get(this.serverUrl + '/api/schedule/getWeekHours', {
+        params: {date: this.date}
       }).then((res) => {
         let data = res.data;
+        let currentDate = moment(this.date).format('YYYY-MM-DD');
         _.each(courses, (courseGroups, course) => {
           _.each(courseGroups.groups, (group) => {
             let hours = _.get(data, [group.groupId, 'hours'], {});
             let hoursCount = 0;
             _.each(hours, (hour, day) => {
               console.log(day)
-              hoursCount += (day != this.date ? hour : 0);
+              hoursCount += (day != currentDate ? hour : 0);
             });
             group.otherDayHours = hoursCount;
 
@@ -415,8 +433,8 @@ export default {
       let courses = this.courses;
       this.isLoading = true;
 
-      axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/ktp/getSubjects', {
-        date: this.date
+      axios.get(this.serverUrl + '/api/ktp/getSubjects', {
+        params: {date: this.date}
       }).then((res) => {
         _.each(res.data, (group) => {
           if (_.get(courses, [group.course, 'groups', group.groupId], false)) {
@@ -443,6 +461,7 @@ export default {
       return _.get(this.courses, [this.selectedCourse, 'groups', groupId, 'subjects'], []);
     },
     UpdateDateCourseEvent() {
+      this.isLoading = true;
       _.each(this.dateCourseEvent, (course) => {
         _.each(course, (group) => {
           _.each(group, (lesson) => {
@@ -460,6 +479,7 @@ export default {
             elem.optionalCabinet = ''
             elem.status = 0
             elem.id = 0
+            elem.changed = 0
           })
         })
       })
@@ -470,24 +490,21 @@ export default {
       this.selectedCourse = 1
       this.isLoading = true;
 
-      axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/getCurrentSchedule', {
+      axios.get(this.serverUrl + '/api/schedule/getCurrentSchedule', {
         params: {date: this.date}
       }).then((res) => {
         _.each(res.data.current, (row) => {
           let element = _.get(this.dateCourseEvent, [row.course, row.groupId, row.lesson_number], false);
           if (element) {
             element.id = row.id;
-            element.ktpId = row.ktp_id;
-            element.teacher = row.main_emp;
-            element.teacherId = row.employee_id;
-            element.optionalTeacher = row.group_emp;
-            element.optionalTeacherId = row.optional_employee_id;
-            element.cabinet = row.number;
-            element.cabinetId = row.cabinet_id;
-            element.optionalCabinet = row.optional_cabinet;
-            element.optionalCabinetId = row.optional_cabinet_id;
-            element.isChanged = 0;
-            element.status = +row.status === 1;
+            element.ids = row.ids;
+            element.ktpId = row.ktpId;
+            element.teacherId = row.teacherId;
+            element.optionalTeacherId = row.optionalTeacherId;
+            element.cabinetId = row.cabinetId;
+            element.label = _.uniq([...row.categories.map((category) => this.getTypeLabel(category))]);
+            element.optionalCabinetId = row.optionalCabinetId;
+            element.isChanged = false;
           }
         })
         this.featureSchedule = res.data.feature;
@@ -542,15 +559,13 @@ export default {
         'selectdiv': true,
         'conflict': _.get(this.conflicts, ['teachers', teacherId + '_' + pair], 0).length > 1,
       }
-    }
-    ,
+    },
     hasConflictCabinet(cabinetId, pair) {
       return {
         'selectdiv': true,
         'conflict': _.get(this.conflicts, ['cabinets', cabinetId + '_' + pair], 0).length > 1,
       }
-    }
-    ,
+    },
     cellInfo(pair) {
       if (pair.ktpId > 0 && (!(pair.cabinetId > 0) || !(pair.teacherId > 0))) {
         return {'notFullForm': true}
@@ -563,10 +578,7 @@ export default {
       }
 
     },
-    test(asd) {
-    }
-    ,
-    saveSchedule() {
+    getChanges() {
       let updateData = [];
       _.each(this.dateCourseEvent, (course) => {
         _.each(course, (group) => {
@@ -579,12 +591,27 @@ export default {
           })
         })
       })
+      return updateData;
+    },
+    saveSchedule() {
+      let updateData = this.getChanges();
       if (updateData.length) {
-        axios.post(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/schedule/updateSchedule', {
+        axios.post(this.serverUrl + '/api/schedule/updateSchedule', {
           data: updateData,
           date: this.date
-        }).then(() => {
-          toaster.success('Расписание сохранено')
+        }).then((res) => {
+          if (res.data.status === true) {
+            toaster.success('Расписание сохранено')
+            for (let lesson of updateData) {
+              lesson.isChanged = false;
+            }
+            this.UpdateDateCourseEvent();
+          } else {
+            toaster.error(res.data.errors.join(', '))
+          }
+          this.isLoading = false;
+        }).catch((res) => {
+          toaster.success(res)
           this.isLoading = false;
         })
       } else {
@@ -595,7 +622,7 @@ export default {
 
     initGroups() {
       this.isLoading = true;
-      axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/groups/all').then((res) => {
+      axios.get(this.serverUrl + '/api/groups/all').then((res) => {
             for (let i = 0; i < res.data.length; i++) {
               let gr = res.data[i]
               this.courses[gr.course].groups[gr.groupId] = {...gr, subjects: [], hours: 0};
@@ -609,29 +636,6 @@ export default {
           }
       )
     }
-    ,
-    initCabinets() {
-      //получение текущей даты
-      this.isLoading = true;
-
-      axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/cabinets/all').then((res) => {
-        _.each(res.data, (cabinet) => {
-          this.cabinetsPairs[cabinet.id] = cabinet.number
-        })
-        this.cabinets = res.data
-        this.isLoading = false;
-
-      })
-    }
-    ,
-    initEmployees() {
-      this.isLoading = true;
-
-      axios.get(this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT + '/api/ktp/getEmployees').then((res) => {
-        this.employeePairs = res.data;
-        this.isLoading = false;
-      })
-    }
   },
   mounted() {
     this.selectedCourse = '1';
@@ -643,21 +647,11 @@ export default {
     //установка текущего курса по умолчанию на 1
     //запросы на получение информации
 
-  },
-  computed: {
-    orderedCabinets() {
-      return _.orderBy(this.cabinetsPairs)
-
-    },
-    env() {
-      return process.env
-    },
   }
-
 }
 </script>
 
-<style>
+<style scoped>
 .changed {
   border-radius: 10px;
   background: #ffe3c5;
@@ -784,7 +778,7 @@ export default {
   font-weight: 600;
   justify-content: center;
   line-height: 1.25;
-  min-height: 3rem;
+  min-height: 2.5rem;
   padding-left: 5px;
   position: relative;
   text-decoration: none;

@@ -13,19 +13,21 @@ const PRACTICE_CODES = {
 class KtpService {
 
     async isNeedSecondEmployee(listId) {
-        const {ktp_type} = sequelize.models
-        let ktpListRow = await ktp_type.findByPk(listId)
+        const {ktp_list} = sequelize.models
+        let ktpListRow = await ktp_list.findByPk(listId)
         if (!ktpListRow) {
             return false;
         }
 
-        let ktpType = ktpListRow.getKtpType();
+        let ktpType = await ktpListRow.getKtpType();
         let isPractice = this.isPractice(ktpType.category);
         let isCourse = this.isCourse(ktpType.category);
 
         if (isPractice || isCourse) {
-            let ktpRow = ktpListRow.getKtpTheme().getKtpBlock().getKtp();
-            if (isPractice && ktpRow.grouped) {
+            let ktpThemeRow = await ktpListRow.getTheme();
+            let ktpBlockRow = await ktpThemeRow.getBlock();
+            let KtpRow = await ktpBlockRow.getKtp();
+            if (isPractice && KtpRow.grouped) {
                 return true;
             }
             if (isCourse && ktpRow.grouped_k) {
@@ -178,15 +180,16 @@ class KtpService {
                                  ON ec.employeeId = e.employeeId AND ec.status = 3
                       INNER JOIN posts p ON ec.contractPostId = p.postId
              WHERE (e.status = 2)
-               AND p.isTeacher = 1`,
+               AND p.isTeacher = 1
+             ORDER BY last_name, first_name, fathers_name`,
             {
                 replacements: {},
                 type: sequelize.QueryTypes.SELECT
             }
         );
-        let result = {};
+        let result = [];
         data.forEach(function (row) {
-            result[row.employeeId] = row.fio;
+            result.push({id: row.employeeId, name: row.fio});
         });
         return result;
     }

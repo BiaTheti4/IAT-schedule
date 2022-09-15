@@ -1,65 +1,40 @@
 <template>
-  <div class="datePicker" id="content">
-    <form>
-      <select class="button-6" v-model="selectedEmployee">
-        <option value="" selected>Все преподаватели</option>
-        <option v-for="(teacher,idx) in teachers" :value="idx">
-          {{ teacher }}
-        </option>
-      </select>
-
-    </form>
-  </div>
-  <div v-if="isLoaded===true">
-    <div v-if="selectedEmployee===''">
-      <div v-for="(teacher,idx) in teachers" :key="teacher">
-        <h1>{{ teacher }}</h1>
-        <table class="table">
-          <thead class="thead_items">
-          <tr>
-            <th class="first_column">пара</th>
-            <th class="other_columns" v-for="day in week" :key="day.date">{{ day.date }} ({{ day.weekDay }})</th>
-          </tr>
-          </thead>
-          <tbody class="tbody_items">
-          <tr v-for="lessonNumber in 7">
-            <td>{{ lessonTime[lessonNumber - 1] }}</td>
-            <td v-for="lessonInDay in week" :key="lessonInDay">
-              <div class="info" v-if="dateCourseEvent[idx][lessonInDay.date][lessonNumber].group!==''">
-                <span>группа: {{ dateCourseEvent[idx][lessonInDay.date][lessonNumber].group }}</span>
-                <span>{{ dateCourseEvent[idx][lessonInDay.date][lessonNumber].subject }}</span>
-                <span>кабинет: {{ dateCourseEvent[idx][lessonInDay.date][lessonNumber].cabinet }}</span>
-              </div>
-
-            </td>
-          </tr>
-          </tbody>
-        </table>
+  <div>
+    <div class="datePicker" id="content">
+      <form>
+        <select class="border px-2 py-1 ml-2 rounded-md border-sky-700" v-model="selectedEmployee">
+          <option value="" selected>Все преподаватели</option>
+          <option v-for="(teacher) in teachers" :value="teacher.id">
+            {{ teacher.fio }}
+          </option>
+        </select>
+      </form>
+    </div>
+    <template v-for="teacher in teachers">
+      <div v-if="selectedEmployee==='' || +selectedEmployee===+teacher.id" :key="'block'+teacher.groupId">
+        <template v-if="isLoaded">
+          <h2 class="text-sky-900 pl-5 font-extrabold text-lg">{{ teacher.fio }}</h2>
+          <div class="inline-block  shadow-lg">
+            <table class="table">
+              <thead class="thead_items">
+              <tr>
+                <th class="first_column">пара</th>
+                <th class="other_columns" v-for="day in week" :key="day.date">{{ day.date }} ({{ day.weekDay }})</th>
+              </tr>
+              </thead>
+              <tbody class="tbody_items">
+              <tr v-for="lessonNumber in 7">
+                <td>{{ lessonTime[lessonNumber - 1] }}</td>
+                <td v-for="lessonInDay in week" :key="lessonInDay">
+                  <schedule-cell :schedule="getLesson(group.groupId,lessonInDay.date,lessonNumber)"/>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </template>
       </div>
-    </div>
-    <div v-else>
-      <h1>{{ teachers[selectedEmployee] }}</h1>
-      <table class="table">
-        <thead class="thead_items">
-        <tr>
-          <th class="first_column">пара</th>
-          <th class="other_columns" v-for="day in week" :key="day.date">{{ day.date }} ({{ day.weekDay }})</th>
-        </tr>
-        </thead>
-        <tbody class="tbody_items">
-        <tr v-for="lessonNumber in 7">
-          <td>{{ lessonTime[lessonNumber - 1] }}</td>
-          <td v-for="lessonInDay in week" :key="lessonInDay">
-            <div class="info" v-if="dateCourseEvent[selectedEmployee][lessonInDay.date][lessonNumber].group!==''">
-              <span>группа: {{ dateCourseEvent[selectedEmployee][lessonInDay.date][lessonNumber].group }}</span>
-              <span>{{ dateCourseEvent[selectedEmployee][lessonInDay.date][lessonNumber].subject }}</span>
-              <span>кабинет: {{ dateCourseEvent[selectedEmployee][lessonInDay.date][lessonNumber].cabinet }}</span>
-            </div>
-          </td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
+    </template>
   </div>
   <!--  <br>-->
   <!--  </div>-->
@@ -74,7 +49,7 @@ export default {
   data() {
     return {
       cabinets: [],
-      teachers: {},
+      teachers: [],
       date: '',
       isLoaded: false,
       week: [],
@@ -185,7 +160,7 @@ export default {
 </script>
 
 <style scoped>
-.info{
+.info {
   display: flex;
   flex-direction: column;
 }

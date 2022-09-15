@@ -4,7 +4,7 @@ const express = require('express'),
 routes = require('./routes/index.js')
 cors = require('cors')
 require('dotenv').config()
-const host = '127.0.0.1'
+const host = '0.0.0.0'
 const port = 7000
 
 app.use(express.json())
