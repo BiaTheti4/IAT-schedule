@@ -1,16 +1,27 @@
-const express = require('express'),
-    app = express(),
-    sequelize = require('./models')
-routes = require('./routes/index.js')
+const express = require('express')
+const sequelize = require('./models')
+const path = require('path')
+const history = require('connect-history-api-fallback');
+const routes = require('./routes/index.js')
 cors = require('cors')
 require('dotenv').config()
 const host = '0.0.0.0'
 const port = 7000
 
+const app = express()
+
+
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
+app.use(express.static(path.join(__dirname, '../client/dist/')));
 app.use(cors({origin: process.env.SERVER_DOMAIN}))
-// init db
+app.use(history())
+
+//init prod
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+});
+// init route
 app.use('/api', routes)
 
 

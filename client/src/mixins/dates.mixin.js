@@ -47,7 +47,10 @@ const DatesMixin = {
             if (momentDate.month() < 9) {
                 year--;
             }
-            momentDate.weekday(-1 * this.getStartWeekday(year)) // set week number
+            let startWeekday = this.getStartWeekday(year);
+            if (momentDate.weekday() !== startWeekday) {
+                momentDate.weekday(this.getStartWeekday(year)) // set week number
+            }
             if (momentDate.weekday() === 0) momentDate.date(momentDate.date() + 1)
 
             this.week = [{

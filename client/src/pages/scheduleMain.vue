@@ -1,8 +1,5 @@
 <template>
   <div>
-    <loading v-model:active="isLoading"
-             :is-full-page="true"/>
-
     <form>
       <div class="flex" id="content">
         <div class="w-64 flex-initial">
@@ -144,7 +141,7 @@ import {createToaster} from "@meforma/vue-toaster";
 import ModalComponent from "@/components/modalComponent";
 
 import TeacherMixin from './../mixins/teachers.mixin'
-import CabinetsMixin from "@/mixins/cabints.mixin";
+import CabinetsMixin from "@/mixins/cabinets.mixin";
 import LessonTime from "@/enums/LessonTime";
 
 
@@ -399,13 +396,13 @@ export default {
       }).then((res) => {
         let data = res.data;
         let currentDate = moment(this.date).format('YYYY-MM-DD');
-        _.each(courses, (courseGroups, course) => {
+        _.each(courses, (courseGroups) => {
           _.each(courseGroups.groups, (group) => {
             let hours = _.get(data, [group.groupId, 'hours'], {});
             let hoursCount = 0;
             _.each(hours, (hour, day) => {
               console.log(day)
-              hoursCount += (day != currentDate ? hour : 0);
+              hoursCount += (day !== currentDate ? hour : 0);
             });
             group.otherDayHours = hoursCount;
 
@@ -667,15 +664,15 @@ export default {
 }
 
 .tooLow {
-  background-color: #efbd58;
+  @apply bg-orange-300 text-orange-900 text-center;
 }
 
 .normal {
-  background-color: #8bf68b;
+  @apply bg-green-200 text-green-900 text-center;
 }
 
 .tooMuch {
-  background-color: #ac3232;
+  @apply bg-red-200 text-red-900 text-center;
 }
 
 .table tbody td {

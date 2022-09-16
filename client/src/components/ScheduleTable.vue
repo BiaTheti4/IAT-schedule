@@ -16,7 +16,7 @@
             class="border border-sky-600 p-0 m-0 w-64"
             v-for="day in week"
             :key="day">
-          
+          <schedule-cell :schedule="getLesson(day.date,lessonNumber)"/>
         </td>
       </tr>
       </tbody>
@@ -27,7 +27,7 @@
 
 <script>
 import ScheduleMixin from "@/mixins/schedule.mixin";
-import DatesMixin from "@/mixins/datesMixin";
+import DatesMixin from "@/mixins/dates.mixin";
 import ScheduleCell from "@/components/ScheduleTableCell";
 import LessonTime from "@/enums/LessonTime";
 

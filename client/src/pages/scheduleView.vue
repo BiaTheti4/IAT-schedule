@@ -18,7 +18,6 @@
           <schedule-table
               schedule-type="group"
               :schedule-param="group.groupId"
-              :schedule="schedule"
               :week="week"
           />
         </div>
@@ -29,10 +28,7 @@
 </template>
 
 <script>
-import axios from "axios";
-import _ from "lodash";
-import moment from "moment";
-import DatesMixin from '../mixins/datesMixin'
+import DatesMixin from '../mixins/dates.mixin'
 import GroupsMixin from "@/mixins/groups.mixin";
 import ScheduleMixin from "@/mixins/schedule.mixin";
 import ScheduleTable from "@/components/ScheduleTable";
@@ -49,25 +45,18 @@ export default {
     }
   },
   methods: {
-    Init() {
-      this.initGroups();
-      this.getSchedule(this.week[0].date, this.week[this.week.length - 1].date);
-    },
     correctPath() {
       this.$router.replace({name: "scheduleView", query: {group: this.selectedGroup}})
     },
   },
-  computed: {
-    env() {
-      return process.env
-    }
-  },
+
 
   mounted() {
     this.date = new Date();
     this.selectedGroup = this.$route.query.group || ''
-    this.fillStudyWeek()
-    this.Init()
+    this.fillWeek()
+    this.initGroups();
+    this.getSchedule(this.week[0].date, this.week[this.week.length - 1].date);
   }
 
 }
