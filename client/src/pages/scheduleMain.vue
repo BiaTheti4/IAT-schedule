@@ -17,7 +17,7 @@
         </div>
         <div class="datePickerChild">
           <select class="button-6" v-model="selectedCourse">
-            <option v-for="n in 4" :value="n">{{ n }} курс</option>
+            <option v-for="n in 5" :value="n">{{ n }} курс</option>
           </select>
         </div>
       </div>
@@ -401,7 +401,6 @@ export default {
             let hours = _.get(data, [group.groupId, 'hours'], {});
             let hoursCount = 0;
             _.each(hours, (hour, day) => {
-              console.log(day)
               hoursCount += (day !== currentDate ? hour : 0);
             });
             group.otherDayHours = hoursCount;
@@ -484,7 +483,6 @@ export default {
       this.conflicts.cabinets = {}
       this.conflicts.details = []
       this.conflicts.teachers = {}
-      this.selectedCourse = 1
       this.isLoading = true;
 
       axios.get(this.serverUrl + '/api/schedule/getCurrentSchedule', {
@@ -512,7 +510,7 @@ export default {
     },
     initDateCourseEvent() {
       this.dateCourseEvent = {}
-      for (let k = 1; k < 5; k++) {
+      for (let k = 1; k < 6; k++) {
         this.dateCourseEvent[k] = {}
         let groups = this.getCourses(k)
         _.each(groups, (group) => {

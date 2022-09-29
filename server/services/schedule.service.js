@@ -39,7 +39,7 @@ class ScheduleService {
                           INNER JOIN subjects AS s ON s.subjectId = k.subjectId
                           INNER JOIN employees AS e1 ON e1.employeeId = sch.employee_id
                           INNER JOIN cabinets AS c1 ON c1.id = sch.cabinet_id
-                          LEFT JOIN employees AS e2 ON e1.employeeId = sch.optional_employee_id
+                          LEFT JOIN employees AS e2 ON e2.employeeId = sch.optional_employee_id
                           LEFT JOIN cabinets AS c2 ON c2.id = sch.optional_employee_id
                  WHERE #WHERE#
                  ORDER BY sch.ktp_id, sch.hour
@@ -52,6 +52,7 @@ class ScheduleService {
     async getScheduleOnPeriod(dateStart, dateEnd) {
         let query = this.mainQuery;
         query = query.replace('#WHERE#', `sch.date >=:dateStart AND sch.date <=:dateEnd`)
+
         return await sequelize.query(
             query, {
                 replacements: {
@@ -65,16 +66,21 @@ class ScheduleService {
 
     async getStudyWeekSchedule(date) {
         let dates = this.getStudyWeek(date);
-        console.log(dates)
         return this.getScheduleOnPeriod(dates[0], dates[1]);
     }
 
-    getStudyWeek(date) {
-        let dt = moment(date);
+    getActiveYear(date) {
+        const dt = moment(date);
         let year = dt.year();
         if (dt.month() < 8) {
             year--;
         }
+        return year;
+    }
+
+    getStudyWeek(date) {
+        let dt = moment(date);
+        let year = this.getActiveYear(date);
         let startDate = moment(year + '-09-01');// start week
         let diffWeeks = dt.diff(startDate, 'weeks');
         let startWeekDate = startDate.add(diffWeeks, 'w');
@@ -217,15 +223,14 @@ class ScheduleService {
                     if (!scheduleRow.id > 0) {
                         errors.push('Не найдено занятий в расписании для ID ' + scheduleId);
                     } else {
-                        let updateData = {};
                         if (lesson.ktpId > 0) {
                             let isNeedSecondEmployee = await ktpService.isNeedSecondEmployee(lesson.list_id)
                             scheduleRow.date = lesson.date;
                             scheduleRow.lesson_number = lesson.lesson_number;
                             scheduleRow.employee_id = lesson.teacherId;
                             scheduleRow.cabinet_id = lesson.cabinetId;
-                            scheduleRow.optional_cabinet_id = isNeedSecondEmployee ? lesson.optionalCabinetId : null;
-                            scheduleRow.optional_employee_id = isNeedSecondEmployee ? lesson.optionalTeacherId : null;
+                            scheduleRow.optional_cabinet_id = isNeedSecondEmployee && lesson.optionalCabinetId ? lesson.optionalCabinetId : null;
+                            scheduleRow.optional_employee_id = isNeedSecondEmployee && lesson.optionalTeacherId ? lesson.optionalTeacherId : null;
                         } else {
                             scheduleRow.date = null;
                             scheduleRow.lesson_number = null;
@@ -242,7 +247,7 @@ class ScheduleService {
                                 errors.push('Can not save schedule data')
                             }
                         } catch (e) {
-                            errors.push('Error on save schedule data')
+                            errors.push('Error on save schedule data:' + e.message)
                         }
                     }
                 } else {
@@ -253,6 +258,89 @@ class ScheduleService {
         }
         return errors.length > 0 ? errors : true;
     }
+
+    async correctScheduleOrder() {
+        // get defect ktp ids
+        let ktpIds = await sequelize.query(
+            `select distinct ktp_id
+             from (select ktp_id,
+                       hour,
+                       row_number() over (partition by ktp_id order by date, lesson_number) as schedule_hour
+                   from schedule as s
+                   where date >= 0
+                     and lesson_number
+                       > 0
+                   order by ktp_id, date, lesson_number) as schedule
+             where hour != schedule_hour`
+            , {
+                type: sequelize.QueryTypes.SELECT
+            }
+        );
+        if (ktpIds.length === 0) {
+            // all is good
+            return false;
+        }
+        ktpIds = ktpIds.map((row) => row.ktp_id);
+        let log = {};
+        for (let ktpId of ktpIds) {
+            log[ktpId] = await this.correctByKtpId(ktpId);
+            break;
+        }
+        return log;
+    }
+
+    async correctByKtpId(ktpId) {
+        let errors = [];
+        let rows = await sequelize.query(
+            `select *
+             from schedule as s
+             where ktp_id = :ktpId
+             order by ktp_id, hour`
+            , {
+                replacements: {
+                    ktpId: ktpId
+                },
+                type: sequelize.QueryTypes.SELECT
+            }
+        );
+
+        let dates = rows.reduce((acc, row) => {
+            if (row.date && row.lesson_number > 0)
+                acc[row.date] = [...acc[row.date] || [], row.lesson_number]
+            return acc;
+        }, {});
+        // order dates
+        dates = Object.keys(dates).sort().reduce((obj, key) => {
+            obj[key] = dates[key];
+            return obj
+        }, {})
+
+        let rowIndex = 0;
+        for (let date in dates) {
+            let lessonNumbers = dates[date].sort();
+            for (let lessonNumber of lessonNumbers) {
+                let row = rows[rowIndex];//
+                // correct
+                if (row.date ===date || +row.lesson_number===+lessonNumber) {
+                    continue;
+                }
+                row.date = date;
+                row.lesson_number = lessonNumber;
+                let result = false;
+                try {
+                    result = await scheduleRow.save(['date', 'lesson_number', 'employee_id', 'cabinet_id', 'optional_employee_id', 'optional_cabinet_id'])
+                    if (!result) {
+                        errors.push('Can not save schedule data')
+                    }
+                } catch (e) {
+                    errors.push('Error on save schedule data:' + e.message)
+                }
+
+                rowIndex++;
+            }
+        }
+    }
+
 
 }
 

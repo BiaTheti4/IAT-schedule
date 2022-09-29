@@ -26,6 +26,7 @@ const navList = [
   {link: '/teachers', title: 'Занятость преподавателей'},
   {link: '/cabinets', title: 'Занятость кабинетов'},
   {link: '/print', title: 'Печать расписания'},
+  {link: '/schedule-correct', title: 'DEBUG'},
 ];
 
 </script>

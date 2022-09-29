@@ -36,8 +36,7 @@ export default {
     }
   },
   methods: {
-    updateStatusCabinet(id, status, name) {
-      console.log(id, status, name)
+    updateStatusCabinet(id, status) {
       axios.patch("http://localhost:5000/patchCabinet", {
         id: id,
         status: status
@@ -55,7 +54,7 @@ export default {
 
     axios.get('http://localhost:5000/cabinetsList').then(res => {
       for (let i = 0; i < res.data.length; i++) {
-        res.data[i].status = (res.data[i].status == 1) ? true : false
+        res.data[i].status = (res.data[i].status == 1)
       }
       this.cabinets = res.data
     })
@@ -135,9 +134,6 @@ input[type="checkbox"] {
   border-radius: 0 0 20px 0;
 }
 
-.checked {
-
-}
 
 
 .switch {

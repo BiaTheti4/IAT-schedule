@@ -36,7 +36,6 @@ export default {
   },
   methods: {
     updateStatusGroup(id, status) {
-      console.log(id, status)
       axios.patch("http://localhost:5000/patchGroup", {
         id: id,
         status: status
@@ -51,7 +50,7 @@ export default {
   mounted() {
     axios.get('http://localhost:5000/groupList').then(res => {
       for (let i = 0; i < res.data.length; i++) {
-        res.data[i].status = (res.data[i].status == 1) ? true : false
+        res.data[i].status = (res.data[i].status == 1)
       }
       this.groups = res.data
     })
@@ -134,9 +133,6 @@ input[type="checkbox"] {
   border-radius: 0 0 20px 0;
 }
 
-.checked {
-
-}
 
 
 .switch {

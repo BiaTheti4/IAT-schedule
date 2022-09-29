@@ -14,7 +14,7 @@
   </div>
   <div class="printSchedule">
     <h1 class="date">
-<!--      {{ getFullDate(this.date) }}-->
+      <!--      {{ getFullDate(this.date) }}-->
     </h1>
     <table class="table">
       <thead>
@@ -31,13 +31,13 @@
       <tbody>
 
       <tr v-for="para in 7" :key="para.value">
-        <td>{{ lessonTime[para-1] }}</td>
+        <td>{{ lessonTime[para - 1] }}</td>
         <td v-for="(group) in dateCourseEvent[selectedCourse]" :key="group">
           <div class="formSubjects" v-if="group[para].subject!=''">
-            <div>{{group[para].subject}}</div>
-            <div>(каб. {{group[para].cabinet}} {{group[para].optionalCabinet}})</div>
-            <div>{{group[para].teacher}}</div>
-            <div v-if="group[para].optional_teacher!=''">{{group[para].optional_teacher}}</div>
+            <div>{{ group[para].subject }}</div>
+            <div>(каб. {{ group[para].cabinet }} {{ group[para].optionalCabinet }})</div>
+            <div>{{ group[para].teacher }}</div>
+            <div v-if="group[para].optional_teacher!=''">{{ group[para].optional_teacher }}</div>
             <div class="distant">
               <div v-if="group[para].status==1">дистант</div>
             </div>
@@ -64,7 +64,7 @@ export default {
       date: '',
       selectedCourse: '',
       dateCourseEvent: {},
-      lessonTime:[
+      lessonTime: [
         '08:30-10:00',
         '10:10-11:40',
         '12:10-13:40',
@@ -81,7 +81,7 @@ export default {
       },
     }
   },
-  computed:{
+  computed: {
     env() {
       return process.env
     }
@@ -92,14 +92,6 @@ export default {
     },
     dateToDb(date) {
       return date.getFullYear() + '-' + (date.getMonth() + 1 > 9 ? date.getMonth() : "0" + (date.getMonth() + 1)) + '-' + (date.getDate() > 9 ? date.getDate() : "0" + date.getDate());
-    },
-
-    getDay() {
-      let day = this.date;
-      let fullDate = (day.getDate() > 9 ? day.getDate() : "0" + day.getDate() + '.' + (day.getMonth() + 1) + '.' + day.getFullYear());
-      console.log(fullDate)
-
-
     },
 
     getCourses(course) {
@@ -137,8 +129,6 @@ export default {
         date: this.dateToDb(new Date(this.date))
       }).then((res) => {
         for (let i = 0; i < res.data.length; i++) {
-          console.log(res.data[i])
-
           let elem = this.dateCourseEvent[res.data[i].course][res.data[i].name][res.data[i].lesson_number]
 
           elem.subject = res.data[i].nameShort
@@ -146,11 +136,7 @@ export default {
           elem.optional_teacher = res.data[i].group_emp
           elem.cabinet = res.data[i].number
           elem.optionalCabinet = res.data[i].optionalCabinet
-          if (res.data[i].status == 1) {
-            elem.status = true
-          } else {
-            elem.status = false
-          }
+          elem.status = res.data[i].status == 1;
         }
       })
     },
@@ -189,13 +175,12 @@ export default {
     },
 
 
-
   },
   mounted() {
     //получение текущей даты
     let today = new Date();
 
-    this.date =this.dateToDb(today);
+    this.date = this.dateToDb(today);
     //установка текущего курса по умолчанию на 1
     this.selectedCourse = '1';
     this.Init()
@@ -232,7 +217,6 @@ export default {
     width: auto;
     margin: 0 0 0 10px;
   }
-
 
 
   .button-6:active {

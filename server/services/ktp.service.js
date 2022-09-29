@@ -12,6 +12,16 @@ const PRACTICE_CODES = {
 
 class KtpService {
 
+    getActiveYear(date) {
+        const dt = moment(date);
+        let year = dt.year();
+        if (dt.month() < 8) {
+            year--;
+        }
+        return year;
+    }
+
+
     async isNeedSecondEmployee(listId) {
         const {ktp_list} = sequelize.models
         let ktpListRow = await ktp_list.findByPk(listId)
@@ -26,8 +36,8 @@ class KtpService {
         if (isPractice || isCourse) {
             let ktpThemeRow = await ktpListRow.getTheme();
             let ktpBlockRow = await ktpThemeRow.getBlock();
-            let KtpRow = await ktpBlockRow.getKtp();
-            if (isPractice && KtpRow.grouped) {
+            let ktpRow = await ktpBlockRow.getKtp();
+            if (isPractice && ktpRow.grouped) {
                 return true;
             }
             if (isCourse && ktpRow.grouped_k) {
@@ -76,7 +86,7 @@ class KtpService {
                      FROM curriculum_course_split AS ccs
                               INNER JOIN curriculum c ON ccs.curriculumId = c.id
                      WHERE c.specId = g.specId
-                       AND c.year = k.year
+                       AND c.year = g.year
                        AND c.learning_type = g.type
                        AND ccs.course = CEIL(k.semester / 2)
                      LIMIT 1)                       AS split_week,
@@ -99,6 +109,7 @@ class KtpService {
                     groupType: GROUP_FULL_TIME,
                     date: eduYear
                 },
+                logging: console.log,
                 type: sequelize.QueryTypes.SELECT
             }
         );
@@ -172,18 +183,19 @@ class KtpService {
 
     async getEmployees() {
         let data = await sequelize.query(
-            `SELECT e.employeeId,
-                    CONCAT(e.last_name, ' ', SUBSTR(e.first_name, 1, 1), '.',
-                           SUBSTR(e.fathers_name, 1, 1), '.') AS fio
+            `SELECT DISTINCT e.employeeId,
+                             CONCAT(e.last_name, ' ', SUBSTR(e.first_name, 1, 1), '.',
+                                    SUBSTR(e.fathers_name, 1, 1), '.') AS fio
              FROM employees AS e
-                      INNER JOIN employee_contracts AS ec
-                                 ON ec.employeeId = e.employeeId AND ec.status = 3
-                      INNER JOIN posts p ON ec.contractPostId = p.postId
-             WHERE (e.status = 2)
-               AND p.isTeacher = 1
+                      INNER JOIN employee_loading_subjects els ON
+                     e.employeeId IN (els.courseEmployeeId, els.employeeId, els.practiceEmployeeId)
+                      INNER JOIN employee_loading el ON els.employeeLoadingId = el.id
+             WHERE el.year = :year
              ORDER BY last_name, first_name, fathers_name`,
             {
-                replacements: {},
+                replacements: {
+                    year: this.getActiveYear()
+                },
                 type: sequelize.QueryTypes.SELECT
             }
         );
@@ -197,10 +209,7 @@ class KtpService {
 
     getWeekNumber(date) {
         let dt = moment(date);
-        let year = dt.year();
-        if (dt.month() < 8) {
-            year--;
-        }
+        let year = this.getActiveYear(date);
         let startDate = moment(year + '-09-01');// start week
         return dt.diff(startDate, 'weeks');
 

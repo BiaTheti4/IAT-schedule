@@ -34,6 +34,10 @@ class ScheduleController {
         )
     }
 
+    async correct(req, res) {
+        return res.json({list: ScheduleService.correctScheduleOrder()});
+    }
+
 }
 
 module.exports = new ScheduleController()
