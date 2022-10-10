@@ -214,6 +214,23 @@ class KtpService {
         return dt.diff(startDate, 'weeks');
 
     }
+
+    async geSubjectNameByKtp(ktpId) {
+        const {ktp} = sequelize.models
+        let ktpRow = await ktp.findByPk(ktpId);
+        if (!ktpRow) {
+            return '';
+        }
+        if (ktpRow.curriculumSubjectId > 0) {
+            let curriculumSubject = await ktpRow.getCurriculumSubject();
+            let subject = await curriculumSubject.getSubject();
+            let group = await ktpRow.getGroup();
+
+            return `${group.name} - ${curriculumSubject.code} ${subject.name}`;
+        }
+
+        return '';
+    }
 }
 
 module.exports = new KtpService()

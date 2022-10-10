@@ -2,6 +2,8 @@ function applyExtraSetup(sequelize) {
     const {
         cabinet,
         cabinet_material,
+        curriculum_module_practice,
+        curriculum_subject,
         employee,
         employee_contract,
         group,
@@ -12,6 +14,7 @@ function applyExtraSetup(sequelize) {
         ktp_list,
         spec,
         subject,
+        schedule,
         work_program_list,
         work_program_practice_lists,
     } = sequelize.models;
@@ -48,6 +51,11 @@ function applyExtraSetup(sequelize) {
     ktp.hasMany(ktp_block, {
         as: 'blocks',
         foreignKey: 'ktpId'
+    })
+
+    ktp.hasMany(schedule, {
+        as: 'schedules',
+        foreignKey: 'ktp_id'
     });
 
     ktp.belongsTo(employee, {
@@ -129,7 +137,7 @@ function applyExtraSetup(sequelize) {
 
     group.hasMany(ktp, {
         as: 'ktp',
-        foreignKey: 'ktpId'
+        foreignKey: 'groupId'
     });
 
     employee.hasMany(ktp, {
@@ -142,6 +150,26 @@ function applyExtraSetup(sequelize) {
         foreignKey: 'subjectId'
     });
 
+
+    schedule.belongsTo(ktp, {
+        foreignKey: 'ktp_id',
+        as: 'ktp'
+    });
+
+    ktp.belongsTo(curriculum_subject, {
+        foreignKey: 'curriculumSubjectId',
+        as: 'curriculumSubject'
+    });
+
+    curriculum_subject.hasMany(ktp, {
+        foreignKey: 'curriculumSubjectId',
+        as: 'ktps'
+    })
+
+    curriculum_subject.belongsTo(subject, {
+        foreignKey: 'subjectId',
+        as: 'subject'
+    })
 
 }
 

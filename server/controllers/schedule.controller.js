@@ -35,7 +35,7 @@ class ScheduleController {
     }
 
     async correct(req, res) {
-        return res.json({list: ScheduleService.correctScheduleOrder()});
+        return res.json({list: await ScheduleService.correctScheduleOrder()});
     }
 
 }

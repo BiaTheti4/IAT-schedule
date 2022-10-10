@@ -5,6 +5,7 @@ import print from "../pages/print";
 import teacherBusyness from "@/pages/teacherBusyness";
 import cabinetBusyness from "@/pages/cabinetBusyness";
 import scheduleCorrect from "@/pages/scheduleCorrect";
+import scheduleViewFull from "@/pages/scheduleViewFull";
 
 const routes = [
     {
@@ -14,7 +15,7 @@ const routes = [
     },
     {
         path: '/schedule',
-        component: scheduleView,
+        component: scheduleViewFull,
         name: scheduleView.name
     },
     {

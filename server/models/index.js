@@ -21,6 +21,8 @@ const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD,
 const modelDefiners = [
     require('./cabinet-material.model.js'),
     require('./cabinet.model.js'),
+    require('./curriculum_subject.model'),
+    require('./curriculum_module_practice.model'),
     require('./employee-contract.model.js'),
     require('./employee.model.js'),
     require('./group.model.js'),

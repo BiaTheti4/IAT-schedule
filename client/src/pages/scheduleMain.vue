@@ -26,9 +26,10 @@
     <table class="table">
       <thead>
       <tr>
-        <th>Пара</th>
-        <th v-for="group in getCourses(selectedCourse)" :key="group">
-          <div class="thGroup">
+        <th class="w-4">#</th>
+        <th class="w-4">Пара</th>
+        <th v-for="group in getCourses(selectedCourse)" :key="group.groupId">
+          <div class="thGroup w-32">
             <div> {{ group.name }}</div>
           </div>
         </th>
@@ -37,8 +38,9 @@
 
       <tbody>
       <tr v-for="lessonNumber in 7" :key="lessonNumber.value">
+        <td class="lessonNumber">{{ lessonNumber }}</td>
         <td class="lessonNumber">{{ lessonTime[lessonNumber - 1] }}</td>
-        <td v-for="(group,groupId) in dateCourseEvent[selectedCourse]" :class="cellInfo(group[lessonNumber])">
+        <td v-for="group in getCourseData" :class="cellInfo(group[lessonNumber])">
           <div class="formSubjects">
             <div v-if="group[lessonNumber].ktpId" style="float:left">{{ getLabel(group[lessonNumber]) }}</div>
 
@@ -47,7 +49,7 @@
                     @change="performSubjectChange(group[lessonNumber]);setEmptyByKtp(group[lessonNumber],lessonNumber);"
             >
               <option value="" selected>-нет-</option>
-              <option v-for="subject in getSubjectList(groupId)" :key="subject.ktpId" :value="subject.ktpId">
+              <option v-for="subject in getSubjectList(group[lessonNumber].groupId)" :key="subject.ktpId" :value="subject.ktpId">
                 {{ subject.nameShort }}
               </option>
             </select>
@@ -109,15 +111,17 @@
           </div>
         </td>
       </tr>
+      </tbody>
+      <tfoot>
       <tr>
-        <td>
-          Нагрузка(час):
+        <td colspan="2">
+          Нагрузка (час):
         </td>
-        <td v-for="(group) in getCourses(selectedCourse)" :key="group" :class="warnHours(group)">
+        <td v-for="group in getCourses(selectedCourse)" :key="group" :class="warnHours(group)">
           {{ group.hours + group.otherDayHours }}
         </td>
       </tr>
-      </tbody>
+      </tfoot>
     </table>
     <button class="button-7" @click="openModal()">Сохранить</button>
     <modal-component v-if="this.modal===1" @result="modalResult"></modal-component>
@@ -178,6 +182,11 @@ export default {
         5: {groups: {}},
       },
       featureSchedule: {}
+    }
+  },
+  computed: {
+    getCourseData() {
+      return _.sortBy(this.getCourses(this.selectedCourse), ['name']).map(row => this.dateCourseEvent[this.selectedCourse][row.groupId]);
     }
   },
   methods: {
@@ -251,7 +260,8 @@ export default {
     },
     isTheory(type) {
       return type === 't' || type === 'c' || type === 's';
-    }, isPractice(type) {
+    },
+    isPractice(type) {
       return type === 'l' || type === 'p';
     },
     isCourse(type) {
@@ -280,6 +290,17 @@ export default {
       } else {
         this.saveSchedule();
       }
+    },
+    correct() {
+      _.each(this.dateCourseEvent, (course) => {
+        _.each(course, (group) => {
+          _.each(group, (lesson, key) => {
+            if (lesson.ktpId > 0) {
+              lesson.isChanged = 1;
+            }
+          })
+        })
+      })
     },
     changeDate(date) {
       if (date === undefined) {
@@ -412,18 +433,25 @@ export default {
     },
 
     getCourses(course) {
+      let groups = [];
       switch (Number(course)) {
         case 1:
-          return this.courses[1].groups;
+          groups = this.courses[1].groups;
+          break;
         case 2:
-          return this.courses[2].groups;
+          groups = this.courses[2].groups;
+          break;
         case 3:
-          return this.courses[3].groups;
+          groups = this.courses[3].groups;
+          break;
         case 4:
-          return this.courses[4].groups;
+          groups = this.courses[4].groups;
+          break;
         default:
-          return this.courses[5].groups;
+          groups = this.courses[5].groups;
+          break;
       }
+      return _.sortBy(groups, ['name']);
     },
     getSubjects() {
       let courses = this.courses;
@@ -495,6 +523,7 @@ export default {
             element.ids = row.ids;
             element.ktpId = row.ktpId;
             element.teacherId = row.teacherId;
+            element.needSubgroup = row.needSubgroup;
             element.optionalTeacherId = row.optionalTeacherId;
             element.cabinetId = row.cabinetId;
             element.label = _.uniq([...row.categories.map((category) => this.getTypeLabel(category))]);
@@ -568,7 +597,7 @@ export default {
       if (pair.isChanged === 1) {
         return {'changed': true}
       }
-      if (pair.isChanged === 0) {
+      if (pair.ktpId > 0) {
         return {'usual': true}
       }
 
@@ -648,17 +677,9 @@ export default {
 
 <style scoped>
 .changed {
-  border-radius: 10px;
-  background: #ffe3c5;
-}
-
-.notFullForm {
-  border-radius: 10px;
-  background: #ff576e;
-}
-
-.usual {
-  border-radius: 10px;
+  @apply bg-orange-100
+  /*border-radius: 10px;*/
+  /*background: #ffe3c5;*/
 }
 
 .tooLow {
@@ -674,26 +695,19 @@ export default {
 }
 
 .table tbody td {
-  padding: 5px 10px;
+  @apply p-2;
 
 }
 
 .alertBlocks {
-  display: flex;
-  flex-direction: column;
-  margin-top: 35px;
+  @apply flex flex-col mt-4;
+  /*display: flex;*/
+  /*flex-direction: column;*/
+  /*margin-top: 35px;*/
 }
 
 .alert {
-  padding: 2px;
-  background-color: #f44336;
-  color: white;
-  border-radius: 15px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  font-size: 19px;
-  margin-top: 5px;
+  @apply bg-red-500 text-white border border-r-4 flex flex-row text-xl my-6
 }
 
 .sign {
@@ -806,62 +820,27 @@ export default {
 }
 
 .table {
-
-  border: none;
-  margin-bottom: 20px;
-  border-collapse: separate;
-
+  @apply table-fixed
 }
 
 .table thead th {
-  font-weight: bold;
-  text-align: left;
-  border: none;
-  padding: 5px 10px;
-  background: #D9EDF7;
-  font-size: 14px;
-  border-top: 1px solid #ddd;
-  width: 7.9%;
-}
-
-.table tr th:first-child, .table tr td:first-child {
-  border-left: 1px solid #ddd;
-}
-
-.table tr th:last-child, .table tr td:last-child {
-  border-right: 1px solid #ddd;
-}
-
-.table thead tr th:first-child {
-  border-radius: 20px 0 0 0;
-}
-
-.table thead tr th:last-child {
-  border-radius: 0 20px 0 0;
+  @apply font-bold text-center bg-sky-200 border border-slate-400;
 }
 
 .table tbody td {
-  text-align: left;
-  border: none;
-  padding: 5px 10px;
-  font-size: 14px;
-  vertical-align: top;
+  @apply border border-slate-400 p-1 m-0 text-xs align-top h-20 font-thin;
 }
 
 .table tbody tr:nth-child(even) {
-  background: #F8F8F8;
+  @apply bg-gray-50;
 }
 
-.table tbody tr:last-child td {
-  border-bottom: 1px solid #ddd;
+.table tbody tr:nth-child(odd) {
+  @apply bg-gray-100;
 }
 
-.table tbody tr:last-child td:first-child {
-  border-radius: 0 0 0 20px;
-}
-
-.table tbody tr:last-child td:last-child {
-  border-radius: 0 0 20px 0;
+.table tbody tr:hover {
+  @apply bg-gray-200
 }
 
 .formSubjects {
@@ -879,17 +858,7 @@ body {
 }
 
 .selectdiv {
-  position: relative;
-  align-items: center;
-
-
-  text-decoration: none;
-  transition: all 250ms;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-  vertical-align: baseline;
-  width: 100%;
+  @apply w-full font-thin mb-0.5;
 }
 
 
@@ -943,15 +912,26 @@ select::-ms-expand {
 }
 
 .thGroup {
-  display: flex;
-  flex-direction: column;
-  justify-items: center;
+  @apply flex flex-col justify-center
 }
 
 select.conflict {
-  border-color: #ff3333;
-  border-width: 2px;
-  background-color: #ffcccc;
+  @apply bg-red-500 text-red-50 border-red-400 border-2
+  /*border-color: #ff3333;*/
+  /*border-width: 2px;*/
+  /*background-color: #ffcccc;*/
 }
 
+
+.notFullForm {
+  @apply bg-red-400
+}
+
+.usual {
+  @apply bg-green-100;
+}
+
+.usual:hover {
+  @apply bg-green-200;
+}
 </style>

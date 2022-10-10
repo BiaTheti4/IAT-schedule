@@ -7,7 +7,7 @@ module.exports = (sequelize) => {
             primaryKey: true,
             autoIncrement: true,
         },
-        date: {type: DataTypes.DATE, allowNull: true},
+        date: {type: DataTypes.DATEONLY, allowNull: true},
         status: {type: DataTypes.INTEGER},
         // event: {type: DataTypes.TEXT},
         lesson_number: {type: DataTypes.INTEGER, allowNull: true},

@@ -22,7 +22,7 @@ let ScheduleMixin = {
                 store.employeeSchedule = {};
                 for (let lesson of res.data) {
                     let scheduleRow = {
-                        subject: lesson.subject,
+                        subject: (lesson['subject_code'] ? this.getPracticePrefix(lesson['practice_type']) + lesson['subject_code'] + ' ' : '') + lesson.subject,
                         mainTeacher: lesson['employee'],
                         optionalTeacher: lesson['second_employee'],
                         cabinet: lesson.cabinet,
@@ -45,6 +45,16 @@ let ScheduleMixin = {
                 console.log(e)
             }
             this.hideLoading();
+        },
+        getPracticePrefix(type) {
+            if (+type === 1) {
+                return 'УП.';
+            } else if (+type == 2) {
+                return 'ПП.';
+            } else if (+type == 3) {
+                return "ПДП "
+            }
+            return '';
         },
         getLessonByGroup(groupId, date, lessonNumber) {
             if (!this.store.groupSchedule) {
@@ -69,6 +79,12 @@ let ScheduleMixin = {
         _getLesson(schedule, id, date, lessonNumber) {
             return _.get(schedule, [id, date, lessonNumber], {});
 
+        },
+        subjectCabinetCorrect(name) {
+            let replaceCabinet = {
+                'спортивный зал': 'с/з'
+            }
+            return replaceCabinet[name.toLowerCase().trim()] || name
         }
     }
 }

@@ -1,5 +1,5 @@
 <template>
-  <navbar/>
+  <navbar class="print:hidden"/>
   <loading v-model:active="isLoading"
            :is-full-page="true"/>
   <div class="container mt-14">

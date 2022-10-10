@@ -12,6 +12,8 @@ module.exports = (sequelize) => {
         semester: {type: DataTypes.INTEGER},
         grouped: {type: DataTypes.INTEGER},
         grouped_k: {type: DataTypes.INTEGER},
+        curriculumSubjectId: {type: DataTypes.INTEGER},
+        curriculumPracticeId: {type: DataTypes.INTEGER},
     }, {
         tableName: 'ktp'
     })
