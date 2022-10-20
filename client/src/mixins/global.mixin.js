@@ -1,19 +1,16 @@
+import {globalStore} from "@/store/gloabal"
+
 export default {
-    data() {
-        return {
-            isLoading: false,
-            loadingDeep: 0,
-        };
-    },
+
     methods: {
         showLoading() {
-            this.loadingDeep++;
-            this.isLoading = true;
+            this.globalStore.loadingDeep++;
+            this.globalStore.isLoading = true;
         },
         hideLoading() {
-            this.loadingDeep--;
-            if (this.loadingDeep === 0) {
-                this.isLoading = false;
+            this.globalStore.loadingDeep--;
+            if (this.globalStore.loadingDeep <= 0) {
+                this.globalStore.isLoading = false;
             }
         }
     },
@@ -24,5 +21,12 @@ export default {
         serverUrl() {
             return this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT;
         },
+        isLoading() {
+            return this.globalStore.isLoading;
+        },
+        globalStore() {
+            return globalStore();
+        }
     }
+
 }

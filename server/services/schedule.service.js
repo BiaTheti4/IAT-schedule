@@ -70,7 +70,6 @@ class ScheduleService {
                     dateEnd: String(dateEnd)
                 },
                 type: sequelize.QueryTypes.SELECT,
-                logging: console.log
             }
         );
     }
@@ -313,12 +312,12 @@ class ScheduleService {
                 '$ktp.groupId$': groupId,
                 lesson_number: lesson_number
             },
-            logging: console.log,
+            // logging: console.log,
         })
         return result.length !== 0;
     }
 
-    async correctScheduleOrder() {
+    async correctScheduleOrder(ktpId, correct) {
         // get defect ktp ids
         let ktpIds = await sequelize.query(
             `select distinct ktp_id
@@ -330,7 +329,8 @@ class ScheduleService {
                      and lesson_number
                        > 0
                    order by ktp_id, date, lesson_number) as schedule
-             where hour != schedule_hour`
+             where hour != schedule_hour` +
+            (ktpId > 0 ? ` AND ktp_id=${+ktpId}` : '')
             , {
                 type: sequelize.QueryTypes.SELECT
             }
@@ -350,7 +350,92 @@ class ScheduleService {
                 }
             }
         }
+        if (correct) {
+            if (ktpId) {
+                await this.correctByKtpId(ktpId, true)
+            }
+        }
+
         return log;
+    }
+
+    async getScheduleOverlay() {
+        let year = this.getActiveYear();
+        let rows = await sequelize.query(
+            `select count(id)            as cnt,
+                    groupId,
+                    group_concat(s.id)   as ids,
+                    group_concat(ktp_id) as ktp_list,
+                 date,
+                 lesson_number
+             from schedule as s
+                 inner join ktp k
+             on s.ktp_id = k.ktpId
+             where date
+                 >= :date
+               and lesson_number
+                 > 0
+             group by groupId, date, lesson_number
+             having cnt > 2
+             order by date, lesson_number, ktp_id`
+            , {
+                replacements: {
+                    date: year + '-09-01'
+                },
+                type: sequelize.QueryTypes.SELECT
+            }
+        );
+
+        let errors = {};
+        for (let row of rows) {
+            if (!errors[row.date]) {
+                errors[row.date] = {}
+            }
+            if (!errors[row.date][row.groupId]) {
+                errors[row.date][row.groupId] = [];
+            }
+            let ktps = {};
+            let scheduleIds = row.ids.split(',');
+            let ktpIds = row.ktp_list.split(',');
+            for (let index in ktpIds) {
+                const ktpId = ktpIds[index];
+                if (!ktps[ktpId]) {
+                    ktps[ktpId] = {
+                        name: await ktpService.geSubjectNameByKtp(ktpIds[index]),
+                        ids: []
+                    };
+                }
+                ktps[ktpId].ids.push(scheduleIds[index]);
+            }
+
+            errors[row.date][row.groupId].push({
+                lesson_number: row.lesson_number,
+                ktps: ktps
+            })
+
+        }
+        return errors;
+    }
+
+    async correctScheduleOverlay(ids) {
+        if (!ids || ids.length === 0) {
+            return false;
+        }
+        await sequelize.query(
+            `UPDATE schedule
+             SET date=null,
+                 lesson_number=0
+             where id IN (:ids)`
+            , {
+                replacements: {
+                    ids: ids,
+                },
+                type: sequelize.QueryTypes.UPDATE
+            }
+        )
+
+
+        return true;
     }
 
     async correctByKtpId(ktpId, correct) {
@@ -380,18 +465,23 @@ class ScheduleService {
         }, {})
 
         let rowIndex = 0;
+        let lastHour = 0;
         for (let date in dates) {
             let lessonNumbers = dates[date].sort();
             for (let lessonNumber of lessonNumbers) {
                 let row = rows[rowIndex++];//
+                lastHour = row.hour;
 
                 // correct
-                if (row.date === date || +row.lesson_number === +lessonNumber) {
+                if (row.date === date && +row.lesson_number === +lessonNumber) {
                     continue;
                 }
                 if (correct) {
+
+                    let scheduleRow = await models.schedule.findByPk(row.id);
                     row.date = date;
                     row.lesson_number = lessonNumber;
+                    scheduleRow.set({...row});
                     let result = false;
                     try {
                         result = await scheduleRow.save(['date', 'lesson_number', 'employee_id', 'cabinet_id', 'optional_employee_id', 'optional_cabinet_id'])
@@ -409,9 +499,107 @@ class ScheduleService {
                 }
             }
         }
+        if (correct) {
+            await sequelize.query(
+                `UPDATE schedule
+                 SET date=null,
+                     lesson_number=0
+                 where ktp_id = :ktpId AND hour > :hour`
+                , {
+                    replacements: {
+                        ktpId: ktpId,
+                        hour: lastHour
+                    },
+                    type: sequelize.QueryTypes.UPDATE
+                }
+            )
+        }
         return errors;
     }
 
+    async compareJournal() {
+        let scheduleRows = await sequelize.query(
+            `select *
+             from schedule as s
+             where date >= 0
+               and lesson_number
+                 > 0
+               and ktp_id=13906
+             order by ktp_id, date, lesson_number, hour`
+            , {
+                type: sequelize.QueryTypes.SELECT
+            }
+        );
+        let schedule = {};
+        for (let row of scheduleRows) {
+            if (!schedule[row.ktp_id]) {
+                schedule[row.ktp_id] = {
+                    name: await ktpService.geSubjectNameByKtp(row.ktp_id),
+                    dates: {}
+                };
+            }
+            if (!schedule[row.ktp_id]['dates'][row.date]) {
+                schedule[row.ktp_id]['dates'][row.date] = [];
+            }
+            schedule[row.ktp_id]['dates'][row.date].push({
+                ...row,
+                journal: null,
+                journal2: null,
+                problem: false
+            });
+        }
+        // get journals
+        let activeYear = this.getActiveYear();
+        let journalRows = await sequelize.query(
+            `select *
+             from journal as j
+             where date >= '${activeYear}-09-01'
+               and type in (0
+                 , 2)
+               and ktpId=13906
+
+             order by ktpId, date, journalId`
+            , {
+                type: sequelize.QueryTypes.SELECT
+            }
+        );
+        let scheduleDateIndex = {};
+        for (let row of journalRows) {
+            if (!schedule[row.ktpId]) {
+                schedule[row.ktpId] = {
+                    name: await ktpService.geSubjectNameByKtp(row.ktpId),
+                    dates: {}
+                };
+            }
+            if (!schedule[row.ktpId]['dates'][row.date]) {
+                schedule[row.ktpId]['dates'][row.date] = [];
+            }
+            let key = row.ktpId + '_' + row.subgroup;
+            if (!scheduleDateIndex[key]) {
+                scheduleDateIndex[key] = 0;
+            }
+            if (!schedule[row.ktpId]['dates'][row.date][scheduleDateIndex[key]]) {
+                schedule[row.ktpId]['dates'][row.date].push({
+                    lesson_number: 0,
+                    list_id: row.listId,
+                    employee_id: +row.subgroup < 2 ? row.employeeId : null,
+                    optional_employee_id: +row.subgroup == 2 ? row.employeeId : null,
+                    problem: true
+                });
+            } else {
+                let curRow = schedule[row.ktpId]['dates'][row.date][scheduleDateIndex[key]];
+                if (row.subgroup < 2) {
+                    curRow['journal'] = row;
+                } else {
+                    curRow['journal2'] = row;
+                }
+                curRow['problem'] = curRow['problem'] || curRow['list_id'] != row.listId;
+            }
+            scheduleDateIndex[key]++;
+        }
+
+        return schedule;
+    }
 
 }
 

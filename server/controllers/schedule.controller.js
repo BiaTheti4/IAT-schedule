@@ -35,7 +35,20 @@ class ScheduleController {
     }
 
     async correct(req, res) {
-        return res.json({list: await ScheduleService.correctScheduleOrder()});
+        return res.json({
+            list: await ScheduleService.correctScheduleOrder(req.query.ktpId, +req.query.correct === 1),
+            overlay: await ScheduleService.getScheduleOverlay(req.query.ktpId, +req.query.correct === 1)
+        });
+    }
+
+    async correctOverlay(req, res) {
+        return res.json({
+            status: await ScheduleService.correctScheduleOverlay(req.query.ids)
+        });
+    }
+
+    async compare(req, res) {
+        return res.json({list: await ScheduleService.compareJournal()});
     }
 
 }

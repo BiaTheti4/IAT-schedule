@@ -5,6 +5,7 @@ import print from "../pages/print";
 import teacherBusyness from "@/pages/teacherBusyness";
 import cabinetBusyness from "@/pages/cabinetBusyness";
 import scheduleCorrect from "@/pages/scheduleCorrect";
+import scheduleCompare from "@/pages/scheduleCompare";
 import scheduleViewFull from "@/pages/scheduleViewFull";
 
 const routes = [
@@ -22,6 +23,11 @@ const routes = [
         path: '/schedule-correct',
         component: scheduleCorrect,
         name: scheduleCorrect.name
+    },
+    {
+        path: '/schedule-compare',
+        component: scheduleCompare,
+        name: scheduleCompare.name
     },
     {
         path: '/print',

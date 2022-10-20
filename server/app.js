@@ -10,19 +10,20 @@ const port = 7000
 
 const app = express()
 
+const root = path.join(__dirname, '../client/dist/')
 
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
-app.use(express.static(path.join(__dirname, '../client/dist/')));
-app.use(cors({origin: process.env.SERVER_DOMAIN}))
-app.use(history())
+app.use(express.static(root));
+app.use(cors({origin: process.env.SERVER_DOMAIN.split(' ')}))
 
 //init prod
-app.get('/', (req, res) => {
+app.get('/', (req, res, next) => {
     res.sendFile(path.join(__dirname, '../client/dist/index.html'));
 });
 // init route
 app.use('/api', routes)
+app.use(history('index.html', {root: root}))
 
 
 const start = async () => {

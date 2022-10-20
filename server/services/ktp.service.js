@@ -109,7 +109,7 @@ class KtpService {
                     groupType: GROUP_FULL_TIME,
                     date: eduYear
                 },
-                logging: console.log,
+                // logging: console.log,
                 type: sequelize.QueryTypes.SELECT
             }
         );
