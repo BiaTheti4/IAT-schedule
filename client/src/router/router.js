@@ -7,8 +7,16 @@ import cabinetBusyness from "@/pages/cabinetBusyness";
 import scheduleCorrect from "@/pages/scheduleCorrect";
 import scheduleCompare from "@/pages/scheduleCompare";
 import scheduleViewFull from "@/pages/scheduleViewFull";
+import login from "@/pages/Login";
+import {globalStore} from "@/store/gloabal";
+
 
 const routes = [
+    {
+        path: '/login',
+        component: login,
+        name: 'login'
+    },
     {
         path: '/',
         component: scheduleMain,
@@ -16,7 +24,7 @@ const routes = [
     },
     {
         path: '/schedule',
-        component: scheduleViewFull,
+        component: scheduleView,
         name: scheduleView.name
     },
     {
@@ -50,6 +58,14 @@ const routes = [
 const router = createRouter({
     routes,
     history: createWebHistory()
+});
+router.beforeEach((to, from, next) => {
+    const store = globalStore();
+    if (!store.auth && to.name !== 'login') {
+        next({name: 'login'})
+    } else {
+        next();
+    }
 });
 
 export default router;

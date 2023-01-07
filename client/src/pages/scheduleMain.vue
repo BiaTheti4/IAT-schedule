@@ -49,8 +49,13 @@
                     @change="performSubjectChange(group[lessonNumber]);setEmptyByKtp(group[lessonNumber],lessonNumber);"
             >
               <option value="" selected>-нет-</option>
-              <option v-for="subject in getSubjectList(group[lessonNumber].groupId)" :key="subject.ktpId" :value="subject.ktpId">
+              <option v-for="subject in getSubjectList(group[lessonNumber].groupId)" :key="subject.ktpId"
+                      :value="subject.ktpId"
+                      :disabled="+subject.stayHours===0"
+                      :class="subjectOptionClass(subject)"
+              >
                 {{ subject.nameShort }}
+                <template v-if="!isNaN(subject.ktpId)">({{ (subject.stayHours) }})</template>
               </option>
             </select>
 
@@ -136,8 +141,6 @@
 </template>
 
 <script>
-
-
 import axios from "axios";
 import moment from 'moment';
 import _ from 'lodash';
@@ -147,6 +150,7 @@ import ModalComponent from "@/components/modalComponent";
 import TeacherMixin from './../mixins/teachers.mixin'
 import CabinetsMixin from "@/mixins/cabinets.mixin";
 import LessonTime from "@/enums/LessonTime";
+import {CustomLesson} from "@/enums/CustomLesson";
 
 
 const toaster = createToaster({
@@ -156,6 +160,7 @@ const toaster = createToaster({
   pauseOnHover: false
 });
 export default {
+  name: 'scheduleMain',
   mixins: [TeacherMixin, CabinetsMixin],
   components: {
     ModalComponent,
@@ -174,6 +179,7 @@ export default {
         details: []
       },
       dateCourseEvent: {},
+      removeSchedule: [],
       courses: {
         1: {groups: {}},
         2: {groups: {}},
@@ -190,6 +196,12 @@ export default {
     }
   },
   methods: {
+    subjectOptionClass(subject) {
+      return {
+        'bg-red-600': +subject.stayHours === 0,
+        'text-white': +subject.stayHours === 0
+      }
+    },
     modalResult(commit) {
       this.modal = 0;
       if (+commit === 1) {
@@ -239,13 +251,16 @@ export default {
         }
         pair.teacherId = ktpRow[index]['main_employee'];
         pair.cabinetId = ktpRow[index]['cabinet_need'] ?? ''
-        pair.optionalCabinetId = ''
         pair.needSubgroup = needSubgroup;
         pair.label = types;
         pair.ids = pairIds;
         pair.list_id = ktpRow[index + 1].list_id
         pair.lastHour = ktpRow[index + 1].hour
+        pair.type = ktpRow[index + 1].list_id > 0 ? 'main' : 'custom';
       } else {
+        if (pair.type === 'custom') {
+          this.removeSchedule.push({id: pair.id, type: 'custom'})
+        }
         pair.teacherId = ''
         pair.optionalTeacherId = ''
         pair.cabinetId = ''
@@ -255,7 +270,6 @@ export default {
         pair.lastHour = null;
         // pair.ids = []; // need to stay - for save
         pair.list_id = '';
-
       }
     },
     isTheory(type) {
@@ -319,6 +333,7 @@ export default {
         }
       }
       this.date = dateString;
+      this.getSubjects();
       this.UpdateDateCourseEvent();
     },
     performSubjectChange(lesson) {
@@ -402,6 +417,10 @@ export default {
       this.conflicts = conflict;
     },
     getLessonEmployees(lessonData) {
+      if (isNaN(lessonData.ktpId)) {
+        return _.map(_.sortBy(_.toPairs(this.teacherPairs), 1), (row) => row[0])
+      }
+
       let row = _.get(this.courses, [this.selectedCourse, 'groups', lessonData.groupId], false);
       if (!row) {
         return [];
@@ -412,7 +431,7 @@ export default {
     getWeekHours() {
       let courses = this.courses;
       this.isLoading = true;
-      axios.get(this.serverUrl + '/api/schedule/getWeekHours', {
+      this.$axios.get('schedule/getWeekHours', {
         params: {date: this.date}
       }).then((res) => {
         let data = res.data;
@@ -457,7 +476,7 @@ export default {
       let courses = this.courses;
       this.isLoading = true;
 
-      axios.get(this.serverUrl + '/api/ktp/getSubjects', {
+      this.$axios.get('ktp/getSubjects', {
         params: {date: this.date}
       }).then((res) => {
         _.each(res.data, (group) => {
@@ -482,7 +501,8 @@ export default {
 
     // в test лежит название группы
     getSubjectList(groupId) {
-      return _.get(this.courses, [this.selectedCourse, 'groups', groupId, 'subjects'], []);
+      let ktpSubjects = _.get(this.courses, [this.selectedCourse, 'groups', groupId, 'subjects'], [])
+      return [...ktpSubjects, ...CustomLesson];
     },
     UpdateDateCourseEvent() {
       this.isLoading = true;
@@ -513,7 +533,7 @@ export default {
       this.conflicts.teachers = {}
       this.isLoading = true;
 
-      axios.get(this.serverUrl + '/api/schedule/getCurrentSchedule', {
+      this.$axios.get('schedule/getCurrentSchedule', {
         params: {date: this.date}
       }).then((res) => {
         _.each(res.data.current, (row) => {
@@ -529,8 +549,22 @@ export default {
             element.label = _.uniq([...row.categories.map((category) => this.getTypeLabel(category))]);
             element.optionalCabinetId = row.optionalCabinetId;
             element.isChanged = false;
+            element.type = 'main';
           }
         })
+        // add custom schedule
+        _.each(res.data.custom, (row) => {
+          let element = _.get(this.dateCourseEvent, [row.course, row.group_id, row.lesson_number], false);
+          if (element) {
+            element.id = row.id;
+            element.ktpId = row.name;
+            element.teacherId = row.employee_id;
+            element.cabinetId = row.cabinet_id;
+            element.isChanged = false;
+            element.type = 'custom';
+          }
+        });
+
         this.featureSchedule = res.data.feature;
         this.checkConflict();
         this.getWeekHours();
@@ -551,6 +585,7 @@ export default {
               // subject: '',
               subjectId: null,
               ktpId: null,
+              customText: '',
               teacherId: null,
               optionalTeacherId: null,
               cabinetId: null,
@@ -620,15 +655,18 @@ export default {
     saveSchedule() {
       let updateData = this.getChanges();
       if (updateData.length) {
-        axios.post(this.serverUrl + '/api/schedule/updateSchedule', {
+        this.$axios.post('schedule/updateSchedule', {
           data: updateData,
+          remove: this.removeSchedule,
           date: this.date
         }).then((res) => {
+          this.removeSchedule = [];
           if (res.data.status === true) {
             toaster.success('Расписание сохранено')
             for (let lesson of updateData) {
               lesson.isChanged = false;
             }
+            this.getSubjects();
             this.UpdateDateCourseEvent();
           } else {
             toaster.error(res.data.errors.join(', '))
@@ -646,14 +684,13 @@ export default {
 
     initGroups() {
       this.isLoading = true;
-      axios.get(this.serverUrl + '/api/groups/all').then((res) => {
+      this.$axios.get('groups/all').then((res) => {
             for (let i = 0; i < res.data.length; i++) {
               let gr = res.data[i]
               this.courses[gr.course].groups[gr.groupId] = {...gr, subjects: [], hours: 0};
             }
 
             this.initDateCourseEvent();
-            this.getSubjects();
             this.changeDate();
             this.isLoading = false;
 

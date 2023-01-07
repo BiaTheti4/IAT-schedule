@@ -2,7 +2,7 @@
   <div>
     <h1 class="text-2xl font-bold text-blue-800">Корректировки</h1>
     <h2 class="text-xl font-bold text-blue-900">Смещения</h2>
-    <div v-if="logs && logs.length>0">
+    <div v-if="hasLogs">
       <template v-for="(row,ktp_id) in logs">
         <div v-if="row.errors.length>0">
           <h2 class="flex text-sky-900 font-bold">
@@ -28,30 +28,32 @@
     <div v-else>Все в порядке</div>
 
     <h2 class="text-xl font-bold text-blue-900">Наложения</h2>
-    <template v-for="(groups,date) in overlay">
-      <h3>Дата {{ date }}</h3>
-      <div>
-        <div v-for="(lessons,groupId) in groups">
-          <div v-for="lesson in lessons" class="m-1 p-2 bg-orange-100 border border-orange-700 rounded-sm">
-            <h4>Урок {{ lesson.lesson_number }}</h4>
-            <div>
-              <div v-for="ktp in lesson.ktps" class="bg-orange-300 border text-orange-800 m-1 p-2 rounded-sm">
-                {{ ktp.name }}
-                <a href="#" @click="clearOverlay(ktp.ids)"
-                   class="text-red-800 font-bold border border-red-700 px-1.5 rounded bg-red-500">Х</a>
+    <div v-if="hasOverlay">
+      <template v-for="(groups,date) in overlay">
+        <h3>Дата {{ date }}</h3>
+        <div>
+          <div v-for="(lessons,groupId) in groups">
+            <div v-for="lesson in lessons" class="m-1 p-2 bg-orange-100 border border-orange-700 rounded-sm">
+              <h4>Урок {{ lesson.lesson_number }}</h4>
+              <div>
+                <div v-for="ktp in lesson.ktps" class="bg-orange-300 border text-orange-800 m-1 p-2 rounded-sm">
+                  {{ ktp.name }}
+                  <a href="#" @click="clearOverlay(ktp.ids)"
+                     class="text-red-800 font-bold border border-red-700 px-1.5 rounded bg-red-500">Х</a>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </template>
+      </template>
+    </div>
+    <div v-else>Все в порядке</div>
   </div>
-
 </template>
 
 <script>
 import axios from "axios";
-import ktp from "@/pages/ktp";
+import _ from 'lodash';
 
 export default {
   name: "scheduleCorrect",
@@ -61,11 +63,18 @@ export default {
       overlay: [],
     }
   },
+  computed: {
+    hasLogs() {
+      return this.logs && _.size(this.logs);
+    }, hasOverlay() {
+      return this.overlay && _.size(this.overlay);
+    }
+  },
   methods: {
     correct(ktpId) {
       if (confirm('Обновить расписание в соответствии с последовательностью?')) {
         this.showLoading();
-        axios.get(this.serverUrl + '/api/schedule/correct', {
+        this.$axios.get('schedule/correct', {
           params: {
             ktpId: ktpId,
             correct: 1
@@ -78,7 +87,7 @@ export default {
     },
     updateList() {
       this.showLoading();
-      axios.get(this.serverUrl + '/api/schedule/correct', {}).then((res) => {
+      this.$axios.get('schedule/correct', {}).then((res) => {
         this.logs = res.data.list;
         this.overlay = res.data.overlay;
         this.hideLoading();
@@ -87,7 +96,7 @@ export default {
     clearOverlay(ids) {
       if (confirm('Убрать эти пары на день-урок?')) {
         this.showLoading();
-        axios.get(this.serverUrl + '/api/schedule/correct-overlay', {
+        this.$axios.get('schedule/correct-overlay', {
           params: {
             ids: ids
           }

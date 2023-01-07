@@ -1,4 +1,3 @@
-import axios from "axios";
 import _ from "lodash";
 
 const GroupsMixin = {
@@ -20,7 +19,7 @@ const GroupsMixin = {
             this.showLoading();
 
             try {
-                let res = await axios.get(this.serverUrl + '/api/groups/all');
+                let res = await this.$axios.get('groups/all');
                 this.groupPairs = res.data.reduce((acc, value) => {
                     return {...acc, [value.groupId]: value.name}
                 })

@@ -26,7 +26,6 @@
 </template>
 
 <script>
-import axios from "axios";
 import ktp from "@/pages/ktp";
 
 export default {
@@ -39,7 +38,7 @@ export default {
   methods: {
     updateList() {
       this.showLoading();
-      axios.get(this.serverUrl + '/api/schedule/compare', {}).then((res) => {
+      this.$axios.get('schedule/compare', {}).then((res) => {
         this.list = res.data.list;
         this.hideLoading();
       })

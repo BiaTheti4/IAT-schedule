@@ -27,7 +27,6 @@
 </template>
 
 <script>
-import axios from "axios";
 
 export default {
   data() {
@@ -37,7 +36,7 @@ export default {
   },
   methods: {
     updateStatusCabinet(id, status) {
-      axios.patch("http://localhost:5000/patchCabinet", {
+      this.$axios.patch("http://localhost:5000/patchCabinet", {
         id: id,
         status: status
       }).then((res) => {
@@ -51,8 +50,7 @@ export default {
 
   mounted() {
 
-
-    axios.get('http://localhost:5000/cabinetsList').then(res => {
+    this.$axios.get('http://localhost:5000/cabinetsList').then(res => {
       for (let i = 0; i < res.data.length; i++) {
         res.data[i].status = (res.data[i].status == 1)
       }

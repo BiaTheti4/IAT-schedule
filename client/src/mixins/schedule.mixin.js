@@ -1,6 +1,6 @@
 import _ from "lodash";
-import axios from "axios";
 import {scheduleStore} from "@/store/schedule"
+import {CustomLesson} from "@/enums/CustomLesson";
 
 let ScheduleMixin = {
     computed: {
@@ -13,14 +13,14 @@ let ScheduleMixin = {
         async getSchedule(dateStart, dateEnd) {
             this.showLoading();
             try {
-                let res = await axios.get(this.serverUrl + '/api/schedule/period',
+                let res = await this.$axios.get('schedule/period',
                     {params: {start: dateStart, end: dateEnd}});
 
                 const store = this.store;
                 store.groupSchedule = {};
                 store.cabinetSchedule = {};
                 store.employeeSchedule = {};
-                for (let lesson of res.data) {
+                for (let lesson of res.data.main) {
                     let scheduleRow = {
                         subject: (lesson['subject_code'] ? this.getPracticePrefix(lesson['practice_type']) + lesson['subject_code'] + ' ' : '') + lesson.subject,
                         mainTeacher: lesson['employee'],
@@ -40,6 +40,20 @@ let ScheduleMixin = {
                     if (lesson['optional_employee_id'] > 0 && lesson['employee_id'] !== lesson['optional_employee_id']) {
                         _.setWith(store.employeeSchedule, [lesson['optional_employee_id'], lesson.date, lesson.lesson_number], scheduleRow, Object);
                     }
+                }
+                for (let lesson of res.data.custom) {
+                    const name = _.get(_.find(CustomLesson, {'ktpId': lesson.name}), 'name', 'Событие');
+                    let scheduleRow = {
+                        subject: name,
+                        mainTeacher: lesson.employee,
+                        cabinet: lesson.cabinet,
+                    };
+
+                    _.setWith(store.groupSchedule, [lesson.group_id, lesson.date, lesson.lesson_number], scheduleRow, Object);
+                    // cabinetSchedule
+                    _.setWith(store.cabinetSchedule, [lesson.cabinet_id, lesson.date, lesson.lesson_number], scheduleRow, Object);
+                    // employeeSchedule
+                    _.setWith(store.employeeSchedule, [lesson['employee_id'], lesson.date, lesson.lesson_number], scheduleRow, Object);
                 }
             } catch (e) {
                 console.log(e)

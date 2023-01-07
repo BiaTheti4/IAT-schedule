@@ -5,6 +5,8 @@ const history = require('connect-history-api-fallback');
 const routes = require('./routes/index.js')
 cors = require('cors')
 require('dotenv').config()
+const middleware = require('./middleware');
+
 const host = '0.0.0.0'
 const port = 7000
 
@@ -18,7 +20,7 @@ app.use(express.static(root));
 app.use(cors({origin: process.env.SERVER_DOMAIN.split(' ')}))
 
 //init prod
-app.get('/', (req, res, next) => {
+app.get('/', middleware.checkToken, (req, res, next) => {
     res.sendFile(path.join(__dirname, '../client/dist/index.html'));
 });
 // init route

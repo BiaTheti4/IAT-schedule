@@ -3,6 +3,8 @@ const moment = require('moment');
 const {models} = require("../models/index");
 const _ = require('lodash');
 const ktpService = require('./ktp.service');
+const CustomLesson = require("../enums/CustomLesson");
+const {Op} = require("sequelize");
 
 class ScheduleService {
 
@@ -55,23 +57,48 @@ class ScheduleService {
                  ORDER BY sch.ktp_id, sch.hour
     `;
 
+    const
+    customQuery = `SELECT sc.*,
+                          g.year - :activeYear + 1                     AS course,
+                          c.number                                     AS cabinet,
+                          CONCAT(e.last_name, ' ', SUBSTRING(e.first_name, 1, 1), '.', SUBSTRING(e.fathers_name, 1, 1), '.') AS employee
+                   FROM schedule_custom AS sc
+                            INNER JOIN \`groups\` g ON sc.group_id = g.groupId
+                            LEFT JOIN employees AS e ON e.employeeId = sc.employee_id
+                            LEFT JOIN cabinets AS c ON c.id = sc.cabinet_id
+                   WHERE #WHERE#`
+
     async getCurrentSchedule(date) {
         return this.getScheduleOnPeriod(date, date);
     }
 
     async getScheduleOnPeriod(dateStart, dateEnd) {
         let query = this.mainQuery;
+        let custom = this.customQuery;
         query = query.replace('#WHERE#', `sch.date >=:dateStart AND sch.date <=:dateEnd`)
+        custom = custom.replace('#WHERE#', `sc.date >=:dateStart AND sc.date <=:dateEnd`)
 
-        return await sequelize.query(
-            query, {
-                replacements: {
-                    dateStart: String(dateStart),
-                    dateEnd: String(dateEnd)
-                },
-                type: sequelize.QueryTypes.SELECT,
-            }
-        );
+        return {
+            main: await sequelize.query(
+                query, {
+                    replacements: {
+                        dateStart: String(dateStart),
+                        dateEnd: String(dateEnd)
+                    },
+                    type: sequelize.QueryTypes.SELECT,
+                }
+            ),
+            custom: await sequelize.query(
+                custom,
+                {
+                    replacements: {
+                        dateStart: String(dateStart),
+                        dateEnd: String(dateEnd),
+                        activeYear: this.getActiveYear(dateStart)
+                    },
+                    type: sequelize.QueryTypes.SELECT,
+                })
+        };
     }
 
     async getStudyWeekSchedule(date) {
@@ -105,7 +132,7 @@ class ScheduleService {
         }
         let result = {};
 
-        for (let row of data) {
+        for (let row of data.main) {
             if (row.date == date) {
                 continue;
             }
@@ -147,7 +174,7 @@ class ScheduleService {
                              GROUP BY cabinet_id
                              ORDER BY COUNT(s2.id) DESC
                                 LIMIT 1) AS cabinet_need,
-                            (SELECT cabinet_id
+                            (SELECT optional_cabinet_id
                              FROM schedule AS s3
                                       INNER JOIN ktp_list l ON s3.list_id = l.listId
                                       INNER JOIN ktp_types t ON l.typeId = t.typeId
@@ -201,6 +228,10 @@ class ScheduleService {
         return type === 'k';
     }
 
+    isExam(type) {
+        return type === 'z';
+    }
+
     parseSchedule(data) {
         let result = {};
         for (let row of data) {
@@ -241,64 +272,129 @@ class ScheduleService {
         return Object.values(result);
     }
 
+    async removeSchedule(lessons) {
+        _.each(lessons, (row) => {
+            if (row.type === 'custom' && +row.id > 0) {
+                models.schedule_custom.destroy({
+                    where: {
+                        id: row.id
+                    }
+                })
+            }
+        });
+        return true;
+    }
 
     async updateSchedule(lessons) {
 
 
         let errors = [];
         for (const lesson of lessons) {
-            for (let scheduleIndex in lesson.ids) {
-                let scheduleId = lesson.ids[scheduleIndex];
-                // update schedule
-                if (scheduleId > 0) {
-                    let scheduleRow = await models.schedule.findByPk(scheduleId);
-                    if (!scheduleRow.id > 0) {
-                        errors.push('Не найдено занятий в расписании для ID ' + scheduleId);
-                    } else {
-                        if (lesson.ktpId > 0) {
-                            let ktp = await models.ktp.findByPk(lesson.ktpId);
-                            if (scheduleIndex === 0) { // check only on first pair
-                                let hasLessons = await this.checkIsBusy(ktp.groupId, lesson.date, lesson.lesson_number);
-                                if (hasLessons) {
-                                    let group = await ktp.getGroup();
-                                    errors.push(`для группы ${group.name} урок №${lesson.lesson_number} уже содержит занятие`);
-                                    continue;
-                                }
-                            }
-
-                            let isNeedSecondEmployee = await ktpService.isNeedSecondEmployee(lesson.list_id)
-                            scheduleRow.date = lesson.date;
-                            scheduleRow.lesson_number = lesson.lesson_number;
-                            scheduleRow.employee_id = lesson.teacherId;
-                            scheduleRow.cabinet_id = lesson.cabinetId;
-                            scheduleRow.optional_cabinet_id = isNeedSecondEmployee && lesson.optionalCabinetId ? lesson.optionalCabinetId : null;
-                            scheduleRow.optional_employee_id = isNeedSecondEmployee && lesson.optionalTeacherId ? lesson.optionalTeacherId : null;
+            if (lesson.ktpId === 'class_hour') {
+                let result = await this.saveCustomLesson(lesson);
+                if (result !== true) {
+                    errors.push(result);
+                }
+            } else {
+                for (let scheduleIndex in lesson.ids) {
+                    let scheduleId = lesson.ids[scheduleIndex];
+                    // update schedule
+                    if (scheduleId > 0) {
+                        let scheduleRow = await models.schedule.findByPk(scheduleId);
+                        if (!scheduleRow.id > 0) {
+                            errors.push('Не найдено занятий в расписании для ID ' + scheduleId);
                         } else {
-                            scheduleRow.date = null;
-                            scheduleRow.lesson_number = null;
-                            // scheduleRow.employee_id = null;
-                            scheduleRow.cabinet_id = null;
-                            scheduleRow.optional_employee_id = null;
-                            scheduleRow.optional_cabinet_id = null;
-                        }
+                            if (lesson.ktpId > 0) {
+                                let ktp = await models.ktp.findByPk(lesson.ktpId);
+                                if (scheduleIndex === 0) { // check only on first pair
+                                    let hasLessons = await this.checkIsBusy(ktp.groupId, lesson.date, lesson.lesson_number);
+                                    if (hasLessons) {
+                                        let group = await ktp.getGroup();
+                                        errors.push(`для группы ${group.name} урок №${lesson.lesson_number} уже содержит занятие`);
+                                        continue;
+                                    }
+                                }
 
-                        let result = false;
-                        try {
-                            result = await scheduleRow.save(['date', 'lesson_number', 'employee_id', 'cabinet_id', 'optional_employee_id', 'optional_cabinet_id'])
-                            if (!result) {
-                                errors.push('Can not save schedule data')
+                                let isNeedSecondEmployee = await ktpService.isNeedSecondEmployee(lesson.list_id)
+                                scheduleRow.date = lesson.date;
+                                scheduleRow.lesson_number = lesson.lesson_number;
+                                scheduleRow.employee_id = lesson.teacherId;
+                                scheduleRow.cabinet_id = lesson.cabinetId;
+                                scheduleRow.optional_cabinet_id = isNeedSecondEmployee && lesson.optionalCabinetId ? lesson.optionalCabinetId : null;
+                                scheduleRow.optional_employee_id = isNeedSecondEmployee && lesson.optionalTeacherId ? lesson.optionalTeacherId : null;
+                            } else {
+                                scheduleRow.date = null;
+                                scheduleRow.lesson_number = null;
+                                // scheduleRow.employee_id = null;
+                                scheduleRow.cabinet_id = null;
+                                scheduleRow.optional_employee_id = null;
+                                scheduleRow.optional_cabinet_id = null;
                             }
-                        } catch (e) {
-                            errors.push('Error on save schedule data:' + e.message)
-                        }
-                    }
-                } else {
-                    // remove schedule info
 
+                            let result = false;
+                            try {
+                                result = await scheduleRow.save(['date', 'lesson_number', 'employee_id', 'cabinet_id', 'optional_employee_id', 'optional_cabinet_id'])
+                                if (!result) {
+                                    errors.push('Can not save schedule data')
+                                }
+                            } catch (e) {
+                                errors.push('Error on save schedule data:' + e.message)
+                            }
+                        }
+                    } else {
+                        // remove schedule info
+
+                    }
                 }
             }
         }
         return errors.length > 0 ? _.uniq(errors) : true;
+    }
+
+    async saveCustomLesson(lesson) {
+        if (+lesson.remove === 1) {
+            if (lesson.id > 0) {
+                try {
+                    await models.schedule_custom.destroy({
+                        where: {
+                            id: lesson.id
+                        }
+                    });
+
+                } catch (e) {
+                    return 'Error on save schedule data:' + e.message;
+                }
+            }
+        } else {
+            try {
+                // check if has on this lesson
+                let row = await models.schedule_custom.findOne({
+                    where: {
+                        date: lesson.date,
+                        lesson_number: lesson.lesson_number,
+                        group_id: lesson.groupId,
+                    }
+                });
+                if (row) {
+                    return 'На это время уже есть расписание';
+                }
+
+                let scheduleRow = await models.schedule_custom.create({
+                    name: lesson.ktpId,
+                    date: lesson.date,
+                    lesson_number: lesson.lesson_number,
+                    group_id: lesson.groupId,
+                    employee_id: lesson.teacherId,
+                    cabinet_id: lesson.cabinetId,
+                });
+                if (!scheduleRow.id > 0) {
+                    return 'не удалось сохранить данные'
+                }
+            } catch (e) {
+                return 'Ошибка сохранения расписания: ' + e.message;
+            }
+        }
+        return true;
     }
 
     async checkIsBusy(groupId, date, lesson_number) {
@@ -371,8 +467,7 @@ class ScheduleService {
              from schedule as s
                  inner join ktp k
              on s.ktp_id = k.ktpId
-             where date
-                 >= :date
+             where date >= :date
                and lesson_number
                  > 0
              group by groupId, date, lesson_number

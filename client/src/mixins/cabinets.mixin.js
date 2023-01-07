@@ -1,5 +1,3 @@
-import axios from "axios";
-
 const CabinetsMixin = {
     data() {
         return {
@@ -12,7 +10,7 @@ const CabinetsMixin = {
             this.showLoading();
 
             try {
-                let res = await axios.get(this.serverUrl + '/api/cabinets/all');
+                let res = await this.$axios.get('cabinets/all');
                 this.cabinetsPairs = res.data.reduce((acc, value) => {
                     return {...acc, [value.id]: value.number}
                 })

@@ -3,7 +3,7 @@ const KtpService = require('../services/ktp.service')
 class KtpController {
     async getSubjects(req, res) {
         return res.json(
-            await KtpService.getSubjectsByGroup(req.body.group,req.body.date)
+            await KtpService.getSubjectsByGroup(req.query.group,req.query.date)
         )
     }
 

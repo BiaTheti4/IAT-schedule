@@ -1,10 +1,10 @@
 <template>
-  <navbar class="print:hidden"/>
   <loading
       v-model:active="isLoading"
       :is-full-page="true"
   />
-  <div class="container mt-14">
+  <div class="container w-full">
+    <navbar class="print:hidden h-16"/>
     <router-view></router-view>
   </div>
 </template>
@@ -13,12 +13,20 @@
 import navbar from "@/components/navbar";
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/vue-loading.css';
+import {globalStore} from "@/store/gloabal";
+
 
 export default {
   components: {
     navbar,
     Loading
   },
+  created() {
+    let store = globalStore();
+    store.auth = localStorage['auth'] === 'true';
+    store.user = localStorage['user'] || "";
+    store.access_token = localStorage['access_token'] || "";
+  }
 }
 
 </script>

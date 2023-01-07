@@ -89,9 +89,10 @@ class KtpService {
                        AND c.year = g.year
                        AND c.learning_type = g.type
                        AND ccs.course = CEIL(k.semester / 2)
-                     LIMIT 1)                       AS split_week,
-                    cp.type                         AS practice_type,
-                    IF(cs.id > 0, cs.code, sm.code) AS subject_code
+                     LIMIT 1)                                                                      AS split_week,
+                    cp.type                                                                        AS practice_type,
+                    IF(cs.id > 0, cs.code, sm.code)                                                AS subject_code,
+                    (SELECT COUNT(id) - COUNT(date) FROM schedule AS s4 WHERE s4.ktp_id = k.ktpId) AS stayHours
              FROM subjects s
                       INNER JOIN ktp k
                                  ON s.subjectId = k.subjectId
@@ -103,7 +104,8 @@ class KtpService {
                AND k.committed = 1
                AND g.type = :groupType
                AND g.specId != :doSpecId
-             GROUP BY k.ktpId`, {
+             GROUP BY k.ktpId
+             ORDER BY subject_code, s.nameShort`, {
                 replacements: {
                     doSpecId: DO_SPEC_ID,
                     groupType: GROUP_FULL_TIME,
@@ -120,7 +122,9 @@ class KtpService {
                 (weekNumber >= row.split_week && row.semester % 2 !== 0)
             ) {
                 //skip
-                return;
+                if (!(+row.semester === 7 || +row.semester === 8)) { // для 4 курса - отображаем все - из-за С и ТМ и ПП
+                    return;
+                }
             }
             let employees = {
                 theory: [row.employeeId],
@@ -150,6 +154,7 @@ class KtpService {
             }
             result[row.groupId].subjects.push({
                 nameShort: name,
+                stayHours: row.stayHours,
                 ktpId: row.ktpId,
                 subjectId: row.subjectId,
                 employees: employees

@@ -32,6 +32,7 @@ const modelDefiners = [
     require('./ktp-type.model.js'),
     require('./ktp-theme.model.js'),
     require('./schedule.model.js'),
+    require('./schedule_custom.model.js'),
     require('./spec.model.js'),
     require('./subject.model.js'),
     require('./work-program-list.model.js'),

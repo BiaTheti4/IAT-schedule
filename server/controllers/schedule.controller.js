@@ -3,8 +3,10 @@ const ScheduleService = require('../services/schedule.service')
 class ScheduleController {
     async getCurrentSchedule(req, res) {
         const date = req.query.date || new Date()
+        const scheduleData = await ScheduleService.getCurrentSchedule(date);
         return res.json({
-                current: ScheduleService.parseSchedule(await ScheduleService.getCurrentSchedule(date)),
+                current: ScheduleService.parseSchedule(scheduleData.main),
+                custom: scheduleData.custom,
                 feature: await ScheduleService.getScheduleFeature()
             }
         )
@@ -27,6 +29,7 @@ class ScheduleController {
     async updateSchedule(req, res) {
         const lessons = req.body.data
         let result = await ScheduleService.updateSchedule(lessons, req.body.date);
+        let remove = result = await ScheduleService.removeSchedule(req.body.remove)
         return res.json({
                 status: result === true,
                 errors: result === true ? null : result

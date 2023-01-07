@@ -1,10 +1,10 @@
 const express = require('express'),
     router = express.Router(),
     EmployeesController = require('../controllers/employees.controller'),
-    EmployeesService = require('../services/employees.service')
+    middleware = require('../middleware')
 
-router.get('/all', EmployeesController.getEmployees)
-router.get('/teacher', EmployeesController.getTeacherName)
-router.post('/busynessEmployees', EmployeesController.getBusynessEmployees)
+router.get('/all', middleware.checkToken, EmployeesController.getEmployees)
+router.get('/teacher', middleware.checkToken, EmployeesController.getTeacherName)
+router.post('/busynessEmployees', middleware.checkToken, EmployeesController.getBusynessEmployees)
 
 module.exports = router
