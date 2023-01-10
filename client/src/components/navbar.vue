@@ -7,7 +7,7 @@
             <li class="mr-3">
               <router-link
                   v-for="link in navList"
-                  class="inline-block px-4 text-white no-underline"
+                  class="inline-block px-4 text-gray-300 no-underline"
                   :to="link.link">
                 {{ link.title }}
               </router-link>
@@ -63,3 +63,8 @@ export default {
 }
 </script>
 
+<style scoped>
+.router-link-active {
+  @apply font-medium text-white;
+}
+</style>
