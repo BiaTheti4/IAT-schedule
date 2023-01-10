@@ -116,4 +116,8 @@ export default {
   @apply border border-sky-700 p-1;
 }
 
+@page {
+  size: auto;
+  margin: 4mm 6mm;
+}
 </style>
