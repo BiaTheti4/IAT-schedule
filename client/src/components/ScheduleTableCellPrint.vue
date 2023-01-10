@@ -1,8 +1,8 @@
 <template>
   <td class="tableCell align-middle h-16 m-0 p-0">
-    <div class="flex h-14 w-24 text-clip mx-auto overflow-hidden text-xs">
-      <div class="my-auto" v-if="isHasLesson">{{ schedule.subject }}</div>
-      <div class="my-auto" v-else>
+    <div class="flex h-14 w-24 text-clip mx-auto overflow-hidden break-all">
+      <div v-if="isHasLesson">{{ schedule.subject }}</div>
+      <div v-else>
         &nbsp;
       </div>
     </div>
@@ -47,7 +47,6 @@ export default {
 
 <style scoped>
 .tableCell {
-  @apply border border-sky-700 p-1 max-h-8;
-  line-height: 0.8rem;
+  @apply border border-sky-700 p-1 max-h-8 text-sm leading-3 font-normal tracking-tight;
 }
 </style>
