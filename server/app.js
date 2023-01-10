@@ -18,15 +18,18 @@ app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 app.use(express.static(root));
 app.use(cors({origin: process.env.SERVER_DOMAIN.split(' ')}))
+app.use(history())
 
 //init prod
-app.get('/', middleware.checkToken, (req, res, next) => {
-    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+app.get('/', middleware.checkToken, (req, res) => {
+    res.sendFile(path.join(root, 'index.html'))
 });
 // init route
 app.use('/api', routes)
-app.use(history('index.html', {root: root}))
-
+// if no route matches
+app.get('*', function(req, res) {
+    res.redirect('/')
+});
 
 const start = async () => {
     try {
