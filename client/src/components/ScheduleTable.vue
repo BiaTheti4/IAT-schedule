@@ -4,7 +4,7 @@
       <thead class="">
       <tr>
         <th class="bg-sky-300 border border-sky-600 p-1">пара</th>
-        <th class="bg-sky-300 border border-sky-600 p-1" v-for="day in week" :key="day.date">
+        <th class="bg-sky-300 border border-sky-600 p-1" v-for="day in weekDates" :key="day.date">
           {{ getDayMonthString(day.date) }} ({{ day.weekDay }})
         </th>
       </tr>
@@ -14,7 +14,7 @@
         <td class="bg-sky-100 border border-sky-600 p-1">{{ lessonTime[lessonNumber - 1] }}</td>
         <td
             class="border border-sky-600 p-0 m-0 w-64"
-            v-for="day in week"
+            v-for="day in weekDates"
             :key="day">
           <schedule-cell :schedule="getLesson(day.date,lessonNumber)"/>
         </td>
@@ -52,7 +52,7 @@ export default {
       default: 0,
       required: true,
     },
-    week: {
+    weekDates: {
       type: Array,
       default: [],
     },

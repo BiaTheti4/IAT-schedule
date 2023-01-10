@@ -17,7 +17,7 @@
           <schedule-table
               schedule-type="employee"
               :schedule-param="teacher.id"
-              :week="week"
+              :week-dates="week"
           />
         </div>
       </div>

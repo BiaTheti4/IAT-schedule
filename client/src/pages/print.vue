@@ -91,7 +91,8 @@ export default {
 
 
   mounted() {
-    this.date = '2022-09-30';
+    const date = new Date();
+    this.date = moment(date).format('YYYY-MM-DD');
     this.selectedGroup = this.$route.query.group || ''
     this.fillWeek()
     this.initGroups();

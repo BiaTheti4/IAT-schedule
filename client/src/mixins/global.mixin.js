@@ -36,7 +36,7 @@ export default {
             console.log(this.env);
             return this.env.VUE_APP_SERVER_SERT + this.env.VUE_APP_SERVER_IP + this.env.VUE_APP_SERVER_PORT;
         },
-        isLoading() {
+        isLoadingContent() {
             return this.globalStore.isLoading;
         },
         globalStore() {

@@ -17,7 +17,7 @@
           <schedule-table
               schedule-type="cabinet"
               :schedule-param="cabinet.id"
-              :week="week"
+              :week-dates="week"
           />
         </div>
       </div>

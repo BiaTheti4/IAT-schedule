@@ -8,7 +8,6 @@ import '@vuepic/vue-datepicker/dist/main.css'
 import GlobalMixin from "@/mixins/global.mixin";
 import './assets/style.css'
 import axios from './modules/axios'
-console.log(process.env);
 
 const app = createApp(App);
 const pinia = createPinia()

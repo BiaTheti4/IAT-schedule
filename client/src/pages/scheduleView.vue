@@ -35,7 +35,7 @@
           <schedule-table
               schedule-type="group"
               :schedule-param="group.groupId"
-              :week="week"
+              :week-dates="week"
           />
         </div>
       </div>

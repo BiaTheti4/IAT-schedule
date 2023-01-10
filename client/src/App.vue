@@ -1,6 +1,6 @@
 <template>
   <loading
-      v-model:active="isLoading"
+      v-model:active="isLoadingContent"
       :is-full-page="true"
   />
   <div class="container w-full">

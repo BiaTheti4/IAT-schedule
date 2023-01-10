@@ -11,7 +11,7 @@ const DatesMixin = {
             return ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'][moment(date).day()];
         },
         getWeekDayFull(date) {
-            return ['воскресенье', 'понедельник', 'втроник', 'среда', 'четверг', 'пятница', 'суббота'][moment(date).day()] || '';
+            return ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'][moment(date).day()] || '';
         },
         getFullDate(date) {
             return moment(date).format('DD.MM.YYYY');
