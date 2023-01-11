@@ -59,9 +59,10 @@ class ScheduleService {
 
     const
     customQuery = `SELECT sc.*,
-                          g.year - :activeYear + 1                     AS course,
-                          c.number                                     AS cabinet,
-                          CONCAT(e.last_name, ' ', SUBSTRING(e.first_name, 1, 1), '.', SUBSTRING(e.fathers_name, 1, 1), '.') AS employee
+                          :activeYear - g.year + 1 AS course,
+                          c.number                 AS cabinet,
+                          CONCAT(e.last_name, ' ', SUBSTRING(e.first_name, 1, 1), '.', SUBSTRING(e.fathers_name, 1, 1),
+                                 '.')              AS employee
                    FROM schedule_custom AS sc
                             INNER JOIN \`groups\` g ON sc.group_id = g.groupId
                             LEFT JOIN employees AS e ON e.employeeId = sc.employee_id
@@ -467,7 +468,7 @@ class ScheduleService {
              from schedule as s
                  inner join ktp k
              on s.ktp_id = k.ktpId
-             where date >= :date
+             where date >= : date
                and lesson_number
                  > 0
              group by groupId, date, lesson_number

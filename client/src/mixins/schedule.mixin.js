@@ -82,7 +82,6 @@ let ScheduleMixin = {
                 return {};
             }
             return this._getLesson(this.store.cabinetSchedule, cabinetId, date, lessonNumber);
-
         },
         getLessonByEmployee(employeeId, date, lessonNumber) {
             if (!this.store.employeeSchedule) {
