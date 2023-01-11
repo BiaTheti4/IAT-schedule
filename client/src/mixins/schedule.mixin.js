@@ -96,7 +96,9 @@ let ScheduleMixin = {
         },
         subjectCabinetCorrect(name) {
             let replaceCabinet = {
-                'спортивный зал': 'с/з'
+                'дистанционно': 'дист',
+                'спортивный зал': 'с/з',
+                'малый спорт зал': 'с/з-м'
             }
             return replaceCabinet[name.toLowerCase().trim()] || name
         }
