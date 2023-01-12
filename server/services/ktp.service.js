@@ -231,7 +231,12 @@ class KtpService {
             let subject = await curriculumSubject.getSubject();
             let group = await ktpRow.getGroup();
 
-            return `${group.name} - ${curriculumSubject.code} ${subject.name}`;
+            return `${group.name} - ${curriculumSubject.code} ${subject.name} (ID: ${ktpRow.ktpId})`;
+        } else if (ktpRow.curriculumPracticeId > 0) {
+            let subject = await ktpRow.getSubject();
+            let group = await ktpRow.getGroup();
+
+            return `${group.name} - ${subject.name} (ID: ${ktpRow.ktpId})`;
         }
 
         return '';

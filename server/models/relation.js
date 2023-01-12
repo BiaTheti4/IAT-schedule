@@ -160,6 +160,10 @@ function applyExtraSetup(sequelize) {
         foreignKey: 'curriculumSubjectId',
         as: 'curriculumSubject'
     });
+    ktp.belongsTo(curriculum_module_practice, {
+        foreignKey: 'curriculumPracticeId',
+        as: 'curriculumPractice'
+    });
 
     curriculum_subject.hasMany(ktp, {
         foreignKey: 'curriculumSubjectId',

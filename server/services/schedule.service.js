@@ -49,7 +49,7 @@ class ScheduleService {
                           INNER JOIN employees AS e1 ON e1.employeeId = sch.employee_id
                           INNER JOIN cabinets AS c1 ON c1.id = sch.cabinet_id
                           LEFT JOIN employees AS e2 ON e2.employeeId = sch.optional_employee_id
-                          LEFT JOIN cabinets AS c2 ON c2.id = sch.optional_employee_id
+                          LEFT JOIN cabinets AS c2 ON c2.id = sch.optional_cabinet_id
                           LEFT JOIN curriculum_subjects cs ON k.curriculumSubjectId = cs.id
                           LEFT JOIN curriculum_module_practice cp ON k.curriculumPracticeId = cp.id
                           LEFT JOIN standard_modules sm ON cp.moduleId = sm.id
@@ -468,7 +468,7 @@ class ScheduleService {
              from schedule as s
                  inner join ktp k
              on s.ktp_id = k.ktpId
-             where date >= : date
+             where date >= :dateValue
                and lesson_number
                  > 0
              group by groupId, date, lesson_number
@@ -476,7 +476,7 @@ class ScheduleService {
              order by date, lesson_number, ktp_id`
             , {
                 replacements: {
-                    date: year + '-09-01'
+                    dateValue: year + '-09-01'
                 },
                 type: sequelize.QueryTypes.SELECT
             }
@@ -549,9 +549,14 @@ class ScheduleService {
             }
         );
 
+        let cabints = {};
         let dates = rows.reduce((acc, row) => {
             if (row.date && row.lesson_number > 0)
-                acc[row.date] = [...acc[row.date] || [], row.lesson_number]
+                acc[row.date] = [...acc[row.date] || [], {
+                    lesson: row.lesson_number,
+                    cabinet_id: row.cabinet_id,
+                    optional_cabinet_id: row.optional_cabinet_id
+                }]
             return acc;
         }, {});
         // order dates
@@ -563,20 +568,24 @@ class ScheduleService {
         let rowIndex = 0;
         let lastHour = 0;
         for (let date in dates) {
-            let lessonNumbers = dates[date].sort();
+            let lessonNumbers = _.sortBy(dates[date], ['lesson']);
             for (let lessonNumber of lessonNumbers) {
                 let row = rows[rowIndex++];//
                 lastHour = row.hour;
 
                 // correct
-                if (row.date === date && +row.lesson_number === +lessonNumber) {
+                if (row.date === date && +row.lesson_number === +lessonNumber.lesson) {
                     continue;
                 }
                 if (correct) {
 
                     let scheduleRow = await models.schedule.findByPk(row.id);
                     row.date = date;
-                    row.lesson_number = lessonNumber;
+                    row.lesson_number = lessonNumber.lesson;
+                    if (scheduleRow.cabinet_id === null) {
+                        row.cabinet_id = lessonNumber.cabinet_id;
+                        row.optional_cabinet_id = lessonNumber.optional_cabinet_id;
+                    }
                     scheduleRow.set({...row});
                     let result = false;
                     try {
@@ -590,7 +599,7 @@ class ScheduleService {
                 } else {
                     errors.push({
                         list_id: row['list_id'],
-                        message: `Нарушен порядок. должен быть ${date} (${lessonNumber} пара), стоит ${row.date} (${row.lesson_number} пара)`
+                        message: `Нарушен порядок. должен быть ${date} (${lessonNumber.lesson} пара), стоит ${row.date} (${row.lesson_number} пара)`
                     })
                 }
             }
@@ -599,7 +608,9 @@ class ScheduleService {
             await sequelize.query(
                 `UPDATE schedule
                  SET date=null,
-                     lesson_number=0
+                     lesson_number=0,
+                     cabinet_id=null,
+                     optional_cabinet_id=null
                  where ktp_id = :ktpId AND hour > :hour`
                 , {
                     replacements: {
