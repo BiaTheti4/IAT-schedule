@@ -96,12 +96,14 @@
               </select>
 
               <select class="selectdiv" @change="performSubjectChange(group[lessonNumber]);"
-                      v-if="group[lessonNumber].needSubgroup"
                       :class="hasConflictCabinet(group[lessonNumber].optionalCabinetId,lessonNumber)"
                       v-model="group[lessonNumber].optionalCabinetId">
 
                 <option value="" disabled selected>-второй кабинет-</option>
-                <option :value="null"></option>
+                <option :value="null"
+                        v-if="!group[lessonNumber].needSubgroup"
+                >-нет-
+                </option>
                 <option v-for="cabinet in cabinets" :key="cabinet.id" :value="cabinet.id">
                   {{ cabinet.number }}
                 </option>
@@ -350,6 +352,13 @@ export default {
         details: []
       };
 
+      const ignoreCabinets = [
+        62,// Дистанта
+      ];
+      const ignoreSubjects = [
+        212, // Производственная практика
+      ];
+
       _.each(this.dateCourseEvent, (courses, courseNum) => {
         _.each(courses, (groups, groupId) => {
           let groupRow = this.courses[courseNum].groups[groupId]
@@ -359,6 +368,9 @@ export default {
               groupRow.hours += 2;// add current hours on day to all part
               let key;
 
+              if (ignoreSubjects.indexOf(pair.subjectId) !== -1) {
+                return;
+              }
               if (pair.teacherId) {
                 key = pair.teacherId + '_' + pairNum;
                 if (!conflict.teachers[key]) {
@@ -374,14 +386,16 @@ export default {
                 conflict.teachers[key].push(pair);
               }
               // cabinets
-              if (pair.cabinetId > 0) {
+              if (pair.cabinetId > 0 && ignoreCabinets.indexOf(+pair.cabinetId) === -1) {
                 key = pair.cabinetId + '_' + pairNum;
                 if (!conflict.cabinets[key]) {
                   conflict.cabinets[key] = [];
                 }
                 conflict.cabinets[key].push(pair);
               }
-              if (pair.optionalCabinetId > 0 && pair.cabinetId !== pair.optionalCabinetId) {
+              if (pair.optionalCabinetId > 0 && pair.cabinetId !== pair.optionalCabinetId
+                  && ignoreCabinets.indexOf(+pair.optionalCabinetId) === -1
+              ) {
                 key = pair.optionalCabinetId + '_' + pairNum;
                 if (!conflict.cabinets[key]) {
                   conflict.cabinets[key] = [];
@@ -546,6 +560,7 @@ export default {
             element.needSubgroup = row.needSubgroup;
             element.optionalTeacherId = row.optionalTeacherId;
             element.cabinetId = row.cabinetId;
+            element.subjectId = row.subjectId;
             element.label = _.uniq([...row.categories.map((category) => this.getTypeLabel(category))]);
             element.optionalCabinetId = row.optionalCabinetId;
             element.isChanged = false;
