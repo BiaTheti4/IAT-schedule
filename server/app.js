@@ -7,7 +7,7 @@ cors = require('cors')
 require('dotenv').config()
 const middleware = require('./middleware');
 
-const host = '0.0.0.0'
+const host = '127.0.0.1'
 const port = 7000
 
 const app = express()

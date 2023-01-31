@@ -11,6 +11,7 @@ router.get('/getWeekHours', middleware.checkToken, ScheduleController.getWeekHou
 router.get('/correct', middleware.checkToken, ScheduleController.correct)
 router.get('/correct-overlay', middleware.checkToken, ScheduleController.correctOverlay)
 router.get('/compare', middleware.checkToken, ScheduleController.compare)
+router.get('/clone', middleware.checkToken, ScheduleController.clone)
 
 // router.post('/week', ScheduleController.getWeekSchedule)
 // router.post('/getPrintSchedule', ScheduleController.getPrintSchedule)

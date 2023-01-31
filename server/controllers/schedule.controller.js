@@ -1,4 +1,5 @@
 const ScheduleService = require('../services/schedule.service')
+const moment = require("moment");
 
 class ScheduleController {
     async getCurrentSchedule(req, res) {
@@ -52,6 +53,23 @@ class ScheduleController {
 
     async compare(req, res) {
         return res.json({list: await ScheduleService.compareJournal()});
+    }
+
+    async clone(req, res) {
+        const fromDate = moment(req.query.from_date);
+        const toDate = moment(req.query.to_date);
+        if (!fromDate || !toDate) {
+            return res.json({status: false, error: 'not valid dates'});
+        } else if (fromDate.toDate() === toDate.toDate()) {
+            return res.json({status: false, error: 'equal dates'});
+        } else {
+            const result = await ScheduleService.cloneFromDate(req.query.from_date, req.query.to_date, req.query.course);
+            if (result === true) {
+                return res.json({status: true});
+            } else {
+                return res.json({status: false, error: result});
+            }
+        }
     }
 
 }

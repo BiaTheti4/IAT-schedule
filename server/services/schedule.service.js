@@ -186,18 +186,7 @@ class ScheduleService {
                              GROUP BY optional_cabinet_id
                              ORDER BY COUNT(s3.id) DESC
                                 LIMIT 1) AS cabinet_optional_need
-                     from (SELECT sch.id AS id,
-                         sch.ktp_id,
-                         sch.status,
-                         sch.list_id,
-                         sch.hour,
-                         k.semester,
-                         k.employeeId as main_employee,
-                         IF(k.grouped, k.group_employee, null) as practice_employee,
-                         IF(k.grouped_k, k.group_k_employee, null) as course_employee,
-                         kt.category,
-                         CEIL(k.semester / 2) AS course,
-                         ROW_NUMBER() OVER (PARTITION BY sch.ktp_id ORDER BY sch.hour) AS row_num
+                     from (SELECT sch.id AS id, sch.ktp_id, sch.status, sch.list_id, sch.hour, k.semester, k.employeeId as main_employee, IF(k.grouped, k.group_employee, null) as practice_employee, IF(k.grouped_k, k.group_k_employee, null) as course_employee, kt.category, CEIL(k.semester / 2) AS course, ROW_NUMBER() OVER (PARTITION BY sch.ktp_id ORDER BY sch.hour) AS row_num
                          FROM schedule AS sch
                          INNER JOIN ktp k ON sch.ktp_id = k.ktpId
                          INNER JOIN ktp_list AS kl ON kl.listId = sch.list_id
@@ -289,8 +278,6 @@ class ScheduleService {
     }
 
     async updateSchedule(lessons) {
-
-
         let errors = [];
         for (const lesson of lessons) {
             if (lesson.ktpId === 'class_hour') {
@@ -318,7 +305,7 @@ class ScheduleService {
                                     }
                                 }
 
-                                let isNeedSecondEmployee = await ktpService.isNeedSecondEmployee(lesson.list_id)
+                                let isNeedSecondEmployee = await ktpService.isNeedSecondEmployee(scheduleRow.list_id)
                                 scheduleRow.date = lesson.date;
                                 scheduleRow.lesson_number = lesson.lesson_number;
                                 scheduleRow.employee_id = lesson.teacherId;
@@ -420,9 +407,7 @@ class ScheduleService {
         // get defect ktp ids
         let ktpIds = await sequelize.query(
             `select distinct ktp_id
-             from (select ktp_id,
-                       hour,
-                       row_number() over (partition by ktp_id order by date, lesson_number) as schedule_hour
+             from (select ktp_id, hour, row_number() over (partition by ktp_id order by date, lesson_number) as schedule_hour
                    from schedule as s
                    where date >= 0
                      and lesson_number
@@ -464,9 +449,7 @@ class ScheduleService {
             `select count(id)            as cnt,
                     groupId,
                     group_concat(s.id)   as ids,
-                    group_concat(ktp_id) as ktp_list,
-                 date,
-                 lesson_number
+                    group_concat(ktp_id) as ktp_list, date, lesson_number
              from schedule as s
                  inner join ktp k
              on s.ktp_id = k.ktpId
@@ -551,7 +534,6 @@ class ScheduleService {
             }
         );
 
-        let cabints = {};
         let dates = rows.reduce((acc, row) => {
             if (row.date && row.lesson_number > 0)
                 acc[row.date] = [...acc[row.date] || [], {
@@ -708,6 +690,65 @@ class ScheduleService {
         }
 
         return schedule;
+    }
+
+    async cloneFromDate(fromDate, toDate, course) {
+        let fromSchedule = await this.getCurrentSchedule(fromDate);
+        let toSchedule = await this.getCurrentSchedule(toDate);
+
+        fromSchedule.main = _.filter(fromSchedule.main, {course: +course});
+        fromSchedule.custom = _.filter(fromSchedule.custom, {course: +course});
+        toSchedule.main = _.filter(toSchedule.main, {course: +course});
+        toSchedule.custom = _.filter(toSchedule.custom, {course: +course});
+        if ((fromSchedule.main.length + fromSchedule.custom.length) === 0) {
+            return 'Source schedule is  empty.';
+        }
+        if ((toSchedule.main.length + toSchedule.custom.length) > 0) {
+            return 'Date to fill schedule not empty.';
+        }
+
+        fromSchedule.main = this.parseSchedule(fromSchedule.main)
+
+        let free = await this.getScheduleFeature(9);
+
+        let ktpOffset = {};
+        let lessons = [];
+        _.each(fromSchedule.main, (row) => {
+            let freeRows = free[row.ktpId];
+            let offset = ktpOffset[row.ktpId] || 0;
+            if (freeRows.length - offset < 2) {
+                errors.push(`ktp with id ${row.ktpId} less more 2 hours`)
+                return;
+            }
+            let lesson = {
+                ids: [],
+                ktpId: row.ktpId,
+                date: toDate,
+                lesson_number: row.lesson_number,
+                teacherId: row.teacherId,
+                cabinetId: row.cabinetId,
+                optionalCabinetId: row.optionalCabinetId,
+                optionalTeacherId: row.optionalTeacherId,
+            };
+            for (let hour = 0; hour < 2; hour++) {
+                lesson.ids.push(freeRows[offset++].id);
+            }
+            lessons.push(lesson);
+            ktpOffset[row.ktpId] = offset;
+        })
+
+        // clone custom
+        _.each(fromSchedule.custom, (row) => {
+            lessons.push({
+                ktpId: row.name,
+                date: toDate,
+                lesson_number: row.lesson_number,
+                groupId: row.group_id,
+                teacherId: row.employee_id,
+                cabinetId: row.cabinet_id
+            })
+        })
+        return await this.updateSchedule(lessons);
     }
 
 }

@@ -17,6 +17,7 @@ module.exports = (sequelize) => {
         cabinet_id: {type: DataTypes.INTEGER, allowNull: true},
         optional_cabinet_id: {type: DataTypes.INTEGER, allowNull: true},
         ktp_id: {type: DataTypes.INTEGER},
+        list_id: {type: DataTypes.INTEGER},
 
 
     }, {

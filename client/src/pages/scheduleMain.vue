@@ -20,6 +20,9 @@
             <option v-for="n in 5" :value="n">{{ n }} курс</option>
           </select>
         </div>
+        <div class="p-2">
+          <a href="#" @click="cloneFromPrev()" class="btn btn-blue">Клонировать с предыдущей недели</a>
+        </div>
       </div>
     </form>
     <br>
@@ -198,6 +201,27 @@ export default {
     }
   },
   methods: {
+    cloneFromPrev() {
+      if (!confirm('Заполнить с предыдущей недели?')) {
+        return false;
+      }
+      this.showLoading();
+      this.$axios.get('schedule/clone', {
+        params: {
+          from_date: moment(this.date).subtract(1, 'week').format('YYYY-MM-DD'),
+          to_date: moment(this.date).format('YYYY-MM-DD'),
+          course: this.selectedCourse
+        }
+      }).then((res) => {
+        if (res.data && res.data.status === false) {
+          toaster.warning(res.data.error || 'Ошибка при клонировании.')
+        }
+        console.log(res.data);
+        this.hideLoading();
+        this.changeDate(this.date);
+      })
+
+    },
     subjectOptionClass(subject) {
       return {
         'bg-red-600': +subject.stayHours === 0,
@@ -444,7 +468,7 @@ export default {
     },
     getWeekHours() {
       let courses = this.courses;
-      this.isLoading = true;
+      this.showLoading();
       this.$axios.get('schedule/getWeekHours', {
         params: {date: this.date}
       }).then((res) => {
@@ -461,7 +485,7 @@ export default {
 
           })
         })
-        this.isLoading = false;
+        this.hideLoading();
       });
     },
 
@@ -488,7 +512,7 @@ export default {
     },
     getSubjects() {
       let courses = this.courses;
-      this.isLoading = true;
+      this.showLoading();
 
       this.$axios.get('ktp/getSubjects', {
         params: {date: this.date}
@@ -498,7 +522,7 @@ export default {
             courses[group.course].groups[group.groupId].subjects = group.subjects
           }
         })
-        this.isLoading = false;
+        this.hideLoading();
       })
     },
     setEmpty(lesson) {
@@ -519,7 +543,7 @@ export default {
       return [...ktpSubjects, ...CustomLesson];
     },
     UpdateDateCourseEvent() {
-      this.isLoading = true;
+      this.showLoading();
       _.each(this.dateCourseEvent, (course) => {
         _.each(course, (group) => {
           _.each(group, (lesson) => {
@@ -545,7 +569,6 @@ export default {
       this.conflicts.cabinets = {}
       this.conflicts.details = []
       this.conflicts.teachers = {}
-      this.isLoading = true;
 
       this.$axios.get('schedule/getCurrentSchedule', {
         params: {date: this.date}
@@ -583,7 +606,7 @@ export default {
         this.featureSchedule = res.data.feature;
         this.checkConflict();
         this.getWeekHours();
-        this.isLoading = false;
+        this.hideLoading();
       })
     },
     initDateCourseEvent() {
@@ -686,10 +709,10 @@ export default {
           } else {
             toaster.error(res.data.errors.join(', '))
           }
-          this.isLoading = false;
+          this.hideLoading();
         }).catch((res) => {
           toaster.success(res)
-          this.isLoading = false;
+          this.hideLoading();
         })
       } else {
         toaster.success('Нечего сохранять')
@@ -698,7 +721,7 @@ export default {
     },
 
     initGroups() {
-      this.isLoading = true;
+      this.showLoading();
       this.$axios.get('groups/all').then((res) => {
             for (let i = 0; i < res.data.length; i++) {
               let gr = res.data[i]
@@ -707,7 +730,7 @@ export default {
 
             this.initDateCourseEvent();
             this.changeDate();
-            this.isLoading = false;
+        this.hideLoading();
 
           }
       )
@@ -985,5 +1008,17 @@ select.conflict {
 
 .usual:hover {
   @apply bg-green-200;
+}
+
+.btn {
+  @apply font-bold py-2 px-4 rounded;
+}
+
+.btn-blue {
+  @apply bg-blue-500 text-white;
+}
+
+.btn-blue:hover {
+  @apply bg-blue-700;
 }
 </style>
