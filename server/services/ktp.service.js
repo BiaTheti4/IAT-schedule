@@ -216,7 +216,7 @@ class KtpService {
         let dt = moment(date);
         let year = this.getActiveYear(date);
         let startDate = moment(year + '-09-01');// start week
-        return dt.diff(startDate, 'weeks');
+        return dt.diff(startDate, 'weeks') + 1;
 
     }
 

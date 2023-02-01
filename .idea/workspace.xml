@@ -4,54 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="82751e04-6a83-4686-87b4-99fd08dc81c1" name="Changes" comment="k">
-      <change afterPath="$PROJECT_DIR$/client/src/enums/CustomLesson.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/modules/axios.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/pages/Login.vue" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/pages/statistic.vue" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/config/auth.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/controllers/login.controller.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/enums/CustomLesson.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/middleware.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/models/schedule_custom.model.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/routes/auth.routes.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/services/auth.service.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/services/statistic.service.js" afterDir="false" />
+    <list default="true" id="82751e04-6a83-4686-87b4-99fd08dc81c1" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/App.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/App.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/components/ScheduleTableCell.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/components/ScheduleTableCell.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/components/navbar.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/components/navbar.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/mixins/cabinets.mixin.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/mixins/cabinets.mixin.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/mixins/global.mixin.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/mixins/global.mixin.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/mixins/groups.mixin.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/mixins/groups.mixin.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/mixins/schedule.mixin.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/mixins/schedule.mixin.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/mixins/teachers.mixin.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/mixins/teachers.mixin.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/pages/cabinets.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/cabinets.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/pages/groups.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/groups.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/pages/scheduleCompare.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/scheduleCompare.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/pages/scheduleCorrect.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/scheduleCorrect.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/pages/scheduleMain.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/scheduleMain.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/pages/scheduleView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/scheduleView.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/pages/teachers.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/teachers.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/pages/test.vue" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/test.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/router/router.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/router/router.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/store/gloabal.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/store/gloabal.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/.env" beforeDir="false" afterPath="$PROJECT_DIR$/server/.env" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/app.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/controllers/ktpController.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/controllers/ktpController.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/controllers/schedule.controller.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/controllers/schedule.controller.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/models/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/models/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/server/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/server/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/routes/cabinets.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/cabinets.routes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/routes/employees.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/employees.routes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/routes/groups.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/groups.routes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/routes/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/routes/ktp.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/ktp.routes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/routes/schedule.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/schedule.routes.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/services/ktp.service.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/ktp.service.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/services/schedule.service.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/schedule.service.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -99,15 +56,15 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "false",
     "javascript.nodejs.core.library.configured.version": "16.17.0",
-    "javascript.nodejs.core.library.typings.version": "16.11.59",
+    "javascript.nodejs.core.library.typings.version": "16.18.11",
     "last_opened_file_path": "S:/web/projects/IAT-schedule/server/models",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.intentionPowerPack",
-    "ts.external.directory.path": "C:\\Users\\Bpeg\\AppData\\Local\\JetBrains\\Toolbox\\apps\\WebStorm\\ch-0\\222.3739.57\\plugins\\JavaScriptLanguage\\jsLanguageServicesImpl\\external",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "ts.external.directory.path": "C:\\Users\\Bpeg\\AppData\\Local\\JetBrains\\Toolbox\\apps\\WebStorm\\ch-0\\223.8214.51\\plugins\\javascript-impl\\jsLanguageServicesImpl\\external",
     "vue.rearranger.settings.migration": "true"
   },
   "keyToStringList": {
@@ -217,7 +174,18 @@
       <workItem from="1669477886476" duration="13869000" />
       <workItem from="1669904939476" duration="596000" />
       <workItem from="1670374406745" duration="598000" />
-      <workItem from="1673021431536" duration="13953000" />
+      <workItem from="1673021431536" duration="15084000" />
+      <workItem from="1673246009456" duration="9763000" />
+      <workItem from="1673527672669" duration="5326000" />
+      <workItem from="1673828754709" duration="10353000" />
+      <workItem from="1674095912889" duration="687000" />
+      <workItem from="1674123885139" duration="3000" />
+      <workItem from="1674440704835" duration="15272000" />
+      <workItem from="1674648288936" duration="14000" />
+      <workItem from="1674660706075" duration="3000" />
+      <workItem from="1674797797932" duration="11807000" />
+      <workItem from="1675073481602" duration="140000" />
+      <workItem from="1675073629771" duration="14372000" />
     </task>
     <task id="LOCAL-00001" summary="**Added style for modalComponent.vue and &lt;td&gt; in scheduleMain.vue&#10;**Added style definitions in scheduleMain.vue&#10;**Added style counting hours in scheduleMain.vue&#10;**Created new page which shows busyness of employeees&#10;**added backend queries and changed some logic inside">
       <created>1655633964622</created>
@@ -303,7 +271,49 @@
       <option name="project" value="LOCAL" />
       <updated>1666282435963</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="***">
+      <created>1673103511273</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1673103511273</updated>
+    </task>
+    <task id="LOCAL-00014" summary="* add short name of cabinet names">
+      <created>1673399710246</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1673399710246</updated>
+    </task>
+    <task id="LOCAL-00015" summary="* add short name of cabinet names">
+      <created>1673406226421</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1673406226421</updated>
+    </task>
+    <task id="LOCAL-00016" summary="* set null on cabinets after correct&#10;* update cabinet id and optional cabinet id after correct when skipped between">
+      <created>1673544815784</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1673544815784</updated>
+    </task>
+    <task id="LOCAL-00017" summary="* ignore cabinets and subjects&#10;* add second cabinet for all subjects">
+      <created>1674119804984</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1674119804984</updated>
+    </task>
+    <task id="LOCAL-00018" summary="* clone schedule from previous dates">
+      <created>1675179404251</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1675179404251</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -321,6 +331,7 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
+    <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <MESSAGE value="**Added style for modalComponent.vue and &lt;td&gt; in scheduleMain.vue&#10;**Added style definitions in scheduleMain.vue&#10;**Added style counting hours in scheduleMain.vue&#10;**Created new page which shows busyness of employeees&#10;**added backend queries and changed some logic inside" />
     <MESSAGE value="**Created new page which shows busyness of cabinets" />
     <MESSAGE value="**Fixed some bugs" />
@@ -334,7 +345,12 @@
     <MESSAGE value="* week split get for another year&#10;* employees getting from employee loading&#10;* grouped employees bug&#10;* remove old console.log&#10;* week hour count get not real numbers&#10;* started function for correction lesson sequence" />
     <MESSAGE value="* print forms for schedule - for teacher, for cabinet. Full schedule &#10;* add prefix code for subject&#10;*" />
     <MESSAGE value="* correct now can correct overlay&#10;* start create function to compare schedule with journal&#10;* disable logging queries&#10;* fix bug with url on API (get data without SPA)" />
-    <option name="LAST_COMMIT_MESSAGE" value="* correct now can correct overlay&#10;* start create function to compare schedule with journal&#10;* disable logging queries&#10;* fix bug with url on API (get data without SPA)" />
+    <MESSAGE value="***" />
+    <MESSAGE value="* add short name of cabinet names" />
+    <MESSAGE value="* set null on cabinets after correct&#10;* update cabinet id and optional cabinet id after correct when skipped between" />
+    <MESSAGE value="* ignore cabinets and subjects&#10;* add second cabinet for all subjects" />
+    <MESSAGE value="* clone schedule from previous dates" />
+    <option name="LAST_COMMIT_MESSAGE" value="* clone schedule from previous dates" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -361,50 +377,32 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/server/services/schedule.service.js</url>
-          <line>420</line>
-          <option name="timeStamp" value="27" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/server/controllers/schedule.controller.js</url>
-          <line>37</line>
-          <option name="timeStamp" value="34" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/server/services/schedule.service.js</url>
-          <line>321</line>
-          <option name="timeStamp" value="35" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/server/services/schedule.service.js</url>
           <line>362</line>
           <option name="timeStamp" value="36" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/server/services/schedule.service.js</url>
-          <line>248</line>
-          <option name="timeStamp" value="38" />
+          <line>353</line>
+          <option name="timeStamp" value="46" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
+          <condition expression="row.ktpId=14048" language="JavaScript" />
           <url>file://$PROJECT_DIR$/server/services/schedule.service.js</url>
-          <line>354</line>
+          <line>716</line>
           <properties lambdaOrdinal="-1" />
-          <option name="timeStamp" value="42" />
+          <option name="timeStamp" value="57" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/server/services/schedule.service.js</url>
-          <line>75</line>
+          <url>file://$PROJECT_DIR$/server/services/ktp.service.js</url>
+          <line>118</line>
           <properties lambdaOrdinal="-1" />
-          <option name="timeStamp" value="43" />
+          <option name="timeStamp" value="58" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <watches-manager>
       <configuration name="js.build_tools.npm">
-        <watch expression="const name = _.get(_.find(CustomLesson, {'ktpId': lesson.ktpId}), 'name', 'Событие'); " language="JavaScript" />
-        <watch expression="CustomLesson" language="JavaScript" />
-        <watch expression="schedule[row.ktpId]" language="JavaScript" />
-        <watch expression="curRow['list_id'] != row.listId" language="JavaScript" />
-        <watch expression="schedule[row.ktpId][row.date][scheduleDateIndex[key]]" language="JavaScript" />
+        <watch expression="this.getWeekNumber('2022-09-01')" language="JavaScript" />
       </configuration>
     </watches-manager>
   </component>

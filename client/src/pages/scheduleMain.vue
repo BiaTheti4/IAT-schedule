@@ -213,6 +213,12 @@ export default {
           course: this.selectedCourse
         }
       }).then((res) => {
+        if (!res.data) {
+          this.$toast.error('Ошибка выполнения запроса');
+          this.hideLoading();
+          return;
+        }
+
         if (res.data && res.data.status === false) {
           toaster.warning(res.data.error || 'Ошибка при клонировании.')
         }
@@ -472,6 +478,11 @@ export default {
       this.$axios.get('schedule/getWeekHours', {
         params: {date: this.date}
       }).then((res) => {
+        if (!res.data) {
+          this.$toast.error('Ошибка выполнения запроса');
+          this.hideLoading();
+          return;
+        }
         let data = res.data;
         let currentDate = moment(this.date).format('YYYY-MM-DD');
         _.each(courses, (courseGroups) => {
@@ -517,6 +528,12 @@ export default {
       this.$axios.get('ktp/getSubjects', {
         params: {date: this.date}
       }).then((res) => {
+        if (!res.data) {
+          this.$toast.error('Ошибка выполнения запроса');
+          this.hideLoading();
+          return;
+        }
+
         _.each(res.data, (group) => {
           if (_.get(courses, [group.course, 'groups', group.groupId], false)) {
             courses[group.course].groups[group.groupId].subjects = group.subjects
@@ -573,6 +590,13 @@ export default {
       this.$axios.get('schedule/getCurrentSchedule', {
         params: {date: this.date}
       }).then((res) => {
+        if (!res.data) {
+          this.$toast.error('Ошибка выполнения запроса');
+          this.hideLoading();
+          return;
+        }
+
+
         _.each(res.data.current, (row) => {
           let element = _.get(this.dateCourseEvent, [row.course, row.groupId, row.lesson_number], false);
           if (element) {
@@ -698,6 +722,12 @@ export default {
           remove: this.removeSchedule,
           date: this.date
         }).then((res) => {
+          if (!res.data) {
+            this.$toast.error('Ошибка выполнения запроса');
+            this.hideLoading();
+            return;
+          }
+
           this.removeSchedule = [];
           if (res.data.status === true) {
             toaster.success('Расписание сохранено')
@@ -723,14 +753,20 @@ export default {
     initGroups() {
       this.showLoading();
       this.$axios.get('groups/all').then((res) => {
-            for (let i = 0; i < res.data.length; i++) {
+        if (!res.data) {
+          this.$toast.error('Ошибка выполнения запроса');
+          this.hideLoading();
+          return;
+        }
+
+        for (let i = 0; i < res.data.length; i++) {
               let gr = res.data[i]
               this.courses[gr.course].groups[gr.groupId] = {...gr, subjects: [], hours: 0};
             }
 
             this.initDateCourseEvent();
             this.changeDate();
-        this.hideLoading();
+            this.hideLoading();
 
           }
       )
