@@ -81,7 +81,7 @@
                       :class="hasConflictTeacher(group[lessonNumber].optionalTeacherId,lessonNumber)"
               >
                 <option value="" disabled selected>-второй преподаватель-</option>
-                <option :value="null"></option>
+                <option :value="null">-нет-</option>
                 <option v-for="employeeId in getLessonEmployees(group[lessonNumber])"
                         :value="employeeId">
                   {{ teacherPairs[employeeId] }}

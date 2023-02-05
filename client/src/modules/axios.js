@@ -1,5 +1,7 @@
 import axios from "axios";
 import router from "@/router/router"
+import {globalStore} from "@/store/gloabal";
+
 
 const instance = axios.create({
     baseURL: process.env.VUE_APP_SERVER || "http://localhost:8080",
@@ -19,6 +21,10 @@ instance.interceptors.response.use(function (response) {
     // Do something with response data
     const data = response.data.success;
     if (data === false) {
+        if (response.data.auth === true) {
+            const store = globalStore();
+            store.auth = false;
+        }
         // need login
         return router.push({name: 'login'})
     } else {

@@ -1,5 +1,7 @@
 const sequelize = require("../models");
+const _ = require('lodash');
 const moment = require('moment');
+const ReplaceService = require('./replace.service')
 
 const GROUP_FULL_TIME = 1;
 const GROUP_REMOTE_TIME = 2;
@@ -115,6 +117,8 @@ class KtpService {
                 type: sequelize.QueryTypes.SELECT
             }
         );
+        const replaces = await ReplaceService.getReplacesOnDate(date)
+
         let result = {};
         let weekNumber = this.getWeekNumber(date);
         data.forEach(function (row) {
@@ -126,16 +130,21 @@ class KtpService {
                     return;
                 }
             }
+            let mainEmployee = _.get(replaces, [row.groupId, row.subjectId, row.employeeId, 't'], row.employeeId);
+            let practiceEmployee = _.get(replaces, [row.groupId, row.subjectId, row.employeeId, 'p'], row.employeeId);
+            let courseEmployee = _.get(replaces, [row.groupId, row.subjectId, row.employeeId, 'c'], row.employeeId);
+
             let employees = {
-                theory: [row.employeeId],
-                practice: [row.employeeId],
-                course: [row.employeeId]
+                theory: [mainEmployee],
+                practice: [practiceEmployee],
+                course: [courseEmployee]
             };
             if (row.grouped && row.group_employee) {
-                employees.practice.push(row.group_employee);
+                employees.practice.push(
+                    _.get(replaces, [row.groupId, row.subjectId, row.group_employee, 'p'], row.group_employee));
             }
             if (row.grouped_k && row.group_k_employee) {
-                employees.course.push(row.group_k_employee);
+                employees.course.push(_.get(replaces, [row.groupId, row.subjectId, row.group_k_employee, 'p'], row.group_k_employee));
             }
             if (!result[row.groupId]) {
                 result[row.groupId] = {
@@ -187,6 +196,7 @@ class KtpService {
     }
 
     async getEmployees() {
+        const activeYear = this.getActiveYear();
         let data = await sequelize.query(
             `SELECT DISTINCT e.employeeId,
                              CONCAT(e.last_name, ' ', SUBSTR(e.first_name, 1, 1), '.',
@@ -196,10 +206,20 @@ class KtpService {
                      e.employeeId IN (els.courseEmployeeId, els.employeeId, els.practiceEmployeeId)
                       INNER JOIN employee_loading el ON els.employeeLoadingId = el.id
              WHERE el.year = :year
-             ORDER BY last_name, first_name, fathers_name`,
+             UNION
+             SELECT e.employeeId,
+                    CONCAT(e.last_name, ' ', SUBSTR(e.first_name, 1, 1), '.',
+                           SUBSTR(e.fathers_name, 1, 1), '.') AS fio
+             FROM employees AS e
+                      INNER JOIN teacher_replace tr ON e.employeeId = tr.replaceEmployeeId
+             WHERE dateStart BETWEEN :dateStart AND :dateEnd
+                OR dateEnd BETWEEN :dateStart AND :dateEnd
+             ORDER BY fio`,
             {
                 replacements: {
-                    year: this.getActiveYear()
+                    year: activeYear,
+                    dateStart: activeYear + '-09-01',
+                    dateEnd: (activeYear + 1) + '-08-01'
                 },
                 type: sequelize.QueryTypes.SELECT
             }

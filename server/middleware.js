@@ -17,6 +17,7 @@ let checkToken = (req, res, next) => {
             if (err) {
                 return res.json({
                     success: false,
+                    auth: true,
                     message: 'Token is not valid'
                 });
             } else {
