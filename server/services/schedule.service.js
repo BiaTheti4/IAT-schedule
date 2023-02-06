@@ -5,6 +5,7 @@ const _ = require('lodash');
 const ktpService = require('./ktp.service');
 const CustomLesson = require("../enums/CustomLesson");
 const {Op} = require("sequelize");
+const ReplaceService = require('./replace.service')
 
 class ScheduleService {
 
@@ -710,25 +711,30 @@ class ScheduleService {
         fromSchedule.main = this.parseSchedule(fromSchedule.main)
 
         let free = await this.getScheduleFeature(9);
+        let teacherReplace = await ReplaceService.getReplacesOnDate(toDate)
 
         let ktpOffset = {};
         let lessons = [];
         _.each(fromSchedule.main, (row) => {
             let freeRows = free[row.ktpId];
             let offset = ktpOffset[row.ktpId] || 0;
-            if (freeRows.length - offset < 2) {
-                errors.push(`ktp with id ${row.ktpId} less more 2 hours`)
+            if (!freeRows || freeRows.length - offset < 2) {
+                // errors.push(`ktp with id ${row.ktpId} less more 2 hours`)
+                // just ignore
                 return;
             }
+            const employeeId = _.get(teacherReplace, [row.groupId, row.subjectId, row.teacherId, 't'], row.teacherId);
+            const practiceEmployeeId = _.get(teacherReplace, [row.groupId, row.subjectId, row.optionalTeacherId, 'p'], row.optionalTeacherId);
+
             let lesson = {
                 ids: [],
                 ktpId: row.ktpId,
                 date: toDate,
                 lesson_number: row.lesson_number,
-                teacherId: row.teacherId,
+                teacherId: employeeId,
                 cabinetId: row.cabinetId,
                 optionalCabinetId: row.optionalCabinetId,
-                optionalTeacherId: row.optionalTeacherId,
+                optionalTeacherId: practiceEmployeeId,
             };
             for (let hour = 0; hour < 2; hour++) {
                 lesson.ids.push(freeRows[offset++].id);
