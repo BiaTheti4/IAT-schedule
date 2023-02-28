@@ -1,7 +1,10 @@
 <template>
   <td class="tableCell align-middle h-16 m-0 p-0">
     <div class="flex h-14 w-24 text-clip mx-auto overflow-hidden break-all">
-      <div v-if="isHasLesson">{{ schedule.subject }}</div>
+      <div v-if="isHasLesson"><u>{{ schedule.subject }}</u>
+        <br />
+        <em>{{schedule.mainTeacher}}<template v-if="schedule.optionalTeacher">/{{schedule.optionalTeacher}}</template></em>
+      </div>
       <div v-else>
         &nbsp;
       </div>
