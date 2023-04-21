@@ -6,7 +6,7 @@
             class="flex xl:justify-center lg:justify-between justify-center items-center flex-wrap h-full"
         >
           <div class="xl:ml-20 xl:w-5/12 lg:w-5/12 md:w-8/12 mb-12 md:mb-0">
-            <form>
+            <form @submit="login">
               <!-- Email input -->
               <div class="mb-6">
                 <input

@@ -49,7 +49,7 @@
 
             <select class="selectdiv"
                     v-model="group[lessonNumber].ktpId"
-                    @change="performSubjectChange(group[lessonNumber]);setEmptyByKtp(group[lessonNumber],lessonNumber);"
+                    @change="performSubjectChange(group[lessonNumber]);setEmptyByKtp(group[lessonNumber],lessonNumber,group[lessonNumber].ktpId);"
             >
               <option value="" selected>-нет-</option>
               <option v-for="subject in getSubjectList(group[lessonNumber].groupId)" :key="subject.ktpId"
@@ -240,7 +240,7 @@ export default {
         this.saveSchedule();
       }
     },
-    setEmptyByKtp(pair, lessonNumber) {
+    setEmptyByKtp(pair, lessonNumber, ktpId) {
       if (pair.ktpId > 0) {
         let ktpRow = _.get(this.featureSchedule, pair.ktpId);
         if (!ktpRow) {
@@ -292,6 +292,13 @@ export default {
       } else {
         if (pair.type === 'custom') {
           this.removeSchedule.push({id: pair.id, type: 'custom'})
+        } else {
+          pair.ids.forEach((id) => {
+            if (!_.find(this.removeSchedule, {'id': id})) {
+              this.featureSchedule[pair.ktpId]
+              this.removeSchedule.push({id: id, type: 'lesson'})
+            }
+          })
         }
         pair.teacherId = ''
         pair.optionalTeacherId = ''
@@ -595,6 +602,7 @@ export default {
           this.hideLoading();
           return;
         }
+        this.initDateCourseEvent();
 
 
         _.each(res.data.current, (row) => {
@@ -622,6 +630,8 @@ export default {
             element.ktpId = row.name;
             element.teacherId = row.employee_id;
             element.cabinetId = row.cabinet_id;
+            element.label = '';
+            element.ids = [];
             element.isChanged = false;
             element.type = 'custom';
           }
@@ -753,13 +763,13 @@ export default {
     initGroups() {
       this.showLoading();
       this.$axios.get('groups/all').then((res) => {
-        if (!res.data) {
-          this.$toast.error('Ошибка выполнения запроса');
-          this.hideLoading();
-          return;
-        }
+            if (!res.data) {
+              this.$toast.error('Ошибка выполнения запроса');
+              this.hideLoading();
+              return;
+            }
 
-        for (let i = 0; i < res.data.length; i++) {
+            for (let i = 0; i < res.data.length; i++) {
               let gr = res.data[i]
               this.courses[gr.course].groups[gr.groupId] = {...gr, subjects: [], hours: 0};
             }

@@ -11,8 +11,10 @@ const PRACTICE_CODES = {
     1: 'УП',
     2: 'ПП',
 };
+const cachedData = {};
 
 class KtpService {
+
 
     getActiveYear(date) {
         const dt = moment(date);
@@ -228,6 +230,7 @@ class KtpService {
         data.forEach(function (row) {
             result.push({id: row.employeeId, name: row.fio});
         });
+        result.push({id: 140, name: 'Пролыгина В.А.'})
         return result;
     }
 
@@ -237,7 +240,6 @@ class KtpService {
         let year = this.getActiveYear(date);
         let startDate = moment(year + '-09-01');// start week
         return dt.diff(startDate, 'weeks') + 1;
-
     }
 
     async geSubjectNameByKtp(ktpId) {
@@ -260,6 +262,32 @@ class KtpService {
         }
 
         return '';
+    }
+
+    async getKtpInfo(ktpId) {
+
+        let cached = _.get(cachedData, ['getEmployees', ktpId], false);
+        if (cached) {
+            return cached;
+        }
+        const {ktp} = sequelize.models
+        let ktpRow = await ktp.findByPk(ktpId);
+
+        if (!ktpRow) {
+            return false;
+        }
+
+        cached = {
+            group: ktpRow.groupId,
+            subject: ktpRow.subjectId,
+            employees: {
+                main: ktpRow.employeeId,
+                practice: ktpRow.grouped ? ktpRow.group_employee : false,
+                course: ktpRow.grouped_k ? ktpRow.group_k_employee : false,
+            }
+        };
+        _.set(cachedData, ['getEmployees', ktpId], cached);
+        return cached;
     }
 }
 

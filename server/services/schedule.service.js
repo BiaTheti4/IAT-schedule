@@ -6,6 +6,7 @@ const ktpService = require('./ktp.service');
 const CustomLesson = require("../enums/CustomLesson");
 const {Op} = require("sequelize");
 const ReplaceService = require('./replace.service')
+const repl = require("repl");
 
 class ScheduleService {
 
@@ -523,8 +524,10 @@ class ScheduleService {
     async correctByKtpId(ktpId, correct) {
         let errors = [];
         let rows = await sequelize.query(
-            `select *
+            `select s.*, kt.category
              from schedule as s
+                      inner join ktp_list as kl on kl.listId = s.list_id
+                      inner join ktp_types as kt on kl.typeId = kt.typeId
              where ktp_id = :ktpId
              order by ktp_id, hour`
             , {
@@ -538,9 +541,11 @@ class ScheduleService {
         let dates = rows.reduce((acc, row) => {
             if (row.date && row.lesson_number > 0)
                 acc[row.date] = [...acc[row.date] || [], {
+                    category: row.category,
                     lesson: row.lesson_number,
                     cabinet_id: row.cabinet_id,
-                    optional_cabinet_id: row.optional_cabinet_id
+                    employee_id: row.employee_id,
+                    optional_employee_id: row.optional_employee_id,
                 }]
             return acc;
         }, {});
@@ -552,26 +557,41 @@ class ScheduleService {
 
         let rowIndex = 0;
         let lastHour = 0;
+        const ktpInfo = await ktpService.getKtpInfo(ktpId);
         for (let date in dates) {
+            let replaces = await ReplaceService.getReplacesOnDate(date);
+            // fill replaces on employees
+            let dateEmployees = _.clone(ktpInfo.employees);
+            let replacedEmployee;
+            if ((replacedEmployee = _.get(replaces, [ktpInfo.group, ktpInfo.subject, ktpInfo.employees.main, 't'], false)) !== false) {
+                dateEmployees.main = replacedEmployee;
+            }
+            if ((replacedEmployee = _.get(replaces, [ktpInfo.group, ktpInfo.subject, ktpInfo.employees.practice, 'p'], false)) !== false) {
+                dateEmployees.practice = replacedEmployee;
+            }
+            if ((replacedEmployee = _.get(replaces, [ktpInfo.group, ktpInfo.subject, ktpInfo.employees.course, 'c'], false)) !== false) {
+                dateEmployees.course = replacedEmployee;
+            }
+            // end fill replaces on employees
+
+
             let lessonNumbers = _.sortBy(dates[date], ['lesson']);
             for (let lessonNumber of lessonNumbers) {
                 let row = rows[rowIndex++];//
                 lastHour = row.hour;
 
                 // correct
-                if (row.date === date && +row.lesson_number === +lessonNumber.lesson) {
+                if (row.date === date &&
+                    +row.lesson_number === +lessonNumber.lesson) {
                     continue;
                 }
                 if (correct) {
-
                     let scheduleRow = await models.schedule.findByPk(row.id);
                     row.date = date;
                     row.lesson_number = lessonNumber.lesson;
-                    if (scheduleRow.cabinet_id === null) {
-                        row.cabinet_id = lessonNumber.cabinet_id;
-                        row.optional_cabinet_id = lessonNumber.optional_cabinet_id;
-                    }
-                    scheduleRow.set({...row});
+
+                    this.correctEmployees(row, lessonNumber);
+
                     let result = false;
                     try {
                         result = await scheduleRow.save(['date', 'lesson_number', 'employee_id', 'cabinet_id', 'optional_employee_id', 'optional_cabinet_id'])
@@ -584,7 +604,8 @@ class ScheduleService {
                 } else {
                     errors.push({
                         list_id: row['list_id'],
-                        message: `Нарушен порядок. должен быть ${date} (${lessonNumber.lesson} пара), стоит ${row.date} (${row.lesson_number} пара)`
+                        message: `Нарушен порядок. должен быть ${date} (${lessonNumber.lesson} пара), стоит ${row.date} (${row.lesson_number} пара)` +
+                            (row.category !== lessonNumber.category ? `. Тип занятия имзениется - была ${row.category} станет ${lessonNumber.category}` : '')
                     })
                 }
             }
@@ -607,6 +628,23 @@ class ScheduleService {
             )
         }
         return errors;
+    }
+
+    async correctEmployees(sequelizeRow, lessonData) {
+        if (scheduleRow.cabinet_id === null) {
+            row.cabinet_id = lessonNumber.cabinet_id;
+            row.optional_cabinet_id = lessonNumber.optional_cabinet_id;
+        }
+        // if replaced employee
+        if (+row.employee_id !== +dateEmployees.main) {
+            row.employee_id = dateEmployees.main;
+        }
+        if (lessonNumber.category !== 'p') {
+            if (dateEmployees.practice > 0 && +row.optional_employee_id !== +dateEmployees.practice) {
+                row.optional_employee_id = dateEmployees.practice;
+            }
+
+        }
     }
 
     async compareJournal() {
