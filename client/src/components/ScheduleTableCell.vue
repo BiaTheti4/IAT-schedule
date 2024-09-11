@@ -1,7 +1,10 @@
 <template>
   <div class="text-center" v-if="isHasLesson">
     <strong>{{ schedule.subject }}</strong>
-    ({{ schedule.cabinet }}<template v-if="schedule.second_cabinet">/{{ schedule.second_cabinet }}</template>)
+    ({{ schedule.cabinet }}
+    <template v-if="schedule.optionalCabinet">
+      /{{ schedule.optionalCabinet }}
+    </template>)
     <div>{{ schedule.mainTeacher }}
       <template v-if="schedule.optionalTeacher">/{{ schedule.optionalTeacher }}</template>
     </div>
