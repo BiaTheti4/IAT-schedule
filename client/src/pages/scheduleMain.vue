@@ -135,8 +135,6 @@
     </table>
     <button class="button-7" @click="openModal()">Сохранить</button>
     <modal-component v-if="this.modal===1" @result="modalResult"></modal-component>
-
-
     <div class="alertBlocks">
       <span class="alert" v-for="conflict in conflicts.details">
         <span class="sign">!</span><strong>{{ conflict }}</strong>
@@ -151,8 +149,7 @@ import moment from 'moment';
 import _ from 'lodash';
 import {createToaster} from "@meforma/vue-toaster";
 import ModalComponent from "@/components/modalComponent";
-
-import TeacherMixin from './../mixins/teachers.mixin'
+import TeacherMixin from '@/mixins/teachers.mixin'
 import CabinetsMixin from "@/mixins/cabinets.mixin";
 import LessonTime from "@/enums/LessonTime";
 import {CustomLesson} from "@/enums/CustomLesson";

@@ -1,22 +1,28 @@
 <template>
   <div>
-    <table class="border-collapse border border-slate-500 rounded-sm">
+    <table class="w-full border-collapse border border-slate-500 rounded-sm ">
       <thead class="">
       <tr>
-        <th class="bg-sky-300 border border-sky-600 p-1">пара</th>
-        <th class="bg-sky-300 border border-sky-600 p-1" v-for="day in weekDates" :key="day.date">
+        <th class="bg-gray-100 border border-gray-300 ">пара</th>
+        <th class="bg-gray-100 border border-gray-300  px-16" v-for="day in weekDates" :key="day.date">
           {{ getDayMonthString(day.date) }} ({{ day.weekDay }})
         </th>
       </tr>
       </thead>
       <tbody class="tbody_items">
       <tr v-for="lessonNumber in 7">
-        <td class="bg-sky-100 border border-sky-600 p-1">{{ lessonTime[lessonNumber - 1] }}</td>
-        <td
-            class="border border-sky-600 p-0 m-0 w-64"
+        <td class="bg-gray-100 border border-gray-300 p-1 px-6 py-2">
+          
+          {{ lessonTime[lessonNumber - 1] }}
+
+        </td>
+        <td class="border border-gray-300 p-0 m-0 w-64 "
             v-for="day in weekDates"
             :key="day">
-          <schedule-cell :schedule="getLesson(day.date,lessonNumber)"/>
+            
+          <schedule-cell :schedule="getLesson(day.date,lessonNumber)" 
+          class="bg-sky-100 mt-1 mr-1 mb-1 ml-1 border border-gray-300 rounded-lg"/>
+
         </td>
       </tr>
       </tbody>

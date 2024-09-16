@@ -21,8 +21,10 @@ let ScheduleMixin = {
                 store.cabinetSchedule = {};
                 store.employeeSchedule = {};
                 for (let lesson of res.data.main) {
+                    
                     let scheduleRow = {
                         subject: (lesson['subject_code'] ? this.getPracticePrefix(lesson['practice_type']) + lesson['subject_code'] + ' ' : '') + lesson.subject,
+                        lessonType:lesson['category'],
                         mainTeacher: lesson['employee'],
                         optionalTeacher: lesson['second_employee'],
                         cabinet: lesson.cabinet,

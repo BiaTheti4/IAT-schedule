@@ -86,6 +86,8 @@ export default {
     this.selectedGroup = this.$route.query.group || ''
     this.initGroups();
     this.updateSchedule();
+    
+
   }
 
 }
