@@ -6,6 +6,7 @@ const ktpService = require('./ktp.service');
 const CustomLesson = require("../enums/CustomLesson");
 const {Op} = require("sequelize");
 const ReplaceService = require('./replace.service')
+const KtpService = require('./ktp.service')
 const repl = require("repl");
 
 class ScheduleService {
@@ -407,11 +408,15 @@ class ScheduleService {
 
     async correctScheduleOrder(ktpId, correct) {
         // get defect ktp ids
+        const year = KtpService.getActiveYear(new Date());
         let ktpIds = await sequelize.query(
             `select distinct ktp_id
              from (select ktp_id, hour, row_number() over (partition by ktp_id order by date, lesson_number) as schedule_hour
                    from schedule as s
+                       inner join ktp as k
+                   on k.ktpId=s.ktp_id
                    where date >= 0
+                     and k.year=${year}
                      and lesson_number
                        > 0
                    order by ktp_id, date, lesson_number) as schedule
@@ -435,12 +440,13 @@ class ScheduleService {
                     errors: errors
                 }
             }
-        }
-        if (correct) {
-            if (ktpId) {
-                await this.correctByKtpId(ktpId, true)
+            if (correct) {
+                if (ktpId) {
+                    await this.correctByKtpId(ktpId, true)
+                }
             }
         }
+
 
         return log;
     }
@@ -587,10 +593,26 @@ class ScheduleService {
                 }
                 if (correct) {
                     let scheduleRow = await models.schedule.findByPk(row.id);
-                    row.date = date;
-                    row.lesson_number = lessonNumber.lesson;
+                    scheduleRow.date = date;
+                    scheduleRow.lesson_number = lessonNumber.lesson;
 
-                    this.correctEmployees(row, lessonNumber);
+                    if (scheduleRow.cabinet_id === null) {
+                        scheduleRow.cabinet_id = lessonNumber.cabinet_id;
+                        scheduleRow.optional_cabinet_id = lessonNumber.optional_cabinet_id;
+                    }
+                    // if replaced employee
+                    if (+scheduleRow.employee_id !== +dateEmployees.main) {
+                        scheduleRow.employee_id = dateEmployees.main;
+                    }
+                    if (lessonNumber.category !== 'p') {
+                        if (dateEmployees.practice > 0 && +scheduleRow.optional_employee_id !== +dateEmployees.practice) {
+                            scheduleRow.optional_employee_id = dateEmployees.practice;
+                        }
+                    } else if (lessonNumber.category !== 'c') {
+                        if (dateEmployees.course > 0 && +scheduleRow.optional_employee_id !== +dateEmployees.course) {
+                            scheduleRow.optional_employee_id = dateEmployees.course;
+                        }
+                    }
 
                     let result = false;
                     try {
@@ -630,7 +652,7 @@ class ScheduleService {
         return errors;
     }
 
-    async correctEmployees(sequelizeRow, lessonData) {
+    async correctEmployees(row, lessonData) {
         if (scheduleRow.cabinet_id === null) {
             row.cabinet_id = lessonNumber.cabinet_id;
             row.optional_cabinet_id = lessonNumber.optional_cabinet_id;

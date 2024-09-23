@@ -86,6 +86,7 @@ class KtpService {
                     k.grouped_k,
                     k.semester,
                     k.groupId,
+                    g.specId,
                     (SELECT week
                      FROM curriculum_course_split AS ccs
                               INNER JOIN curriculum c ON ccs.curriculumId = c.id
@@ -123,12 +124,14 @@ class KtpService {
 
         let result = {};
         let weekNumber = this.getWeekNumber(date);
+
+        const specsShowFull = [1, 19, 2, 20];
         data.forEach(function (row) {
             if ((weekNumber < row.split_week && row.semester % 2 === 0) ||
                 (weekNumber >= row.split_week && row.semester % 2 !== 0)
             ) {
                 //skip
-                if (!(+row.semester === 7 || +row.semester === 8)) { // для 4 курса - отображаем все - из-за С и ТМ и ПП
+                if (!(specsShowFull.indexOf(+row.specId)!==-1 && (+row.semester === 7 || +row.semester === 8))) { // для 4 курса - отображаем все - из-за С и ТМ и ПП
                     return;
                 }
             }

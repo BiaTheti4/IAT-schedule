@@ -1,6 +1,8 @@
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-blue-800">Корректировки</h1>
+    <h1 class="text-2xl font-bold text-blue-800">Корректировки
+      [<a href="#" @click="correctAll()">Исправить все</a>]
+    </h1>
     <h2 class="text-xl font-bold text-blue-900">Смещения</h2>
     <div v-if="hasLogs">
       <template v-for="(row,ktp_id) in logs">
@@ -83,6 +85,33 @@ export default {
           this.hideLoading();
           this.updateList();
         })
+      }
+    },
+    correctAll() {
+      if (confirm('Это может быть долго и не контролируемо. продолжить?')) {
+        this.showLoading();
+        const ktpIds = Object.keys(this.logs);
+        const correctFn = (ktpId) => {
+          this.$axios.get('schedule/correct', {
+            params: {
+              ktpId: ktpId,
+              correct: 1
+            }
+          }).then((res) => {
+            const currIndex = ktpIds.indexOf(ktpId);
+            if (currIndex === -1 || currIndex >= (ktpIds.length - 1)) {
+              this.hideLoading();
+              this.updateList();
+              return;
+            }
+            correctFn(ktpIds[currIndex + 1])
+          })
+        }
+        const firstKtpId = ktpIds[0];
+        if (firstKtpId) {
+          correctFn(firstKtpId);
+        }
+
       }
     },
     updateList() {

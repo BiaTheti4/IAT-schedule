@@ -1,7 +1,8 @@
 const {DataTypes} = require("sequelize");
+const sequelizeHistory = require('sequelize-history');
 
-module.exports = (sequelize) => {
-    sequelize.define('schedule', {
+module.exports = async (sequelize) => {
+    const scheduleModel = sequelize.define('schedule', {
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
@@ -25,4 +26,7 @@ module.exports = (sequelize) => {
         createdAt: true,
         updatedAt: true
     });
+
+    const scheduleModelHistory = sequelizeHistory(scheduleModel, sequelize);
+    await scheduleModelHistory.sync();
 }

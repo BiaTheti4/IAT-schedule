@@ -477,7 +477,7 @@ export default {
         return [];
       }
       let subject = _.find(row.subjects, (subject) => +subject.ktpId === +lessonData.ktpId);
-      return subject ? subject.employees.practice : [];
+      return subject ? Array.from(new Set(subject.employees.practice.concat(subject.employees.course))) : [];
     },
     getWeekHours() {
       let courses = this.courses;
