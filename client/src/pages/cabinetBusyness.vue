@@ -9,19 +9,18 @@
           </option>
         </select>
       </form>
+
     </div>
     <template v-for="cabinet in cabinets">
-      <div v-if="selectedCabinet==='' || +selectedCabinet===+cabinet.id" :key="'block-cabinet-'+cabinet.groupId">
+      <div v-if="selectedCabinet === '' || +selectedCabinet === +cabinet.id" :key="'block-cabinet-' + cabinet.groupId">
         <h2 class="text-sky-900 pl-5 font-extrabold text-lg">Кабинет: {{ cabinet.number }}</h2>
         <div class="inline-block  shadow-lg">
-          <schedule-table
-              schedule-type="cabinet"
-              :schedule-param="cabinet.id"
-              :week-dates="week"
-          />
+          <schedule-table schedule-type="cabinet" :schedule-param="cabinet.id" :week-dates="week" />
+
         </div>
       </div>
     </template>
+
   </div>
 </template>
 
@@ -30,25 +29,31 @@ import ScheduleTable from "@/components/ScheduleTable";
 import ScheduleMixin from "@/mixins/schedule.mixin";
 import DatesMixin from "@/mixins/dates.mixin";
 import CabinetsMixin from "@/mixins/cabinets.mixin";
+import GroupsMixin from "@/mixins/groups.mixin";
 
 export default {
   name: "cabinetBusyness",
-  components: {ScheduleTable},
-  mixins: [ScheduleMixin, DatesMixin, CabinetsMixin],
+  components: { ScheduleTable },
+  mixins: [ScheduleMixin, DatesMixin, CabinetsMixin,GroupsMixin],
   data() {
     return {
       selectedCabinet: '',
     }
   },
-  methods: {},
+  methods: {
+    test(){
+      console.log(this.week)
+    }
+  },
 
   mounted() {
     this.fillWeek();
     this.initCabinets();
+    this.initGroups();
     this.getSchedule(this.week[0].date, this.week[this.week.length - 1].date);
+    
   },
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

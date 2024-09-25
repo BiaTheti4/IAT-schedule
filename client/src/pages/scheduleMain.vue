@@ -613,6 +613,7 @@ export default {
             element.optionalTeacherId = row.optionalTeacherId;
             element.cabinetId = row.cabinetId;
             element.subjectId = row.subjectId;
+            element.group = row.group;
             element.label = _.uniq([...row.categories.map((category) => this.getTypeLabel(category))]);
             element.optionalCabinetId = row.optionalCabinetId;
             element.isChanged = false;

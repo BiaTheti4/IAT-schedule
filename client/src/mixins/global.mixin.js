@@ -1,4 +1,4 @@
-import {globalStore} from "@/store/gloabal"
+import {globalStore} from "@/store/global"
 
 export default {
 

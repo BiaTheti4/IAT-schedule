@@ -13,7 +13,7 @@
 import navbar from "@/components/navbar";
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/vue-loading.css';
-import {globalStore} from "@/store/gloabal";
+import {globalStore} from "@/store/global";
 
 
 export default {

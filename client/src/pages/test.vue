@@ -19,7 +19,7 @@ export default {
   },
   methods: {
     sendInfo() {
-      this.$axios.patch("http://localhost:5000/test", {
+      this.$axios.patch("http://10.100.3.235:5000/test", {
         text: this.testText,
         id: this.testId,
         status: '1'

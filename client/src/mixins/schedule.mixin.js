@@ -1,6 +1,6 @@
 import _ from "lodash";
-import {scheduleStore} from "@/store/schedule"
-import {CustomLesson} from "@/enums/CustomLesson";
+import { scheduleStore } from "@/store/schedule"
+import { CustomLesson } from "@/enums/CustomLesson";
 
 let ScheduleMixin = {
     computed: {
@@ -14,7 +14,14 @@ let ScheduleMixin = {
             this.showLoading();
             try {
                 let res = await this.$axios.get('schedule/period',
-                    {params: {start: dateStart, end: dateEnd}});
+                    {
+                        headers: {
+                            'is-public': 'true' 
+                        },
+                         params: { start: dateStart, end: dateEnd } ,
+                    },
+                    
+                );
 
                 const store = this.store;
                 store.groupSchedule = {};
@@ -24,7 +31,8 @@ let ScheduleMixin = {
                     
                     let scheduleRow = {
                         subject: (lesson['subject_code'] ? this.getPracticePrefix(lesson['practice_type']) + lesson['subject_code'] + ' ' : '') + lesson.subject,
-                        lessonType:lesson['category'],
+                        lessonType: lesson['category'],
+                        groupName: lesson['groupName'],
                         mainTeacher: lesson['employee'],
                         optionalTeacher: lesson['second_employee'],
                         cabinet: lesson.cabinet,
@@ -42,9 +50,12 @@ let ScheduleMixin = {
                     if (lesson['optional_employee_id'] > 0 && lesson['employee_id'] !== lesson['optional_employee_id']) {
                         _.setWith(store.employeeSchedule, [lesson['optional_employee_id'], lesson.date, lesson.lesson_number], scheduleRow, Object);
                     }
+                 
+                    
+                    
                 }
                 for (let lesson of res.data.custom) {
-                    const name = _.get(_.find(CustomLesson, {'ktpId': lesson.name}), 'name', 'Событие');
+                    const name = _.get(_.find(CustomLesson, { 'ktpId': lesson.name }), 'name', 'Событие');
                     let scheduleRow = {
                         subject: name,
                         mainTeacher: lesson.employee,

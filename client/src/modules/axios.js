@@ -1,10 +1,10 @@
 import axios from "axios";
 import router from "@/router/router"
-import {globalStore} from "@/store/gloabal";
+import {globalStore} from "@/store/global";
 
 
 const instance = axios.create({
-    baseURL: process.env.VUE_APP_SERVER || "http://localhost:8080",
+    baseURL: process.env.VUE_APP_SERVER || "http://10.100.3.235:8080",
 });
 
 instance.interceptors.request.use(
@@ -16,6 +16,7 @@ instance.interceptors.request.use(
         return Promise.reject(error);
     }
 );
+
 instance.interceptors.response.use(function (response) {
     // Any status code that lie within the range of 2xx cause this function to trigger
     // Do something with response data

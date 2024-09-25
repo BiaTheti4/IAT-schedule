@@ -39,7 +39,7 @@ export default {
   },
   methods: {
     updateStatusTeacher(teacherId, teacherStatus) {
-      this.$axios.patch("http://localhost:5000/patchTeacher", {
+      this.$axios.patch("http://10.100.3.235:5000/patchTeacher", {
         id: teacherId,
         status: teacherStatus
       }).then((res) => {
@@ -54,7 +54,7 @@ export default {
 
 
   mounted() {
-    this.$axios.get('http://localhost:5000/teachersList').then(res => {
+    this.$axios.get('http://10.100.3.235:5000/teachersList').then(res => {
       for (let i = 0; i < res.data.length; i++) {
         res.data[i].status = (res.data[i].status == 1) ? true : false
       }

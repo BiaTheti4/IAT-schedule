@@ -9,7 +9,13 @@ const TeachersMixin = {
         async initEmployees() {
             this.showLoading();
             try {
-                let res = await this.$axios.get('ktp/getEmployees');
+                let res = await this.$axios.get('ktp/getEmployees',
+                    {
+                        headers: {
+                            'is-public': 'true'
+                        }
+                    }
+                );
                 this.teachers = res.data;
                 this.teacherPairs = res.data.reduce((acc, value) => {
                     return {...acc, [value.id]: value.name}

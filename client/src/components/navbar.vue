@@ -1,23 +1,24 @@
 <template>
   <div>
-    <nav v-if="isAuth" class="bg-gray-800 p-2 mt-0 fixed w-full z-10 top-0">
+    <nav v-if="shouldShowNavbar" class="bg-gray-800 p-2 mt-0 fixed w-full z-10 top-0">
       <div class="container flex flex-no-wrap items-start">
         <div class="flex w-full justify-between">
           <ul class="list-reset flex justify-between flex-1 md:flex-none items-center">
             <li class="mr-3">
               <router-link
-                  v-for="link in navList"
+                  v-for="link in filteredNavList"
                   class="inline-block px-4 text-gray-300 no-underline"
                   :to="link.link">
                 {{ link.title }}
               </router-link>
             </li>
             <li>
-              <a href="#" @click="logout"
-                 class="inline-block px-4 text-white no-underline"
-              >
+              <a v-if="isAuth" href="#" @click="logout" class="inline-block px-4 text-white no-underline">
                 Выход
               </a>
+              <router-link v-else :to="{ name: 'login' }" class="inline-block px-4 text-white no-underline">
+                Вход
+              </router-link>
             </li>
           </ul>
         </div>
@@ -26,7 +27,7 @@
   </div>
 </template>
 <script>
-import {globalStore} from "@/store/gloabal";
+import {globalStore} from "@/store/global";
 import {computed} from "vue";
 
 
@@ -36,20 +37,25 @@ export default {
 
     isAuth() {
       const store = globalStore()
-
       return store.auth;
+    },
+    shouldShowNavbar() {
+      return (this.isAuth || this.$route.meta.isPublic) && this.$route.name !== 'login';
     },
 
     navList() {
       return [
-        {link: '/', title: 'Расписание'},
-        {link: '/schedule', title: 'Просмотр расписания'},
-        {link: '/teachers', title: 'Занятость преподавателей'},
-        {link: '/cabinets', title: 'Занятость кабинетов'},
-        {link: '/print', title: 'Печать расписания'},
-        {link: '/schedule-correct', title: 'Исправления'},
-        {link: '/schedule-compare', title: 'DEBUG'},
+      {link: '/schedule', title: 'Расписание', isPublic: false},
+        {link: '/', title: 'Просмотр расписания', isPublic: true},
+        {link: '/teachers', title: 'Занятость преподавателей', isPublic: true},
+        {link: '/cabinets', title: 'Занятость кабинетов', isPublic: true},
+        {link: '/print', title: 'Печать расписания', isPublic: false},
+        {link: '/schedule-correct', title: 'Исправления', isPublic: false},
+        {link: '/schedule-compare', title: 'DEBUG', isPublic: false},
       ];
+    },
+    filteredNavList() {
+      return this.navList.filter(link => this.isAuth || link.isPublic);
     }
   },
 
@@ -57,7 +63,8 @@ export default {
     logout() {
       this.setAuth('', '');
       this.$router.push({name: 'login'});
-    }
+    },
+    
   }
 
 }

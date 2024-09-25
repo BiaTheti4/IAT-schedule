@@ -8,49 +8,57 @@ import scheduleCorrect from "@/pages/scheduleCorrect";
 import scheduleCompare from "@/pages/scheduleCompare";
 import scheduleViewFull from "@/pages/scheduleViewFull";
 import login from "@/pages/Login";
-import {globalStore} from "@/store/gloabal";
+import {globalStore} from "@/store/global";
 
 
 const routes = [
     {
         path: '/login',
         component: login,
-        name: 'login'
+        name: 'login',
+        meta:{isPublic:  true} 
     },
     {
         path: '/',
-        component: scheduleMain,
-        name: scheduleMain.name
+        component: scheduleView, 
+        name: scheduleView.name,
+        meta: { isPublic: true } 
     },
     {
-        path: '/schedule',
-        component: scheduleView,
-        name: scheduleView.name
+        path: '/schedule', 
+        component: scheduleMain,
+        name: scheduleMain.name,
+        meta: { isPublic: false }
     },
     {
         path: '/schedule-correct',
         component: scheduleCorrect,
-        name: scheduleCorrect.name
+        name: scheduleCorrect.name,
+        meta:{isPublic:  false} 
     },
     {
         path: '/schedule-compare',
         component: scheduleCompare,
-        name: scheduleCompare.name
+        name: scheduleCompare.name,
+        meta:{isPublic:  false} 
     },
     {
         path: '/print',
         component: print,
-        name: print.name
+        name: print.name,
+        meta:{isPublic:  false} 
     },
     {
         path: '/teachers',
         component: teacherBusyness,
-        name: teacherBusyness.name
+        name: teacherBusyness.name,
+        meta:{isPublic:  true} 
     },
     {
         path: '/cabinets',
         component: cabinetBusyness,
-        name: cabinetBusyness.name
+        name: cabinetBusyness.name,
+        meta:{isPublic:  true} 
     },
 
 ];
@@ -60,10 +68,14 @@ const router = createRouter({
     history: createWebHistory()
 });
 router.beforeEach((to, from, next) => {
-    const store = globalStore();
-    if (!store.auth && to.name !== 'login') {
-        next({name: 'login'})
+    const store = globalStore(); 
+    const routeIsPublic = to.matched.some(record => record.meta.isPublic === true);
+
+    if (!routeIsPublic && store.auth === false && to.name !== 'login') {
+       
+        next({ name: 'login' });
     } else {
+       
         next();
     }
 });
