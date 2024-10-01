@@ -135,9 +135,9 @@
     </table>
     <button class="button-7" @click="openModal()">Сохранить</button>
     <modal-component v-if="this.modal===1" @result="modalResult"></modal-component>
-    <div class="alertBlocks">
-      <span class="alert" v-for="conflict in conflicts.details">
-        <span class="sign">!</span><strong>{{ conflict }}</strong>
+    <div class="flex flex-col">
+      <span class="box-border h-25 w-200 p-4  rounded-xl bg-red-500 mt-2" v-for="conflict in conflicts.details">
+        <strong>{{ conflict }}</strong>
     </span>
     </div>
   </div>
@@ -400,15 +400,19 @@ export default {
           _.each(groups, (pair, pairNum) => {
             if (pair.ktpId > 0) {
               groupRow.hours += 2;// add current hours on day to all part
+              
               let key;
 
               if (ignoreSubjects.indexOf(pair.subjectId) !== -1) {
                 return;
               }
               if (pair.teacherId) {
+
                 key = pair.teacherId + '_' + pairNum;
+
                 if (!conflict.teachers[key]) {
                   conflict.teachers[key] = [];
+                  
                 }
                 conflict.teachers[key].push(pair);
               }
@@ -442,10 +446,13 @@ export default {
       })
 
       _.each(conflict.teachers, (teachers, key) => {
+
         if (teachers.length > 1) {
+          
           let groups = teachers.map(item => item.group).join(', ')
           let teacherName = this.teacherPairs[_.split(String(key), '_', 1)[0]]
           let lessonNumber = _.split(String(key), '_')[1]
+
           let detail = `Пара ${lessonNumber} Преподаватель: ${teacherName} в группах: ${groups}`
           conflict.details.push(detail)
         }
@@ -815,19 +822,18 @@ export default {
 
 .table tbody td {
   @apply p-2;
-
 }
 
-.alertBlocks {
+/* .alertBlocks {
   @apply flex flex-col mt-4;
   /*display: flex;*/
   /*flex-direction: column;*/
   /*margin-top: 35px;*/
-}
+/*} */
 
-.alert {
+/* .alert {
   @apply bg-red-500 text-white border border-r-4 flex flex-row text-xl my-6
-}
+} */
 
 .sign {
   font-size: 40px;
@@ -835,36 +841,7 @@ export default {
   margin-right: 15px;
 }
 
-.tooltip {
-  position: relative;
-  display: inline-block;
 
-  margin-left: 10px;
-  font-size: 40px;
-  color: #c82829;
-  border: none;
-  margin-bottom: 0px;
-}
-
-.tooltip .tooltiptext {
-  visibility: hidden;
-  width: auto;
-  background-color: #0095ff;
-  color: #fff;
-  text-align: center;
-  border-radius: 6px;
-  padding: 5px 5px;
-  font-size: 20px;
-  text-decoration: none;
-
-
-  /* Position the tooltip */
-  position: absolute;
-  z-index: 1;
-  bottom: 100%;
-  left: 50%;
-  margin-left: -60px;
-}
 
 
 .closebtn {
@@ -878,18 +855,7 @@ export default {
   transition: 0.3s;
 }
 
-.tooltip .tooltiptext > span {
-  display: block;
-}
 
-.tooltip .tooltiptext > span + span {
-  border-top: white solid 2px;
-  text-decoration: none;
-}
-
-.tooltip:hover .tooltiptext {
-  visibility: visible;
-}
 
 .button-6 {
   align-items: center;

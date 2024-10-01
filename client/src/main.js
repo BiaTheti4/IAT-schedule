@@ -14,8 +14,8 @@ const pinia = createPinia()
 app.mixin(GlobalMixin);
 app.component('Datepicker', Datepicker);
 app.use(Toaster);
-app.use(pinia);
 app.use(router);
+app.use(pinia);
 
 app.config.globalProperties.$axios = {...axios}
 

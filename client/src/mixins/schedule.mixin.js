@@ -3,6 +3,7 @@ import { scheduleStore } from "@/store/schedule"
 import { CustomLesson } from "@/enums/CustomLesson";
 
 let ScheduleMixin = {
+
     computed: {
         store() {
             return scheduleStore();
@@ -28,7 +29,7 @@ let ScheduleMixin = {
                 store.cabinetSchedule = {};
                 store.employeeSchedule = {};
                 for (let lesson of res.data.main) {
-                    
+
                     let scheduleRow = {
                         subject: (lesson['subject_code'] ? this.getPracticePrefix(lesson['practice_type']) + lesson['subject_code'] + ' ' : '') + lesson.subject,
                         lessonType: lesson['category'],
@@ -37,6 +38,10 @@ let ScheduleMixin = {
                         optionalTeacher: lesson['second_employee'],
                         cabinet: lesson.cabinet,
                         optionalCabinet: lesson['second_cabinet'],
+                        lessonNumber:lesson['lesson_number'],
+                        date:lesson['date'],
+                        isLessonProgress: false,
+                        
                     };
 
                     _.setWith(store.groupSchedule, [lesson.groupId, lesson.date, lesson.lesson_number], scheduleRow, Object);
@@ -60,6 +65,7 @@ let ScheduleMixin = {
                         subject: name,
                         mainTeacher: lesson.employee,
                         cabinet: lesson.cabinet,
+                        isLessonProgress: false
                     };
 
                     _.setWith(store.groupSchedule, [lesson.group_id, lesson.date, lesson.lesson_number], scheduleRow, Object);
@@ -113,7 +119,11 @@ let ScheduleMixin = {
                 'малый спорт зал': 'с/з-м'
             }
             return replaceCabinet[name.toLowerCase().trim()] || name
-        }
+        },
+
+    },
+    mounted(){
+
     }
 }
 
