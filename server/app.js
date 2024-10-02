@@ -7,8 +7,8 @@ cors = require('cors')
 require('dotenv').config()
 const middleware = require('./middleware');
 
-const host = '10.100.3.235'
-const port = 7000
+const host = process.env.SERVER_HOST || 'localhost';
+const port = process.env.SERVER_PORT || 7000
 
 const app = express()
 
@@ -27,7 +27,7 @@ app.get('/', middleware.checkToken, (req, res) => {
 // init route
 app.use('/api', routes)
 // if no route matches
-app.get('*', function(req, res) {
+app.get('*', function (req, res) {
     res.redirect('/')
 });
 

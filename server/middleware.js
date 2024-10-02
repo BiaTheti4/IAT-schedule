@@ -1,5 +1,6 @@
 let jwt = require('jsonwebtoken');
 const config = require('./config/auth.js');
+const ipRangeCheck = require('ip-range-check');
 
 let checkToken = (req, res, next) => {
     if (+process.env.DEBUG_MODE === 1) {
@@ -41,6 +42,18 @@ let checkToken = (req, res, next) => {
         });
     }
 };
+
+const checkPublicIp = (req, res, next) => {
+    const clientIp = req.headers['x-forwarded-for'] || req.ip; // Get the client IP address
+    const isPrivate = ipRangeCheck(clientIp, ['10.100.0.0/16']); // Check if IP is in the 10.100.0.0/16 range
+
+    if (!isPrivate) {
+        return res.status(403).send('Доступ извне запрещен');
+    }
+
+    next(); // If the IP is public, continue to the next middleware/route
+};
+
 
 module.exports = {
     checkToken: checkToken

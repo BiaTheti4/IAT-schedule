@@ -53,7 +53,7 @@ class ScheduleService {
                           INNER JOIN subjects AS s ON s.subjectId = k.subjectId
                           INNER JOIN employees AS e1 ON e1.employeeId = sch.employee_id
                           INNER JOIN cabinets AS c1 ON c1.id = sch.cabinet_id
-                          INNER JOIN groups as gr ON gr.groupId=k.groupId
+                          INNER JOIN \`groups\` AS gr ON gr.groupId=k.groupId
                           LEFT JOIN employees AS e2 ON e2.employeeId = sch.optional_employee_id
                           LEFT JOIN cabinets AS c2 ON c2.id = sch.optional_cabinet_id
                           LEFT JOIN curriculum_subjects cs ON k.curriculumSubjectId = cs.id
