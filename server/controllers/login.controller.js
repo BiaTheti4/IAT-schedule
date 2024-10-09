@@ -7,7 +7,7 @@ class AuthController {
         if (!username || !password) {
             return res.status(400).json({
                 success: false,
-                message: 'Authentication failed! Please check the request'
+                message: 'Authentication failed! Please check the request',
             })
         }
         let result = await AuthService.login(req.body.username, req.body.password)
@@ -15,6 +15,10 @@ class AuthController {
     }
 
     async logout(req, res) {
+    }
+
+    async ip(req, res) {
+        return res.status(200).json({ip: req.headers['x-forwarded-for'] || req.ip});
     }
 }
 

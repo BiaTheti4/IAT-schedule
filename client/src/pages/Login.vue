@@ -6,12 +6,12 @@
           <!-- Email input -->
           <div class="mb-6">
             <input
-              type="text"
-              class="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-              v-model="username"
-              autocomplete="username"
-              placeholder="Логин"
-              ref="usernameField"
+                type="text"
+                class="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                v-model="username"
+                autocomplete="username"
+                placeholder="Логин"
+                ref="usernameField"
             />
             <span class="text-red-800" v-if="errors.username">{{ errors.username }}</span>
           </div>
@@ -19,11 +19,11 @@
           <!-- Password input -->
           <div class="mb-6">
             <input
-              type="password"
-              class="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-              v-model="password"
-              autocomplete="current-password"
-              placeholder="Пароль"
+                type="password"
+                class="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                v-model="password"
+                autocomplete="current-password"
+                placeholder="Пароль"
             />
             <span class="text-red-800" v-if="errors.password">{{ errors.password }}</span>
           </div>
@@ -31,11 +31,16 @@
           <!-- Button -->
           <div class="text-center">
             <input
+                type="button"
+                value="Войти"
+                class="inline-block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                @click="login"
+            /> <input
               type="button"
-              value="Войти"
-              class="inline-block px-7 py-3 bg-blue-600 text-white font-medium text-sm leading-snug uppercase rounded shadow-md hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 transition duration-150 ease-in-out"
-              @click="login"
-            />
+              value="Отмена"
+              class="inline-block text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+              @click="toMain"
+          />
           </div>
         </form>
       </div>
@@ -46,6 +51,7 @@
 
 <script>
 import _ from 'lodash'
+import scheduleView from "@/pages/scheduleView.vue";
 
 export default {
   data() {
@@ -56,7 +62,7 @@ export default {
         username: false,
         password: false,
       },
-      
+
     }
   },
 
@@ -100,11 +106,14 @@ export default {
         }
       }
     },
+    toMain() {
+      this.$router.push('/')
+    },
     checkStatus() {
 
     }
   },
- 
+
 
 }
 

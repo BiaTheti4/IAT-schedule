@@ -5,6 +5,6 @@ const express = require('express'),
 
 router.get('/all', middleware.checkToken, EmployeesController.getEmployees)
 router.get('/teacher', middleware.checkToken, EmployeesController.getTeacherName)
-router.post('/busynessEmployees', middleware.checkToken, EmployeesController.getBusynessEmployees)
+router.post('/busynessEmployees', [middleware.checkToken, middleware.checkPublicIp], EmployeesController.getBusynessEmployees)
 
 module.exports = router

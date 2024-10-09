@@ -17,12 +17,13 @@
     "dotenv": "^16.0.1",
     "lodash": "^4.17.21",
     "moment": "^2.29.3",
+    "pinia": "^2.0.22",
     "vue": "^3.0.0",
     "vue-loading-overlay": "^5.0.3",
     "vue-router": "^4.0.0-0",
     "vue-toast-notification": "3.0",
     "vue-toastification": "next",
-    "pinia": "^2.0.22"
+    "ip-range-check": "^0.2.0"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^5.0.4",

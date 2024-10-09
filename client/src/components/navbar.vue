@@ -12,7 +12,10 @@
                 {{ link.title }}
               </router-link>
             </li>
-            <li>
+            <li><a href="https://lk.irkat.ru" class="inline-block px-4 text-white no-underline">Личный кабинет
+              студента</a></li>
+            <li><a href="https://irkat.ru" class="inline-block px-4 text-white no-underline">Официальный сайт</a></li>
+            <li v-if="canAuth">
               <a v-if="isAuth" href="#" @click="logout" class="inline-block px-4 text-white no-underline">
                 Выход
               </a>
@@ -28,10 +31,15 @@
 </template>
 <script>
 import {globalStore} from "@/store/global";
-import {computed} from "vue";
-
+import ipRangeCheck from 'ip-range-check'
 
 export default {
+
+  data() {
+    return {
+      ip: ''
+    };
+  },
 
   computed: {
 
@@ -39,13 +47,16 @@ export default {
       const store = globalStore()
       return store.auth;
     },
+    canAuth() {
+      return ipRangeCheck(this.ip, ['127.0.0.1/24', '10.100.0.0/16']);
+    },
     shouldShowNavbar() {
       return (this.isAuth || this.$route.meta.isPublic) && this.$route.name !== 'login';
     },
 
     navList() {
       return [
-      {link: '/schedule', title: 'Расписание', isPublic: false},
+        {link: '/schedule', title: 'Расписание', isPublic: false},
         {link: '/', title: 'Просмотр расписания', isPublic: true},
         {link: '/teachers', title: 'Занятость преподавателей', isPublic: true},
         {link: '/cabinets', title: 'Занятость кабинетов', isPublic: true},
@@ -64,7 +75,16 @@ export default {
       this.setAuth('', '');
       this.$router.push({name: 'login'});
     },
-    
+    checkIp() {
+      this.$axios.get('auth/ip').then(res => {
+        this.ip = res.data.ip || false;
+      })
+
+    }
+  },
+
+  mounted() {
+    this.checkIp();
   }
 
 }

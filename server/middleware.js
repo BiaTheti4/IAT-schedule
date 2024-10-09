@@ -45,10 +45,10 @@ let checkToken = (req, res, next) => {
 
 const checkPublicIp = (req, res, next) => {
     const clientIp = req.headers['x-forwarded-for'] || req.ip; // Get the client IP address
-    const isPrivate = ipRangeCheck(clientIp, ['10.100.0.0/16']); // Check if IP is in the 10.100.0.0/16 range
+    const isPrivate = ipRangeCheck(clientIp, ['127.0.0.1/24', '10.100.0.0/16']); // Check if IP is in the 10.100.0.0/16 range
 
     if (!isPrivate) {
-        return res.status(403).send('Доступ извне запрещен');
+        return res.status(403).json({success: false, message: 'Foreign access forbidden!'});
     }
 
     next(); // If the IP is public, continue to the next middleware/route
@@ -56,5 +56,6 @@ const checkPublicIp = (req, res, next) => {
 
 
 module.exports = {
-    checkToken: checkToken
+    checkToken: checkToken,
+    checkPublicIp: checkPublicIp
 }
