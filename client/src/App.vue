@@ -4,7 +4,7 @@
       :is-full-page="true"
   />
   <div class="container w-full">
-    <navbar class="print:hidden h-16"/>
+    <navbar class="print:hidden h-20"/>
     <router-view class="mx-4 print:mx-0"></router-view>
   </div>
 </template>
