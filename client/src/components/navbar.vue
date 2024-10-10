@@ -1,7 +1,7 @@
 <template>
   <div>
-    <nav class="bg-gray-900 border-gray-700">
-      <div class="max-w-screen-xl flex flex-wrap items-start justify-start p-4">
+    <nav :class="['bg-gray-900 border-gray-700 top-0 w-full z-50']">
+      <div class="max-w-screen-xl flex flex-wrap items-start justify-between p-4">
         <button data-collapse-toggle="navbar-menu" type="button"
                 @click="toggleMenu()"
                 class="inline-flex items-start p-2 w-10 h-10 justify-start text-sm rounded-lg md:hidden focus:outline-none focus:ring-2 text-gray-400 hover:bg-gray-700 focus:ring-gray-600"
@@ -21,7 +21,7 @@
              'z-30':true
         }" id="navbar-menu">
           <ul class="flex flex-col font-medium p-4 md:p-0 mt-4 border rounded-lg md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 bg-gray-800 md:bg-gray-900 border-gray-700">
-            <li v-for="link in filteredNavList">
+            <li v-for="link in filteredNavList" :key="link.link">
               <router-link
                   class="nav-element"
                   @click="hideMenu()"
@@ -54,7 +54,8 @@ export default {
   data() {
     return {
       ip: '',
-      collapsed: false
+      collapsed: false,
+
     };
   },
 
@@ -103,13 +104,18 @@ export default {
         this.ip = res.data.ip || false;
       })
 
-    }
+    },
+   
   },
 
   mounted() {
     this.checkIp();
-  }
+    window.addEventListener('scroll', this.handleScroll);
+  },
 
+  beforeDestroy() {
+    window.removeEventListener('scroll', this.handleScroll);
+  }
 }
 </script>
 
@@ -120,6 +126,20 @@ export default {
 
 .nav-element {
   @apply block py-2 px-3 text-white rounded md:p-0 md:bg-transparent;
+}
+
+nav {
+  position: sticky;
+  top: 0;
+}
+
+@media (max-width: 768px) {
+  /* Для мобильных устройств */
+  nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+  }
 }
 
 </style>
