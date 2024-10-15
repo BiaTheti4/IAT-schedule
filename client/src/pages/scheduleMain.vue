@@ -129,6 +129,7 @@
         </td>
         <td v-for="group in getCourses(selectedCourse)" :key="group" :class="warnHours(group)">
           {{ group.hours + group.otherDayHours }}
+          <span v-if="group.customHours>0" title="Часы на внекалсные штуки!">+{{ group.customHours }}</span>
         </td>
       </tr>
       </tfoot>
@@ -397,9 +398,14 @@ export default {
         _.each(courses, (groups, groupId) => {
           let groupRow = this.courses[courseNum].groups[groupId]
           groupRow.hours = 0;
+          groupRow.customHours = 0;
           _.each(groups, (pair, pairNum) => {
             if (pair.ktpId) {
-              groupRow.hours += 2;// add current hours on day to all part
+              if (isNaN(pair.ktpId)) {
+                groupRow.customHours += 2;// add current hours on day to all part
+              } else {
+                groupRow.hours += 2;// add current hours on day to all part
+              }
 
               let key;
 
