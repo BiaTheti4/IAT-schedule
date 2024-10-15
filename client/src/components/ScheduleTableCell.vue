@@ -1,6 +1,6 @@
 <template>
   <div class="text-center relative" v-if="isHasLesson" :class="{ 'bg-green-200': checkLessonProgress(this.schedule) }"
-    @click="handleClick" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
+       @click="handleClick" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
     <div>{{ getLessonType(schedule.lessonType) }}</div>
     <div class="truncate overflow-hidden whitespace-nowrap w-64 flex flex-col">
       <b>{{ schedule.groupName }}</b>
@@ -8,8 +8,8 @@
     </div>
 
     <div v-if="isExpanded"
-      class="absolute top-0 left-0 bg-sky-100 border border-gray-200 shadow-lg rounded-lg p-4 w-96 max-w-full z-20 flex flex-col"
-      :class="{ 'bg-green-200': checkLessonProgress(this.schedule)}">
+         class="absolute top-0 left-0 bg-sky-100 border border-gray-200 shadow-lg rounded-lg p-4 w-96 max-w-full z-20 flex flex-col"
+         :class="{ 'bg-green-200': checkLessonProgress(this.schedule)}">
       <div>{{ getLessonType(schedule.lessonType) }}</div>
       <b>{{ schedule.groupName }}</b>
       <b>{{ schedule.subject }}</b>
@@ -29,9 +29,10 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import {ref} from 'vue';
 import LessonTime from '../enums/LessonTime';
 import moment from "moment";
+
 export default {
   props: {
     schedule: {
@@ -76,14 +77,13 @@ export default {
       return this.schedule && this.schedule.subject;
     },
 
-    
 
   },
   methods: {
     checkLessonProgress(lesson) {
-      if((lesson.lessonNumber==this.currentLesson+1)&&(lesson.date==moment().format('YYYY-MM-DD'))){
+      if ((lesson.lessonNumber == this.currentLesson + 1) && (lesson.date == moment().format('YYYY-MM-DD'))) {
         return true
-      }else{
+      } else {
         return false
       }
     },
@@ -122,7 +122,7 @@ export default {
         'z': 'Экзамен',
         'i': 'Индивидуальный проект',
       };
-      return lessonTypes[lessonType] || '';
+      return _.map(lessonType, type => lessonTypes[type]).join('/') || '';
     },
   },
   mounted() {

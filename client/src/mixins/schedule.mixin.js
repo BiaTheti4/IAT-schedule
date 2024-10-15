@@ -1,6 +1,6 @@
 import _ from "lodash";
-import { scheduleStore } from "@/store/schedule"
-import { CustomLesson } from "@/enums/CustomLesson";
+import {scheduleStore} from "@/store/schedule"
+import {CustomLesson} from "@/enums/CustomLesson";
 
 let ScheduleMixin = {
 
@@ -17,11 +17,10 @@ let ScheduleMixin = {
                 let res = await this.$axios.get('schedule/period',
                     {
                         headers: {
-                            'is-public': 'true' 
+                            'is-public': 'true'
                         },
-                         params: { start: dateStart, end: dateEnd } ,
+                        params: {start: dateStart, end: dateEnd},
                     },
-                    
                 );
 
                 const store = this.store;
@@ -30,37 +29,42 @@ let ScheduleMixin = {
                 store.employeeSchedule = {};
                 for (let lesson of res.data.main) {
 
+
                     let scheduleRow = {
                         subject: (lesson['subject_code'] ? this.getPracticePrefix(lesson['practice_type']) + lesson['subject_code'] + ' ' : '') + lesson.subject,
-                        lessonType: lesson['category'],
+                        lessonType: [lesson['category']],
                         groupName: lesson['groupName'],
                         mainTeacher: lesson['employee'],
                         optionalTeacher: lesson['second_employee'],
                         cabinet: lesson.cabinet,
                         optionalCabinet: lesson['second_cabinet'],
-                        lessonNumber:lesson['lesson_number'],
-                        date:lesson['date'],
+                        lessonNumber: lesson['lesson_number'],
+                        date: lesson['date'],
                         isLessonProgress: false,
-                        
                     };
 
-                    _.setWith(store.groupSchedule, [lesson.groupId, lesson.date, lesson.lesson_number], scheduleRow, Object);
+                    let gRow = _.get(store.groupSchedule, [lesson.groupId, lesson.date, lesson.lesson_number], scheduleRow);
+                    let cRow = _.get(store.groupSchedule, [lesson.groupId, lesson.date, lesson.lesson_number], scheduleRow);
+                    let eRow = _.get(store.groupSchedule, [lesson.groupId, lesson.date, lesson.lesson_number], scheduleRow);
+
+                    gRow = this.correctData(gRow,lesson)
+                    cRow = this.correctData(cRow,lesson)
+                    eRow = this.correctData(eRow,lesson)
+
+                    _.setWith(store.groupSchedule, [lesson.groupId, lesson.date, lesson.lesson_number], gRow, Object);
                     // cabinetSchedule
-                    _.setWith(store.cabinetSchedule, [lesson.cabinet_id, lesson.date, lesson.lesson_number], scheduleRow, Object);
+                    _.setWith(store.cabinetSchedule, [lesson.cabinet_id, lesson.date, lesson.lesson_number], cRow, Object);
                     if (lesson['optional_cabinet_id'] > 0 && lesson.cabinet_id !== lesson['optional_cabinet_id']) {
-                        _.setWith(store.cabinetSchedule, [lesson['optional_cabinet_id'], lesson.date, lesson.lesson_number], scheduleRow, Object);
+                        _.setWith(store.cabinetSchedule, [lesson['optional_cabinet_id'], lesson.date, lesson.lesson_number], cRow, Object);
                     }
                     // employeeSchedule
-                    _.setWith(store.employeeSchedule, [lesson['employee_id'], lesson.date, lesson.lesson_number], scheduleRow, Object);
+                    _.setWith(store.employeeSchedule, [lesson['employee_id'], lesson.date, lesson.lesson_number], eRow, Object);
                     if (lesson['optional_employee_id'] > 0 && lesson['employee_id'] !== lesson['optional_employee_id']) {
-                        _.setWith(store.employeeSchedule, [lesson['optional_employee_id'], lesson.date, lesson.lesson_number], scheduleRow, Object);
+                        _.setWith(store.employeeSchedule, [lesson['optional_employee_id'], lesson.date, lesson.lesson_number], eRow, Object);
                     }
-                 
-                    
-                    
                 }
                 for (let lesson of res.data.custom) {
-                    const name = _.get(_.find(CustomLesson, { 'ktpId': lesson.name }), 'name', 'Событие');
+                    const name = _.get(_.find(CustomLesson, {'ktpId': lesson.name}), 'name', 'Событие');
                     let scheduleRow = {
                         subject: name,
                         mainTeacher: lesson.employee,
@@ -78,6 +82,13 @@ let ScheduleMixin = {
                 console.log(e)
             }
             this.hideLoading();
+        },
+
+        correctData(row, data) {
+            if (row.lessonType.indexOf(data.category) === -1) {
+                row.lessonType.push(data.category);
+            }
+            return row;
         },
         getPracticePrefix(type) {
             if (+type === 1) {
@@ -122,7 +133,7 @@ let ScheduleMixin = {
         },
 
     },
-    mounted(){
+    mounted() {
 
     }
 }

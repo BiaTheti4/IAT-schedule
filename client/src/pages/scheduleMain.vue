@@ -398,9 +398,9 @@ export default {
           let groupRow = this.courses[courseNum].groups[groupId]
           groupRow.hours = 0;
           _.each(groups, (pair, pairNum) => {
-            if (pair.ktpId > 0) {
+            if (pair.ktpId) {
               groupRow.hours += 2;// add current hours on day to all part
-              
+
               let key;
 
               if (ignoreSubjects.indexOf(pair.subjectId) !== -1) {
@@ -412,7 +412,7 @@ export default {
 
                 if (!conflict.teachers[key]) {
                   conflict.teachers[key] = [];
-                  
+
                 }
                 conflict.teachers[key].push(pair);
               }
@@ -448,7 +448,7 @@ export default {
       _.each(conflict.teachers, (teachers, key) => {
 
         if (teachers.length > 1) {
-          
+
           let groups = teachers.map(item => item.group).join(', ')
           let teacherName = this.teacherPairs[_.split(String(key), '_', 1)[0]]
           let lessonNumber = _.split(String(key), '_')[1]
@@ -620,7 +620,6 @@ export default {
             element.optionalTeacherId = row.optionalTeacherId;
             element.cabinetId = row.cabinetId;
             element.subjectId = row.subjectId;
-            element.group = row.group;
             element.label = _.uniq([...row.categories.map((category) => this.getTypeLabel(category))]);
             element.optionalCabinetId = row.optionalCabinetId;
             element.isChanged = false;
@@ -827,8 +826,8 @@ export default {
 /* .alertBlocks {
   @apply flex flex-col mt-4;
   /*display: flex;*/
-  /*flex-direction: column;*/
-  /*margin-top: 35px;*/
+/*flex-direction: column;*/
+/*margin-top: 35px;*/
 /*} */
 
 /* .alert {
@@ -842,8 +841,6 @@ export default {
 }
 
 
-
-
 .closebtn {
   margin-left: 15px;
   color: white;
@@ -854,7 +851,6 @@ export default {
   cursor: pointer;
   transition: 0.3s;
 }
-
 
 
 .button-6 {

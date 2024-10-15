@@ -1,6 +1,6 @@
 <template>
   <div>
-    <nav :class="['bg-gray-900 border-gray-700 top-0 w-full z-50']">
+    <nav class="bg-gray-900 border-gray-700 top-0 w-full z-50">
       <div class="max-w-screen-xl flex flex-wrap items-start justify-between p-4">
         <button data-collapse-toggle="navbar-menu" type="button"
                 @click="toggleMenu()"
