@@ -42,8 +42,8 @@ let ScheduleMixin = {
                     };
 
                     let gRow = _.get(store.groupSchedule, [lesson.groupId, lesson.date, lesson.lesson_number], scheduleRow);
-                    let cRow = _.get(store.groupSchedule, [lesson.groupId, lesson.date, lesson.lesson_number], scheduleRow);
-                    let eRow = _.get(store.groupSchedule, [lesson.groupId, lesson.date, lesson.lesson_number], scheduleRow);
+                    let cRow = _.get(store.cabinetSchedule, [lesson.groupId, lesson.date, lesson.lesson_number], scheduleRow);
+                    let eRow = _.get(store.employeeSchedule, [lesson.groupId, lesson.date, lesson.lesson_number], scheduleRow);
 
                     gRow = this.correctData(gRow, lesson)
                     cRow = this.correctData(cRow, lesson)
@@ -64,10 +64,12 @@ let ScheduleMixin = {
                 for (let lesson of res.data.custom) {
                     const name = _.get(_.find(CustomLesson, {'ktpId': lesson.name}), 'name', 'Событие');
                     let scheduleRow = {
+                        id: lesson.id,
                         subject: name,
                         mainTeacher: lesson.employee,
                         cabinet: lesson.cabinet,
-                        isLessonProgress: false
+                        isLessonProgress: false,
+                        raw: lesson,
                     };
 
                     let gRow = _.get(store.groupSchedule, [lesson.group_id, lesson.date, lesson.lesson_number], false);
@@ -75,7 +77,7 @@ let ScheduleMixin = {
                     let eRow = _.get(store.employeeSchedule, [lesson['employee_id'], lesson.date, lesson.lesson_number], false);
                     if (!gRow) {
                         _.setWith(store.groupSchedule, [lesson.group_id, lesson.date, lesson.lesson_number],
-                            scheduleRow, Object);
+                            _.clone(scheduleRow), Object);
                     } else {
                         if (!gRow.custom) {
                             gRow.custom = [];
@@ -90,19 +92,20 @@ let ScheduleMixin = {
                         if (!cRow.custom) {
                             cRow.custom = [];
                         }
-                        cRow.custom.push(scheduleRow);
+                        scheduleRow;
                     }
                     // employeeSchedule
                     if (!eRow) {
                         _.setWith(store.employeeSchedule, [lesson['employee_id'], lesson.date, lesson.lesson_number],
-                            scheduleRow, Object);
+                            _.clone(scheduleRow), Object);
                     } else {
                         if (!eRow.custom) {
                             eRow.custom = [];
                         }
-                        eRow.custom.push(scheduleRow);
+                        scheduleRow;
                     }
                 }
+                console.log(store.groupSchedule);
             } catch (e) {
                 console.log(e)
             }
