@@ -1,17 +1,24 @@
 <template>
-  <div class="text-center relative" v-if="isHasLesson" :class="{ 'bg-green-200': checkLessonProgress(this.schedule) }"
+  <div class="text-center relative" v-if="isHasLesson" :class="{ 
+    'bg-green-200': checkLessonProgress(this.schedule) ,
+    'bg-yellow-300 mt-1 mr-1 mb-1 ml-1 border border-gray-300 rounded-lg': schedule.subject == 'Классный час'
+    }"
        @click="handleClick" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
     <div>{{ getLessonType(schedule.lessonType) }}</div>
     <div class="truncate overflow-hidden whitespace-nowrap w-64 flex flex-col">
-      <b>{{ schedule.groupName }}</b>
+      <b v-if="shouldShowGroupName">{{ schedule.groupName }}</b>
       <b>{{ schedule.subject }}</b>
     </div>
 
     <div v-if="isExpanded"
          class="absolute top-0 left-0 bg-sky-100 border border-gray-200 shadow-lg rounded-lg p-4 w-96 max-w-full z-20 flex flex-col"
-         :class="{ 'bg-green-200': checkLessonProgress(this.schedule)}">
+         :class="{
+           'bg-green-200': checkLessonProgress(this.schedule),
+           'bg-yellow-300  border border-gray-300 rounded-lg': schedule.subject == 'Классный час'
+           }"
+         >
       <div>{{ getLessonType(schedule.lessonType) }}</div>
-      <b>{{ schedule.groupName }}</b>
+      <b v-if="shouldShowGroupName">{{ schedule.groupName }}</b>
       <b>{{ schedule.subject }}</b>
       <div>{{ schedule.mainTeacher }}
         <template v-if="schedule.optionalTeacher">/{{ schedule.optionalTeacher }}</template>
@@ -32,7 +39,7 @@
 import {ref} from 'vue';
 import LessonTime from '../enums/LessonTime';
 import moment from "moment";
-
+import {useRoute} from 'vue-router';
 export default {
   props: {
     schedule: {
@@ -42,10 +49,12 @@ export default {
   },
   data() {
     return {
-      currentLesson: null
+      currentLesson: null,
+      shouldShowGroupName: true
     }
   },
   setup() {
+    
     const isExpanded = ref(false);
     const handleMouseEnter = () => {
       if (!isMobileDevice()) {
@@ -129,6 +138,10 @@ export default {
 
     this.checkCurrentTimeInIntervals();
     setInterval(() => this.checkCurrentTimeInIntervals(), 60000);
+    const route = useRoute();
+    if (route.path === '/') {
+      this.shouldShowGroupName = false; 
+    }
   }
 
 }
