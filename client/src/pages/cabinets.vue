@@ -36,7 +36,7 @@ export default {
   },
   methods: {
     updateStatusCabinet(id, status) {
-      this.$axios.patch("http://10.100.3.235:5000/patchCabinet", {
+      this.$axios.patch("http://localhost:5000/patchCabinet", {
         id: id,
         status: status,
       }).then((res) => {
@@ -50,7 +50,7 @@ export default {
 
   mounted() {
     console.log()
-    this.$axios.get('http://10.100.3.235:5000/cabinetsList').then(res => {
+    this.$axios.get('http://localhost:5000/cabinetsList').then(res => {
       for (let i = 0; i < res.data.length; i++) {
         res.data[i].status = (res.data[i].status == 1)
       }

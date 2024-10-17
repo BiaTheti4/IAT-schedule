@@ -36,7 +36,7 @@ export default {
   },
   methods: {
     updateStatusGroup(id, status) {
-      this.$axios.patch("http://10.100.3.235:5000/patchGroup", {
+      this.$axios.patch("http://localhost:5000/patchGroup", {
         id: id,
         status: status
       }).then((res) => {
@@ -48,7 +48,7 @@ export default {
     }
   },
   mounted() {
-    this.$axios.get('http://10.100.3.235:5000/groupList').then(res => {
+    this.$axios.get('http://localhost:5000/groupList').then(res => {
       for (let i = 0; i < res.data.length; i++) {
         res.data[i].status = (res.data[i].status == 1)
       }

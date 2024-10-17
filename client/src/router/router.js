@@ -9,6 +9,7 @@ import scheduleCompare from "@/pages/scheduleCompare";
 import scheduleViewFull from "@/pages/scheduleViewFull";
 import login from "@/pages/Login";
 import {globalStore} from "@/store/global";
+import forbidden from "../pages/forbidden.vue";
 
 
 const routes = [
@@ -60,6 +61,12 @@ const routes = [
         name: cabinetBusyness.name,
         meta:{isPublic:  true} 
     },
+    {
+        path: '/forbidden',
+        component: forbidden,
+        name: forbidden.name,
+        meta:{isPublic:  true} 
+    },
 
 ];
 
@@ -73,7 +80,7 @@ router.beforeEach((to, from, next) => {
 
     if (!routeIsPublic && store.auth === false && to.name !== 'login') {
        
-        next({ name: 'login' });
+        next({ name: 'forbidden' });
     } else {
        
         next();

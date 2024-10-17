@@ -7,6 +7,7 @@ cors = require('cors')
 require('dotenv').config()
 const middleware = require('./middleware');
 
+
 const host = process.env.SERVER_HOST || 'localhost';
 const port = process.env.SERVER_PORT || 7000
 
@@ -30,6 +31,7 @@ app.use('/api', routes)
 app.get('*', function (req, res) {
     res.redirect('/')
 });
+
 
 const start = async () => {
     try {

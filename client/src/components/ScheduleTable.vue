@@ -23,7 +23,7 @@
           <template v-if="getLesson(day.date, lessonNumber).custom">
             <schedule-cell :schedule="lesson"
                            v-for="lesson in getLesson(day.date, lessonNumber).custom"
-                           class="bg-sky-100 mt-1 mr-1 mb-1 ml-1 border border-gray-300 rounded-lg"/>
+                           />
 
           </template>
         </td>
