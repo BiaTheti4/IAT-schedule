@@ -3,7 +3,7 @@
       v-model:active="isLoadingContent"
       :is-full-page="true"
   />
-  <div class="container w-full">
+  <div>
     <navbar class="print:hidden h-20"/>
     <router-view class="mx-4 print:mx-0"></router-view>
   </div>
