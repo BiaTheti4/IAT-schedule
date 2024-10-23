@@ -291,7 +291,8 @@ export default {
         if (pair.type === 'custom') {
           this.removeSchedule.push({id: pair.id, type: 'custom'})
         } else {
-          pair.ids.forEach((id) => {
+          pair.ids?.forEach((id) => {
+            
             if (!_.find(this.removeSchedule, {'id': id})) {
               this.featureSchedule[pair.ktpId]
               this.removeSchedule.push({id: id, type: 'lesson'})
@@ -392,6 +393,7 @@ export default {
       ];
       const ignoreSubjects = [
         212, // Производственная практика
+        'class_hour'
       ];
 
       _.each(this.dateCourseEvent, (courses, courseNum) => {
@@ -409,7 +411,7 @@ export default {
 
               let key;
 
-              if (ignoreSubjects.indexOf(pair.subjectId) !== -1) {
+              if (ignoreSubjects.indexOf(pair.subjectId) !== -1|| pair.ktpId === 'class_hour') {
                 return;
               }
               if (pair.teacherId) {
@@ -430,7 +432,7 @@ export default {
                 conflict.teachers[key].push(pair);
               }
               // cabinets
-              if (pair.cabinetId > 0 && ignoreCabinets.indexOf(+pair.cabinetId) === -1) {
+              if (pair.cabinetId > 0 && ignoreCabinets.indexOf(+pair.cabinetId) === -1|| pair.ktpId === 'class_hour') {
                 key = pair.cabinetId + '_' + pairNum;
                 if (!conflict.cabinets[key]) {
                   conflict.cabinets[key] = [];

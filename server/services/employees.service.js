@@ -1,23 +1,18 @@
 const sequelize = require("../models");
-const {models} = require("../models/index");
-const {Op} = require("sequelize");
+const { models } = require("../models/index");
+const { Op } = require("sequelize");
 
 
 class EmployeesService {
     async getEmployees() {
-        return await models.employee.findAll({
-            attributes: ['employeeId', 'last_name', 'first_name', 'fathers_name'],
-            where: {
-                status: 2,
-                [Op.and]: sequelize.literal('EXISTS(SELECT id from employee_contracts as ec where ec.employeeId = employee.employeeId AND ec.status = 3)')
-            },
-            group: 'employeeId',
-            order: [
-                ['last_name'],
-                ['first_name'],
-                ['fathers_name'],
-            ]
-        })
+        console.log('abobus')
+        return await sequelize.query(
+            'select e.employeeId, e.last_name, e.first_name, e.fathers_name from employees e ' +
+'inner join employee_contracts ec on e.employeeId = ec.employeeId '+
+'inner join posts p on p.postId = ec.contractPostId '+
+'where p.isTeacher = 1 and ec.status = 3 '+
+'GROUP BY e.employeeId'
+        )
 
         // return await sequelize.query('SELECT e.employeeId, e.last_name, e.first_name, e.fathers_name FROM employees AS e ' +
         //     'WHERE (e.status = 2) and ' +
@@ -44,12 +39,12 @@ class EmployeesService {
               and date <= :dateEnd
             group by fio
             order by fio`, {
-                replacements: {
-                    dateStart: String(dateStart),
-                    dateEnd: String(dateEnd),
-                },
-                type: sequelize.QueryTypes.SELECT
-            }
+            replacements: {
+                dateStart: String(dateStart),
+                dateEnd: String(dateEnd),
+            },
+            type: sequelize.QueryTypes.SELECT
+        }
         );
     }
 

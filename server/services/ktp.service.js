@@ -204,22 +204,36 @@ class KtpService {
         const activeYear = this.getActiveYear();
         let data = await sequelize.query(
             `SELECT DISTINCT e.employeeId,
-                             CONCAT(e.last_name, ' ', SUBSTR(e.first_name, 1, 1), '.',
-                                    SUBSTR(e.fathers_name, 1, 1), '.') AS fio
-             FROM employees AS e
-                      INNER JOIN employee_loading_subjects els ON
-                     e.employeeId IN (els.courseEmployeeId, els.employeeId, els.practiceEmployeeId)
-                      INNER JOIN employee_loading el ON els.employeeLoadingId = el.id
-             WHERE el.year = :year
-             UNION
-             SELECT e.employeeId,
-                    CONCAT(e.last_name, ' ', SUBSTR(e.first_name, 1, 1), '.',
-                           SUBSTR(e.fathers_name, 1, 1), '.') AS fio
-             FROM employees AS e
-                      INNER JOIN teacher_replace tr ON e.employeeId = tr.replaceEmployeeId
-             WHERE dateStart BETWEEN :dateStart AND :dateEnd
-                OR dateEnd BETWEEN :dateStart AND :dateEnd
-             ORDER BY fio`,
+                CONCAT(e.last_name, ' ', SUBSTR(e.first_name, 1, 1), '.',
+                       SUBSTR(e.fathers_name, 1, 1), '.') AS fio
+FROM employees AS e
+         INNER JOIN employee_loading_subjects els
+         ON e.employeeId IN (els.courseEmployeeId, els.employeeId, els.practiceEmployeeId)
+         INNER JOIN employee_loading el ON els.employeeLoadingId = el.id
+WHERE el.year = :year
+
+UNION
+
+SELECT DISTINCT e.employeeId,
+                CONCAT(e.last_name, ' ', SUBSTR(e.first_name, 1, 1), '.',
+                       SUBSTR(e.fathers_name, 1, 1), '.') AS fio
+FROM employees AS e
+         INNER JOIN teacher_replace tr ON e.employeeId = tr.replaceEmployeeId
+WHERE (dateStart BETWEEN :dateStart AND :dateEnd
+   OR dateEnd BETWEEN :dateStart AND :dateEnd)
+
+UNION
+
+SELECT DISTINCT e.employeeId,
+                CONCAT(e.last_name, ' ', SUBSTR(e.first_name, 1, 1), '.',
+                       SUBSTR(e.fathers_name, 1, 1), '.') AS fio
+FROM employees e
+         INNER JOIN employee_contracts ec ON e.employeeId = ec.employeeId
+         INNER JOIN posts p ON p.postId = ec.contractPostId
+         where p.isTeacher =1 and ec.status =3
+GROUP BY e.employeeId
+ORDER BY fio;
+`,
             {
                 replacements: {
                     year: activeYear,
