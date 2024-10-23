@@ -63,7 +63,7 @@
             </select>
 
             <template v-if="group[lessonNumber].ktpId">
-              <select :class="hasConflictTeacher(group[lessonNumber].teacherId,lessonNumber)"
+              <select :class="hasConflictTeacher(null,group[lessonNumber].teacherId,lessonNumber)"
                       @change="performSubjectChange(group[lessonNumber]);"
                       v-model="group[lessonNumber].teacherId"
               >
@@ -78,7 +78,7 @@
               <select v-model="group[lessonNumber].optionalTeacherId"
                       v-if="group[lessonNumber].needSubgroup"
                       @change="performSubjectChange(group[lessonNumber]);"
-                      :class="hasConflictTeacher(group[lessonNumber].optionalTeacherId,lessonNumber)"
+                      :class="hasConflictTeacher(group[lessonNumber].groupId,group[lessonNumber].optionalTeacherId,lessonNumber)"
               >
                 <option value="" disabled selected>-второй преподаватель-</option>
                 <option :value="null">-нет-</option>
@@ -90,7 +90,7 @@
 
               <select class="selectdiv"
                       @change="performSubjectChange(group[lessonNumber]);"
-                      :class="hasConflictCabinet(group[lessonNumber].cabinetId,lessonNumber)"
+                      :class="hasConflictCabinet(null,group[lessonNumber].cabinetId,lessonNumber)"
                       v-model="group[lessonNumber].cabinetId">
                 <option value="" disabled selected>-кабинет-</option>
                 <option v-for="cabinet in cabinets" :key="cabinet.id" :value="cabinet.id">
@@ -99,7 +99,7 @@
               </select>
 
               <select class="selectdiv" @change="performSubjectChange(group[lessonNumber]);"
-                      :class="hasConflictCabinet(group[lessonNumber].optionalCabinetId,lessonNumber)"
+                      :class="hasConflictCabinet(group[lessonNumber].groupId,group[lessonNumber].optionalCabinetId,lessonNumber)"
                       v-model="group[lessonNumber].optionalCabinetId">
 
                 <option value="" disabled selected>-второй кабинет-</option>
@@ -139,7 +139,10 @@
     <div class="flex flex-col">
       <span class="box-border h-25 w-200 p-4  rounded-xl bg-red-500 mt-2" v-for="conflict in conflicts.details">
         <strong>{{ conflict }}</strong>
-    </span>
+      </span> <span class="box-border h-25 w-200 p-4  rounded-xl bg-orange-400 mt-2"
+                    v-for="conflict in conflicts.warnings">
+        <strong>{{ conflict }}</strong>
+      </span>
     </div>
   </div>
 </template>
@@ -179,7 +182,10 @@ export default {
       conflicts: {
         teachers: {},
         cabinets: {},
-        details: []
+        optionalTeacher: {},
+        optionalCabinet: {},
+        details: [],
+        warnings: []
       },
       dateCourseEvent: {},
       removeSchedule: [],
@@ -291,8 +297,7 @@ export default {
         if (pair.type === 'custom') {
           this.removeSchedule.push({id: pair.id, type: 'custom'})
         } else {
-          pair.ids?.forEach((id) => {
-            
+          pair.ids.forEach((id) => {
             if (!_.find(this.removeSchedule, {'id': id})) {
               this.featureSchedule[pair.ktpId]
               this.removeSchedule.push({id: id, type: 'lesson'})
@@ -337,7 +342,7 @@ export default {
       return type;
     },
     openModal() {
-      if (this.conflicts.details.length > 0) {
+      if (this.conflicts.details.length > 0 || this.conflicts.warnings.length > 0) {
         this.modal = 1;
       } else {
         this.saveSchedule();
@@ -385,7 +390,9 @@ export default {
       let conflict = {
         teachers: {},
         cabinets: {},
-        details: []
+        optionalTeacher: {},
+        details: [],
+        warnings: [],
       };
 
       const ignoreCabinets = [
@@ -447,6 +454,17 @@ export default {
                   conflict.cabinets[key] = [];
                 }
                 conflict.cabinets[key].push(pair);
+              }
+
+              // check if pair splited on two teachers - add warning
+              if (pair.needSubgroup && !(pair.optionalTeacherId > 0)) {
+                _.set(conflict, ['optionalTeacher', pair.groupId, pairNum], 1);
+                conflict.warnings.push(`В группе ${pair.group} на ${pairNum} паре нет второго преподавателя!`)
+              }
+              // check if pair splited on two teachers - add warning
+              if (pair.needSubgroup && pair.teacherId !== pair.optionalTeacherId && !(pair.optionalCabinetId > 0)) {
+                _.set(conflict, ['optionalCabinet', pair.groupId, pairNum], 1);
+                conflict.warnings.push(`В группе ${pair.group} на ${pairNum} паре не указан второй кабинет!`)
               }
             }
           })
@@ -602,9 +620,14 @@ export default {
         })
       })
 
-      this.conflicts.cabinets = {}
-      this.conflicts.details = []
-      this.conflicts.teachers = {}
+      this.conflicts = {
+        teachers: {},
+        cabinets: {},
+        optionalTeacher: {},
+        optionalCabinet: {},
+        details: [],
+        warnings: []
+      };
 
       this.$axios.get('schedule/getCurrentSchedule', {
         params: {date: this.date}
@@ -697,16 +720,23 @@ export default {
         return {'tooMuch': true}
       }
     },
-    hasConflictTeacher(teacherId, pair) {
+    hasConflictTeacher(groupId, teacherId, pair) {
+      const isConflict = _.get(this.conflicts, ['teachers', teacherId + '_' + pair], 0).length > 1;
+      const isWarning = _.get(this.conflicts, ['optionalTeacher', groupId, pair], 0);
       return {
         'selectdiv': true,
-        'conflict': _.get(this.conflicts, ['teachers', teacherId + '_' + pair], 0).length > 1,
+        'conflict': isConflict,
+        'warning': !isConflict && isWarning,
       }
     },
-    hasConflictCabinet(cabinetId, pair) {
+    hasConflictCabinet(groupId, cabinetId, pair) {
+      const isConflict = _.get(this.conflicts, ['cabinets', cabinetId + '_' + pair], 0).length > 1;
+      const isWarning = _.get(this.conflicts, ['optionalCabinet', groupId, pair], 0);
+
       return {
         'selectdiv': true,
-        'conflict': _.get(this.conflicts, ['cabinets', cabinetId + '_' + pair], 0).length > 1,
+        'conflict': isConflict,
+        'warning': !isConflict && isWarning,
       }
     },
     cellInfo(pair) {
@@ -1010,6 +1040,9 @@ select.conflict {
   /*background-color: #ffcccc;*/
 }
 
+select.warning {
+  @apply bg-orange-500 text-orange-50 border-orange-400 border-2;
+}
 
 .notFullForm {
   @apply bg-red-400
