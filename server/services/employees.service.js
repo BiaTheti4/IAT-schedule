@@ -8,10 +8,10 @@ class EmployeesService {
         console.log('abobus')
         return await sequelize.query(
             'select e.employeeId, e.last_name, e.first_name, e.fathers_name from employees e ' +
-'inner join employee_contracts ec on e.employeeId = ec.employeeId '+
-'inner join posts p on p.postId = ec.contractPostId '+
-'where p.isTeacher = 1 and ec.status = 3 '+
-'GROUP BY e.employeeId'
+            'inner join employee_contracts ec on e.employeeId = ec.employeeId '+
+            'inner join posts p on p.postId = ec.contractPostId '+
+            'where p.isTeacher = 1 and ec.status = 3 '+
+            'GROUP BY e.employeeId'
         )
 
         // return await sequelize.query('SELECT e.employeeId, e.last_name, e.first_name, e.fathers_name FROM employees AS e ' +

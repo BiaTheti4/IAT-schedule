@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../path/to/sequelize/instance'); // подключение к вашей базе данных
+const sequelize = require('../path/to/sequelize/instance'); 
 
 const Post = sequelize.define('Post', {
     postId: {

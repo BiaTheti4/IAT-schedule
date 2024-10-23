@@ -10,15 +10,15 @@ let checkToken = (req, res, next) => {
 
     const isPublic = req.headers['is-public'] === 'true';
 
-    // Если маршрут публичный, пропускаем проверку токена
+
     if (isPublic) {
         next();
         return;
     }
 
-    let token = req.headers['x-access-token'] || req.headers['authorization'] || ''; // Express headers are auto converted to lowercase
+    let token = req.headers['x-access-token'] || req.headers['authorization'] || '';
     if (token.startsWith('Bearer ')) {
-        // Remove Bearer from string
+        
         token = token.slice(7, token.length);
     }
 

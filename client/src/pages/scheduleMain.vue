@@ -41,8 +41,8 @@
 
       <tbody>
       <tr v-for="lessonNumber in 7" :key="lessonNumber.value">
-        <td class="lessonNumber">{{ lessonNumber }}</td>
-        <td class="lessonNumber">{{ lessonTime[lessonNumber - 1] }}</td>
+        <td class="">{{ lessonNumber }}</td>
+        <td class="">{{ lessonTime[lessonNumber - 1] }}</td>
         <td v-for="group in getCourseData" :class="cellInfo(group[lessonNumber])">
           <div class="formSubjects">
             <div v-if="group[lessonNumber].ktpId" style="float:left">{{ getLabel(group[lessonNumber]) }}</div>
@@ -306,7 +306,7 @@ export default {
         pair.label = '';
         pair.needSubgroup = false;
         pair.lastHour = null;
-        // pair.ids = []; // need to stay - for save
+        pair.ids = []; 
         pair.list_id = '';
       }
     },
@@ -404,9 +404,9 @@ export default {
           _.each(groups, (pair, pairNum) => {
             if (pair.ktpId) {
               if (isNaN(pair.ktpId)) {
-                groupRow.customHours += 2;// add current hours on day to all part
+                groupRow.customHours += 2;
               } else {
-                groupRow.hours += 2;// add current hours on day to all part
+                groupRow.hours += 2;
               }
 
               let key;
@@ -573,7 +573,7 @@ export default {
       lesson.status = ''
     },
 
-    // в test лежит название группы
+    
     getSubjectList(groupId) {
       let ktpSubjects = _.get(this.courses, [this.selectedCourse, 'groups', groupId, 'subjects'], [])
       return [...ktpSubjects, ...CustomLesson];
@@ -801,8 +801,7 @@ export default {
     this.initCabinets();
     this.initGroups();
 
-    //установка текущего курса по умолчанию на 1
-    //запросы на получение информации
+
 
   }
 }
