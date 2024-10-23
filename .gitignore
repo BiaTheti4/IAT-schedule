@@ -1,5 +1,5 @@
 **/node_modules
-./.idea
+**/.idea
 /server/.env
 .gitignore
 /server/config/db.config.js
@@ -31,4 +31,3 @@
 ./client/*.sln
 ./client/*.sw?
 ./client/.env
-
