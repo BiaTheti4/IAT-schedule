@@ -20,9 +20,30 @@
                 @change="correctPath"
                 v-model="selectedGroup">
           <option value="" selected>Все группы</option>
-          <option v-for="group in groups" :key="group.groupId" :value="group.groupId">
+          <option disabled>1 курс</option>
+          <option v-for="group in groupByCourse[1]" :key="group.id" :value="group.id">
             {{ group.name }}
           </option>
+          <option disabled>2 курс</option>
+          <option v-for="group in groupByCourse[2]" :key="group.id" :value="group.id">
+            {{ group.name }}
+          </option>
+          <option disabled>3 курс</option>
+          <option v-for="group in groupByCourse[3]" :key="group.id" :value="group.id">
+            {{ group.name }}
+          </option>
+          <option disabled>4 курс</option>
+          <option v-for="group in groupByCourse[4]" :key="group.id" :value="group.id">
+            {{ group.name }}
+          </option>
+          <option disabled>5 курс</option>
+          <option v-for="group in groupByCourse[5]" :key="group.id" :value="group.id">
+            {{ group.name }}
+          </option>
+
+          <!--          <option v-for="group in groups" :key="group.groupId" :value="group.groupId">
+                      {{ group.name }}
+                      </option>-->
         </select>
       </div>
     </div>
@@ -70,8 +91,7 @@ export default {
       if (date === undefined) {
         date = new Date();
       }
-      let dateString = moment(date).format('YYYY-MM-DD');
-      this.date = dateString;
+      this.date = moment(date).format('YYYY-MM-DD');
       this.updateSchedule(date);
     },
     updateSchedule(date) {
@@ -86,7 +106,7 @@ export default {
     this.selectedGroup = this.$route.query.group || ''
     this.initGroups();
     this.updateSchedule();
-    
+
 
   }
 

@@ -83,13 +83,10 @@ export default {
   },
   methods: {
     checkLesson(lesson) {
-      if (lesson.subject == 'Классный час') {
+      if (lesson.subject === 'Классный час') {
         return 'bg-amber-200  border border-gray-300 rounded-lg'
       } else {
-        if ((lesson.lessonNumber == this.currentLesson + 1) && (lesson.date == moment().format('YYYY-MM-DD'))) {
-          console.log(lesson)
-          console.log(lesson.lessonNumber)
-          console.log(this.currentLesson+1)
+        if ((lesson.lessonNumber === this.currentLesson + 1) && (lesson.date === moment().format('YYYY-MM-DD'))) {
           return 'bg-green-200 border border-gray-300 rounded-lg'
         } else {
           return 'bg-sky-100 border border-gray-200'
@@ -104,7 +101,7 @@ export default {
     },
     checkCurrentTimeInIntervals() {
       const currentTime = new Date();
-      this.currentLesson = LessonTime.findIndex((interval, index) => {
+      this.currentLesson = LessonTime.findIndex((interval) => {
         if (typeof interval !== 'string') return false; // Проверяем, что это строка
         const [start, end] = interval.split('-');
         const startTime = this.parseTime(start);
@@ -148,7 +145,5 @@ export default {
 </script>
 
 <style scoped>
-.bg-green-500 {
-  background-color: green;
-}
+
 </style>

@@ -6,10 +6,9 @@ import teacherBusyness from "@/pages/teacherBusyness";
 import cabinetBusyness from "@/pages/cabinetBusyness";
 import scheduleCorrect from "@/pages/scheduleCorrect";
 import scheduleCompare from "@/pages/scheduleCompare";
-import scheduleViewFull from "@/pages/scheduleViewFull";
 import login from "@/pages/Login";
 import {globalStore} from "@/store/global";
-import forbidden from "../pages/forbidden.vue";
+import cabinetTimeBusyness from "@/pages/cabinetTimeBusyness.vue";
 
 
 const routes = [
@@ -62,9 +61,9 @@ const routes = [
         meta:{isPublic:  true} 
     },
     {
-        path: '/forbidden',
-        component: forbidden,
-        name: forbidden.name,
+        path: '/cabinetTime',
+        component: cabinetTimeBusyness,
+        name: cabinetTimeBusyness.name,
         meta:{isPublic:  true} 
     },
 
