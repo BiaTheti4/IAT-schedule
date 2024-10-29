@@ -148,7 +148,6 @@
 </template>
 
 <script>
-import axios from "axios";
 import moment from 'moment';
 import _ from 'lodash';
 import {createToaster} from "@meforma/vue-toaster";
@@ -297,7 +296,7 @@ export default {
         if (pair.type === 'custom') {
           this.removeSchedule.push({id: pair.id, type: 'custom'})
         } else {
-          pair.ids.forEach((id) => {
+          pair.ids?.forEach((id) => {
             if (!_.find(this.removeSchedule, {'id': id})) {
               this.featureSchedule[pair.ktpId]
               this.removeSchedule.push({id: id, type: 'lesson'})

@@ -2,6 +2,7 @@ import _ from "lodash";
 import {scheduleStore} from "@/store/schedule"
 import {CustomLesson} from "@/enums/CustomLesson";
 
+
 let ScheduleMixin = {
 
     computed: {
