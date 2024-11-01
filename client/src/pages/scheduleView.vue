@@ -41,9 +41,9 @@
             {{ group.name }}
           </option>
 
-          <!--          <option v-for="group in groups" :key="group.groupId" :value="group.groupId">
-                      {{ group.name }}
-                      </option>-->
+<!--          <option v-for="group in groups" :key="group.groupId" :value="group.groupId">-->
+<!--                      {{ group.name }}-->
+<!--                      </option>-->
         </select>
       </div>
     </div>
