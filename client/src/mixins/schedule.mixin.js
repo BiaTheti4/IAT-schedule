@@ -75,13 +75,12 @@ let ScheduleMixin = {
                     let cRow = _.get(store.cabinetSchedule, [lesson.cabinet_id, lesson.date, lesson.lesson_number], false);
                     let eRow = _.get(store.employeeSchedule, [lesson['employee_id'], lesson.date, lesson.lesson_number], false);
                     if (!gRow) {
-                        _.setWith(store.groupSchedule, [lesson.group_id, lesson.date, lesson.lesson_number],
-                            scheduleRow, Object);
+                        _.setWith(store.groupSchedule, [lesson.group_id, lesson.date, lesson.lesson_number], scheduleRow, Object);
                     } else {
-                        if (!gRow.custom) {
-                            gRow.custom = [];
+                        if (!gRow.custom) gRow.custom = [];
+                        if (!gRow.custom.some(l => _.isEqual(l, scheduleRow))) {
+                            gRow.custom.push(scheduleRow);
                         }
-                        gRow.custom.push(scheduleRow);
                     }
                     // cabinetSchedule
                     if (!cRow) {
@@ -111,7 +110,7 @@ let ScheduleMixin = {
         },
 
         correctData(row, data) {
-            if (row.lessonType.indexOf(data.category) === -1) {
+            if (!row.lessonType.includes(data.category)) {
                 row.lessonType.push(data.category);
             }
             return row;
@@ -119,9 +118,9 @@ let ScheduleMixin = {
         getPracticePrefix(type) {
             if (+type === 1) {
                 return 'УП.';
-            } else if (+type == 2) {
+            } else if (+type === 2) {
                 return 'ПП.';
-            } else if (+type == 3) {
+            } else if (+type === 3) {
                 return "ПДП "
             }
             return '';
@@ -146,8 +145,14 @@ let ScheduleMixin = {
             return this._getLesson(this.store.employeeSchedule, employeeId, date, lessonNumber);
         },
         _getLesson(schedule, id, date, lessonNumber) {
-            return _.get(schedule, [id, date, lessonNumber], {});
 
+            const lesson = _.get(schedule, [id, date, lessonNumber], {});
+
+            if (lesson.custom && lesson.custom.some(item => item.date === date && item.lessonNumber === lessonNumber)) {
+                return {};
+            }
+
+            return lesson;
         },
         subjectCabinetCorrect(name) {
             let replaceCabinet = {

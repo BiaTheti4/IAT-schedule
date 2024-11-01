@@ -16,16 +16,18 @@
           {{ lessonTime[lessonNumber - 1] }}
 
         </td>
-        <td class="border border-gray-300 p-0 m-0 w-64 " v-for="day in weekDates" :key="day">
+        <td class="border border-gray-300 p-1 m-1 w-64" v-for="day in weekDates" :key="day">
 
-          <schedule-cell :schedule="getLesson(day.date, lessonNumber)"
-          v-if="!getLesson(day.date, lessonNumber).custom"
-                         class=" mt-1 mr-1 mb-1 ml-1"/>
-          <template v-if="getLesson(day.date, lessonNumber).custom" class=" mt-1 mr-1 mb-1 ml-1">
-             <schedule-cell :schedule="lesson"
-                           v-for="lesson in getLesson(day.date, lessonNumber).custom"
-                           />
-
+          <schedule-cell
+              v-if="!getLesson(day.date, lessonNumber).custom"
+              :schedule="getLesson(day.date, lessonNumber)"
+          />
+          <template v-if="getLesson(day.date, lessonNumber).custom">
+            <schedule-cell
+                v-for="lesson in getLesson(day.date, lessonNumber).custom"
+                :key="lesson.date + lesson.lessonNumber"
+            :schedule="lesson"
+            />
           </template>
         </td>
       </tr>

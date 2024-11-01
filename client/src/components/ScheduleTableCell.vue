@@ -102,7 +102,7 @@ export default {
     checkCurrentTimeInIntervals() {
       const currentTime = new Date();
       this.currentLesson = LessonTime.findIndex((interval) => {
-        if (typeof interval !== 'string') return false; // Проверяем, что это строка
+        if (typeof interval !== 'string') return false;
         const [start, end] = interval.split('-');
         const startTime = this.parseTime(start);
         const endTime = this.parseTime(end);
@@ -110,9 +110,9 @@ export default {
       });
 
       if (this.currentLesson !== -1) {
-        return this.currentLesson; // Возвращает номер входящего интервала
+        return this.currentLesson;
       } else {
-        return null; // Если не входит ни в один интервал
+        return null;
       }
 
     },
