@@ -38,7 +38,7 @@
     </tr>
     </thead>
     <tbody>
-    <tr v-for="(cabinet, index) in availableCabinets" :key="cabinet.id">
+    <tr v-for="(cabinet) in availableCabinets" :key="cabinet.id">
       <td class="border border-slate-700">{{ cabinet.number }}</td>
       <td :class="getCabinetStatusClass(cabinet)" class="border border-slate-700">
         {{ getCabinetStatus(cabinet) }}
@@ -84,17 +84,17 @@ export default {
       return date;
     },
     formatTimeUntilNextLesson(minutes) {
-      const hours = Math.floor(minutes / 60); // Вычисляем количество полных часов
-      const remainingMinutes = minutes % 60;  // Остаток минут после часов
+      const hours = Math.floor(minutes / 60);
+      const remainingMinutes = minutes % 60;
 
-      // Формируем строку с учетом правильного склонения
       const hoursText = hours ? `${hours} час${hours > 1 ? 'а' : ''}` : '';
       const minutesText = remainingMinutes ? `${remainingMinutes} минут` : '';
       return `${hoursText} ${minutesText}`.trim();
     },
-    // Пример использования в getCabinetStatus
+
     getCabinetStatus(cabinet) {
       const todaySchedule = this.store.cabinetSchedule[cabinet.id]?.[this.date];
+
       if (!todaySchedule) return "Кабинет свободен";
 
       const selectedTime = this.parseTime(this.selectedTime);
@@ -103,15 +103,14 @@ export default {
       for (const lesson of Object.values(todaySchedule)) {
         const lessonStart = this.parseTime(lessonTime[lesson.lessonNumber - 1].split('-')[0]);
         const lessonEnd = this.parseTime(lessonTime[lesson.lessonNumber - 1].split('-')[1]);
-
-        if (selectedTime >= lessonStart && selectedTime <= lessonEnd) {
+        const isCabinetOccupied = lesson.cabinet === cabinet.number || lesson.optionalCabinet === cabinet.number;
+        if (isCabinetOccupied && selectedTime >= lessonStart && selectedTime <= lessonEnd) {
           return "Занят";
         }
-        if (selectedTime < lessonStart && !nextLessonTime) {
+        if (isCabinetOccupied && selectedTime < lessonStart && !nextLessonTime) {
           nextLessonTime = lessonStart;
         }
       }
-
       if (nextLessonTime) {
         const timeUntilNextLesson = moment(nextLessonTime).diff(selectedTime, 'minutes');
         return `Пара начнется через ${this.formatTimeUntilNextLesson(timeUntilNextLesson)}`;
