@@ -68,6 +68,7 @@ let ScheduleMixin = {
                         subject: name,
                         mainTeacher: lesson.employee,
                         cabinet: lesson.cabinet,
+                        lessonNumber: lesson['lesson_number'],
                         isLessonProgress: false
                     };
 
