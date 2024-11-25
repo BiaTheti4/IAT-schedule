@@ -101,8 +101,8 @@ export default {
       let nextLessonTime = null;
 
       for (const lesson of Object.values(todaySchedule)) {
-        const lessonStart = this.parseTime(lessonTime[lesson.lessonNumber - 1].split('-')[0]);
-        const lessonEnd = this.parseTime(lessonTime[lesson.lessonNumber - 1].split('-')[1]);
+        const lessonStart = this.parseTime(lessonTime[lesson.lessonNumber - 1]?.split('-')[0]);
+        const lessonEnd = this.parseTime(lessonTime[lesson.lessonNumber - 1]?.split('-')[1]);
         const isCabinetOccupied = lesson.cabinet === cabinet.number || lesson.optionalCabinet === cabinet.number;
         if (isCabinetOccupied && selectedTime >= lessonStart && selectedTime <= lessonEnd) {
           return "Занят";
