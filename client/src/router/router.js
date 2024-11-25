@@ -64,24 +64,21 @@ const routes = [
         path: '/cabinetTime',
         component: cabinetTimeBusyness,
         name: cabinetTimeBusyness.name,
-        meta:{isPublic:  true} 
+        meta:{isPublic:  false}
     },
-
 ];
-
+const basePath = "/";
 const router = createRouter({
     routes,
-    history: createWebHistory()
+    history: createWebHistory(basePath)
 });
 router.beforeEach((to, from, next) => {
     const store = globalStore(); 
     const routeIsPublic = to.matched.some(record => record.meta.isPublic === true);
 
     if (!routeIsPublic && store.auth === false && to.name !== 'login') {
-       
         next({ name: 'forbidden' });
     } else {
-       
         next();
     }
 });

@@ -78,7 +78,7 @@ export default {
         {link: '/', title: 'Расписание', isPublic: true},
         {link: '/teachers', title: 'По преподавателям', isPublic: true},
         {link: '/cabinets', title: 'По кабинетам', isPublic: true},
-        {link: '/cabinetTime', title: 'Кабинеты по времени', isPublic: true},
+        {link: '/cabinetTime', title: 'Кабинеты по времени', isPublic: false},
         {link: '/print', title: 'Печать расписания', isPublic: false},
         {link: '/schedule-correct', title: 'Исправления', isPublic: false},
         {link: '/schedule-compare', title: 'DEBUG', isPublic: false},

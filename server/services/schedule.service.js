@@ -278,6 +278,18 @@ class ScheduleService {
                     }
                 })
             }
+            if (row.type === 'lesson' && +row.id > 0) {
+                models.schedule.update({
+                    date: null,
+                    lesson_number:null,
+                    cabinet_id: null,
+                    optional_cabinet_id: null,
+                },{
+                    where: {
+                        id: row.id
+                    }
+                })
+            }
         });
         return true;
     }
