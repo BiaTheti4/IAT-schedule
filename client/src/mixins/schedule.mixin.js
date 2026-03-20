@@ -15,7 +15,7 @@ let ScheduleMixin = {
         async getSchedule(dateStart, dateEnd) {
             this.showLoading();
             try {
-                let res = await this.$axios.get('schedule/period',
+                const res = await this.$axios.get('schedule/period',
                     {
                         headers: {
                             'is-public': 'true'
@@ -24,10 +24,21 @@ let ScheduleMixin = {
                     },
                 );
 
+                const pushToPath = (obj, p1, p2, p3, p4, value) => {
+                    // Создаем вложенность на лету, если её нет
+                    if (!obj[p1]) obj[p1] = {};
+                    if (!obj[p1][p2]) obj[p1][p2] = {};
+                    if (!obj[p1][p2][p3]) obj[p1][p2][p3] = {};
+                    obj[p1][p2][p3][p4] = value
+                };
+
+
                 const store = this.store;
                 store.groupSchedule = {};
                 store.cabinetSchedule = {};
                 store.employeeSchedule = {};
+
+
                 for (let lesson of res.data.main) {
                     let scheduleRow = {
                         subject: (lesson['subject_code'] ? this.getPracticePrefix(lesson['practice_type']) + lesson['subject_code'] + ' ' : '') + lesson.subject,
@@ -42,24 +53,25 @@ let ScheduleMixin = {
                         isLessonProgress: false,
                     };
 
-                    let gRow = _.get(store.groupSchedule, [lesson.groupId, lesson.date, lesson.lesson_number], scheduleRow);
-                    let cRow = _.get(store.cabinetSchedule, [lesson.groupId, lesson.date, lesson.lesson_number], scheduleRow);
-                    let eRow = _.get(store.employeeSchedule, [lesson.groupId, lesson.date, lesson.lesson_number], scheduleRow);
+                    let gRow = _.get(store.groupSchedule, [lesson.groupId, lesson.date, lesson.lesson_number, lesson.ktp_id], scheduleRow);
+                    let cRow = _.get(store.cabinetSchedule, [lesson.cabinet_id, lesson.date, lesson.lesson_number, lesson.ktp_id], scheduleRow);
+                    let eRow = _.get(store.employeeSchedule, [lesson.employee_id, lesson.date, lesson.lesson_number, lesson.ktp_id], scheduleRow);
 
                     gRow = this.correctData(gRow, lesson)
                     cRow = this.correctData(cRow, lesson)
                     eRow = this.correctData(eRow, lesson)
 
-                    _.setWith(store.groupSchedule, [lesson.groupId, lesson.date, lesson.lesson_number], gRow, Object);
-                    // cabinetSchedule
-                    _.setWith(store.cabinetSchedule, [lesson.cabinet_id, lesson.date, lesson.lesson_number], cRow, Object);
-                    if (lesson['optional_cabinet_id'] > 0 && lesson.cabinet_id !== lesson['optional_cabinet_id']) {
-                        _.setWith(store.cabinetSchedule, [lesson['optional_cabinet_id'], lesson.date, lesson.lesson_number], cRow, Object);
+
+                    pushToPath(store.groupSchedule, lesson.groupId, lesson.date, lesson.lesson_number, lesson.ktp_id, gRow);
+
+                    pushToPath(store.cabinetSchedule, lesson.cabinet_id, lesson.date, lesson.lesson_number, lesson.ktp_id, cRow);
+                    if (lesson.optional_cabinet_id > 0 && lesson.cabinet_id !== lesson.optional_cabinet_id) {
+                        pushToPath(store.cabinetSchedule, lesson.optional_cabinet_id, lesson.date, lesson.lesson_number, lesson.ktp_id, cRow);
                     }
-                    // employeeSchedule
-                    _.setWith(store.employeeSchedule, [lesson['employee_id'], lesson.date, lesson.lesson_number], eRow, Object);
-                    if (lesson['optional_employee_id'] > 0 && lesson['employee_id'] !== lesson['optional_employee_id']) {
-                        _.setWith(store.employeeSchedule, [lesson['optional_employee_id'], lesson.date, lesson.lesson_number], eRow, Object);
+
+                    pushToPath(store.employeeSchedule, lesson.employee_id, lesson.date, lesson.lesson_number, lesson.ktp_id, eRow);
+                    if (lesson.optional_employee_id > 0 && lesson.employee_id !== lesson.optional_employee_id) {
+                        pushToPath(store.employeeSchedule, lesson.optional_employee_id, lesson.date, lesson.lesson_number, lesson.ktp_id, eRow);
                     }
                 }
                 for (let lesson of res.data.custom) {
@@ -69,49 +81,50 @@ let ScheduleMixin = {
                         mainTeacher: lesson.employee,
                         cabinet: lesson.cabinet,
                         lessonNumber: lesson['lesson_number'],
+                        lessonType: [],
+                        custom: true,
                         isLessonProgress: false
                     };
 
-                    let gRow = _.get(store.groupSchedule, [lesson.group_id, lesson.date, lesson.lesson_number], false);
-                    let cRow = _.get(store.cabinetSchedule, [lesson.cabinet_id, lesson.date, lesson.lesson_number], false);
-                    let eRow = _.get(store.employeeSchedule, [lesson['employee_id'], lesson.date, lesson.lesson_number], false);
-                    if (!gRow) {
-                        _.setWith(store.groupSchedule, [lesson.group_id, lesson.date, lesson.lesson_number], scheduleRow, Object);
-                    } else {
-                        if (!gRow.custom) gRow.custom = [];
-                        if (!gRow.custom.some(l => _.isEqual(l, scheduleRow))) {
-                            gRow.custom.push(scheduleRow);
-                        }
-                    }
+                    pushToPath(store.groupSchedule, lesson.group_id, lesson.date, lesson.lesson_number, lesson.name, scheduleRow);
+                    pushToPath(store.cabinetSchedule, lesson.group_id, lesson.date, lesson.lesson_number, lesson.name, scheduleRow);
+                    pushToPath(store.employeeSchedule, lesson.group_id, lesson.date, lesson.lesson_number, lesson.name, scheduleRow);
+                    // let gRow = _.get(store.groupSchedule, [lesson.group_id, lesson.date, lesson.lesson_number], false);
+                    // let cRow = _.get(store.cabinetSchedule, [lesson.cabinet_id, lesson.date, lesson.lesson_number], false);
+                    // let eRow = _.get(store.employeeSchedule, [lesson['employee_id'], lesson.date, lesson.lesson_number], false);
+                    // if (!gRow) {
+                    // } else {
+                    //     if (!gRow.custom) gRow.custom = [];
+                    //     if (!gRow.custom.some(l => _.isEqual(l, scheduleRow))) {
+                    //         gRow.custom.push(scheduleRow);
+                    //     }
+                    // }
                     // cabinetSchedule
-                    if (!cRow) {
-                        _.setWith(store.cabinetSchedule, [lesson.cabinet_id, lesson.date, lesson.lesson_number],
-                            scheduleRow, Object);
-                    } else {
-                        if (!cRow.custom) {
-                            cRow.custom = [];
-                        }
-                        cRow.custom.push(scheduleRow);
-                    }
+                    // if (!cRow) {
+                    // } else {
+                    //     if (!cRow.custom) {
+                    //         cRow.custom = [];
+                    //     }
+                    //     cRow.custom.push(scheduleRow);
+                    // }
                     // employeeSchedule
-                    if (!eRow) {
-                        _.setWith(store.employeeSchedule, [lesson['employee_id'], lesson.date, lesson.lesson_number],
-                            scheduleRow, Object);
-                    } else {
-                        if (!eRow.custom) {
-                            eRow.custom = [];
-                        }
-                        eRow.custom.push(scheduleRow);
-                    }
+                    // if (!eRow) {
+                    // } else {
+                    //     if (!eRow.custom) {
+                    //         eRow.custom = [];
+                    //     }
+                    //     pushToPath(store.employeeSchedule, lesson.groupId, lesson.date, lesson.lesson_number, scheduleRow);
+                    // }
                 }
             } catch (e) {
-                console.log(e)
+                console.error(e);
+            } finally {
+                this.hideLoading();
             }
-            this.hideLoading();
         },
 
         correctData(row, data) {
-            if (!row.lessonType.includes(data.category)) {
+            if (row.lessonType && !row.lessonType.includes(data.category)) {
                 row.lessonType.push(data.category);
             }
             return row;
@@ -147,7 +160,7 @@ let ScheduleMixin = {
         },
         _getLesson(schedule, id, date, lessonNumber) {
 
-            const lesson = _.get(schedule, [id, date, lessonNumber], {});
+            const lesson = _.get(schedule, [id, date, lessonNumber], false);
 
             if (lesson.custom && lesson.custom.some(item => item.date === date && item.lessonNumber === lessonNumber)) {
                 return {};

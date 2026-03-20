@@ -28,20 +28,21 @@ class ScheduleController {
     }
 
     async updateSchedule(req, res) {
-        const lessons = req.body.data
-        let result = await ScheduleService.updateSchedule(lessons, req.body.date);
-        let remove = result = await ScheduleService.removeSchedule(req.body.remove)
+        const lessons = req.body.data;
+        if (req.body.remove && req.body.remove.length) {
+            await ScheduleService.removeSchedule(req.body.remove);
+        }
+        const result = await ScheduleService.updateSchedule(lessons);
         return res.json({
-                status: result === true,
-                errors: result === true ? null : result
-            }
-        )
+            status: result === true,
+            errors: result === true ? null : result
+        });
     }
 
     async correct(req, res) {
         return res.json({
             list: await ScheduleService.correctScheduleOrder(req.query.ktpId, +req.query.correct === 1),
-            overlay: await ScheduleService.getScheduleOverlay(req.query.ktpId, +req.query.correct === 1)
+            overlay: await ScheduleService.getScheduleOverlay()
         });
     }
 

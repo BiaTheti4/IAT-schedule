@@ -5,13 +5,11 @@ const _ = require('lodash');
 const ktpService = require('./ktp.service');
 const CustomLesson = require("../enums/CustomLesson");
 const {Op} = require("sequelize");
-const ReplaceService = require('./replace.service')
-const KtpService = require('./ktp.service')
-const repl = require("repl");
+const ReplaceService = require('./replace.service');
+const KtpService = require('./ktp.service');
 
 class ScheduleService {
 
-    const
     mainQuery = `SELECT sch.id,
                         sch.date,
                         sch.ktp_id,
@@ -63,7 +61,6 @@ class ScheduleService {
                  ORDER BY sch.ktp_id, sch.hour
     `;
 
-    const
     customQuery = `SELECT sc.*,
                           :activeYear - g.year + 1 AS course,
                           c.number                 AS cabinet,
@@ -231,7 +228,7 @@ class ScheduleService {
     parseSchedule(data) {
         let result = {};
         for (let row of data) {
-            let key = `${row.date}_${row.groupId}_${row.lesson_number}`;
+            let key = `${row.date}_${row.groupId}_${row.lesson_number}_${row.ktp_id}`;
             let needSubgroup = false;
             if (this.isPractice(row.category) && row['practice_grouped'] > 0) {
                 needSubgroup = row['main_employee'] !== row['practice_employee'];
@@ -308,7 +305,7 @@ class ScheduleService {
                     // update schedule
                     if (scheduleId > 0) {
                         let scheduleRow = await models.schedule.findByPk(scheduleId);
-                        if (!scheduleRow.id > 0) {
+                        if (!scheduleRow || !(scheduleRow.id > 0)) {
                             errors.push('Не найдено занятий в расписании для ID ' + scheduleId);
                         } else {
                             if (lesson.ktpId > 0) {
@@ -394,8 +391,8 @@ class ScheduleService {
                     employee_id: lesson.teacherId,
                     cabinet_id: lesson.cabinetId,
                 });
-                if (!scheduleRow.id > 0) {
-                    return 'не удалось сохранить данные'
+                if (!scheduleRow || !(scheduleRow.id > 0)) {
+                    return 'не удалось сохранить данные';
                 }
             } catch (e) {
                 return 'Ошибка сохранения расписания: ' + e.message;
@@ -466,7 +463,7 @@ class ScheduleService {
     }
 
     async getScheduleOverlay() {
-        let year = this.getActiveYear();
+        let year = this.getActiveYear(new Date());
         let rows = await sequelize.query(
             `select count(id)            as cnt,
                     groupId,
@@ -566,6 +563,7 @@ class ScheduleService {
                     cabinet_id: row.cabinet_id,
                     employee_id: row.employee_id,
                     optional_employee_id: row.optional_employee_id,
+                    optional_cabinet_id: row.optional_cabinet_id,
                 }]
             return acc;
         }, {});
@@ -612,20 +610,39 @@ class ScheduleService {
 
                     if (scheduleRow.cabinet_id === null) {
                         scheduleRow.cabinet_id = lessonNumber.cabinet_id;
-                        scheduleRow.optional_cabinet_id = lessonNumber.optional_cabinet_id;
                     }
                     // if replaced employee
                     if (+scheduleRow.employee_id !== +dateEmployees.main) {
                         scheduleRow.employee_id = dateEmployees.main;
                     }
-                    if (lessonNumber.category !== 'p') {
-                        if (dateEmployees.practice > 0 && +scheduleRow.optional_employee_id !== +dateEmployees.practice) {
-                            scheduleRow.optional_employee_id = dateEmployees.practice;
+
+                    // Optional (подгруппа 2) заполняем только когда реально есть "деление":
+                    // optional-предметный преподаватель != main-преподавателя и он определен для этого типа занятия.
+                    const mainEmployeeId = +dateEmployees.main;
+                    const isPractice = this.isPractice(row.category); // l/p
+                    const isCourse = this.isCourse(row.category); // k
+
+                    if (isPractice) {
+                        const optionalPracticeId = dateEmployees.practice ? +dateEmployees.practice : null;
+                        if (optionalPracticeId && optionalPracticeId > 0 && optionalPracticeId !== mainEmployeeId) {
+                            scheduleRow.optional_employee_id = optionalPracticeId;
+                            scheduleRow.optional_cabinet_id = lessonNumber.optional_cabinet_id;
+                        } else {
+                            scheduleRow.optional_employee_id = null;
+                            scheduleRow.optional_cabinet_id = null;
                         }
-                    } else if (lessonNumber.category !== 'c') {
-                        if (dateEmployees.course > 0 && +scheduleRow.optional_employee_id !== +dateEmployees.course) {
-                            scheduleRow.optional_employee_id = dateEmployees.course;
+                    } else if (isCourse) {
+                        const optionalCourseId = dateEmployees.course ? +dateEmployees.course : null;
+                        if (optionalCourseId && optionalCourseId > 0 && optionalCourseId !== mainEmployeeId) {
+                            scheduleRow.optional_employee_id = optionalCourseId;
+                            scheduleRow.optional_cabinet_id = lessonNumber.optional_cabinet_id;
+                        } else {
+                            scheduleRow.optional_employee_id = null;
+                            scheduleRow.optional_cabinet_id = null;
                         }
+                    } else {
+                        scheduleRow.optional_employee_id = null;
+                        scheduleRow.optional_cabinet_id = null;
                     }
 
                     let result = false;
@@ -666,22 +683,6 @@ class ScheduleService {
         return errors;
     }
 
-    async correctEmployees(row, lessonData) {
-        if (scheduleRow.cabinet_id === null) {
-            row.cabinet_id = lessonNumber.cabinet_id;
-            row.optional_cabinet_id = lessonNumber.optional_cabinet_id;
-        }
-        // if replaced employee
-        if (+row.employee_id !== +dateEmployees.main) {
-            row.employee_id = dateEmployees.main;
-        }
-        if (lessonNumber.category !== 'p') {
-            if (dateEmployees.practice > 0 && +row.optional_employee_id !== +dateEmployees.practice) {
-                row.optional_employee_id = dateEmployees.practice;
-            }
-
-        }
-    }
 
     async compareJournal() {
         let scheduleRows = await sequelize.query(
@@ -715,7 +716,7 @@ class ScheduleService {
             });
         }
         // get journals
-        let activeYear = this.getActiveYear();
+        let activeYear = this.getActiveYear(new Date());
         let journalRows = await sequelize.query(
             `select *
              from journal as j

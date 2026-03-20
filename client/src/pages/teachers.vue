@@ -9,14 +9,14 @@
       </tr>
       </thead>
       <tbody>
-      <tr v-for="teacher in teachers" :key="teacher">
+      <tr v-for="teacher in teachers" :key="teacher.id">
         <td class="bg-sky-100 border border-sky-600 p-1">{{ teacher.name }}</td>
         <td>
-          Дисцилпина_name
+          {{ teacher.disciplines || '—' }}
         </td>
         <td>
           <label class="switch">
-            <input type="checkbox" @change="updateStatusTeacher(teacher.id,teacher.status,teacher.name)"
+            <input type="checkbox" @change="updateStatusTeacher(teacher.id, teacher.status)"
                    v-model="teacher.status">
             <span class="slider"></span>
           </label>
@@ -39,12 +39,14 @@ export default {
   },
   methods: {
     updateStatusTeacher(teacherId, teacherStatus) {
-      this.$axios.patch("http://localhost:5000/patchTeacher", {
+      this.$axios.patch("patchTeacher", {
         id: teacherId,
         status: teacherStatus
       }).then((res) => {
-        console.log(res.data)
-      })
+        console.log(res.data);
+      }).catch((err) => {
+        console.error(err);
+      });
     },
 
     checkStatus(status) {
@@ -54,13 +56,14 @@ export default {
 
 
   mounted() {
-    this.$axios.get('http://localhost:5000/teachersList').then(res => {
-      for (let i = 0; i < res.data.length; i++) {
-        res.data[i].status = (res.data[i].status == 1) ? true : false
-      }
-
-      this.teachers = res.data
-    })
+    this.$axios.get('teachersList').then(res => {
+      this.teachers = (res.data || []).map(t => ({
+        ...t,
+        status: t.status === 1 || t.status === true
+      }));
+    }).catch((err) => {
+      console.error(err);
+    });
   }
 }
 
@@ -142,9 +145,7 @@ input[type="checkbox"] {
   border-radius: 0 0 20px 0;
 }
 
-.checked {
-
-}
+/* .checked — при необходимости добавить стили */
 
 
 .switch {

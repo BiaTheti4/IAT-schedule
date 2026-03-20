@@ -1,6 +1,6 @@
 <template class="">
-  <div class="text-center relative rounded-lg" v-if="isHasLesson" :class="checkLesson(this.schedule)" 
-  @click="handleClick" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
+  <div class="text-center relative rounded-lg" v-if="isHasLesson" :class="checkLesson(this.schedule)"
+       @click="handleClick" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
     <div>{{ getLessonType(schedule.lessonType) }}</div>
     <div class="truncate overflow-hidden whitespace-nowrap w-64 flex flex-col">
       <b v-if="shouldShowGroupName">{{ schedule.groupName }}</b>
@@ -8,8 +8,8 @@
     </div>
 
     <div v-if="isExpanded"
-      class="absolute top-0 left-0  shadow-lg rounded-lg p-4 w-96 max-w-full z-20 flex flex-col"
-      :class="checkLesson(this.schedule)">
+         class="absolute top-0 left-0  shadow-lg rounded-lg p-4 w-96 max-w-full z-20 flex flex-col"
+         :class="checkLesson(this.schedule)">
       <div>{{ getLessonType(schedule.lessonType) }}</div>
       <b v-if="shouldShowGroupName">{{ schedule.groupName }}</b>
       <b>{{ schedule.subject }}</b>
@@ -29,10 +29,11 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import {ref} from 'vue';
 import LessonTime from '../enums/LessonTime';
 import moment from "moment";
-import { useRoute } from 'vue-router';
+import {useRoute} from 'vue-router';
+
 export default {
   props: {
     schedule: {
@@ -85,6 +86,8 @@ export default {
     checkLesson(lesson) {
       if (lesson.subject === 'Классный час') {
         return 'bg-amber-200  border border-gray-300 rounded-lg'
+      } else if (lesson.cabinet === 'Дистанционно') {
+        return 'bg-indigo-200 border border-indigo-300 rounded-lg'
       } else {
         if ((lesson.lessonNumber === this.currentLesson + 1) && (lesson.date === moment().format('YYYY-MM-DD'))) {
           return 'bg-green-200 border border-gray-300 rounded-lg'

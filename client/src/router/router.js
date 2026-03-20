@@ -9,14 +9,20 @@ import scheduleCompare from "@/pages/scheduleCompare";
 import login from "@/pages/Login";
 import {globalStore} from "@/store/global";
 import cabinetTimeBusyness from "@/pages/cabinetTimeBusyness.vue";
-
+import forbidden from "@/pages/forbidden.vue";
 
 const routes = [
     {
         path: '/login',
         component: login,
         name: 'login',
-        meta:{isPublic:  true} 
+        meta: { isPublic: true }
+    },
+    {
+        path: '/403',
+        component: forbidden,
+        name: 'forbidden',
+        meta: { isPublic: true }
     },
     {
         path: '/',
@@ -67,18 +73,20 @@ const routes = [
         meta:{isPublic:  false}
     },
 ];
-const basePath = "/";
+
 const router = createRouter({
     routes,
-    history: createWebHistory(basePath)
+    history: createWebHistory()
 });
 router.beforeEach((to, from, next) => {
     const store = globalStore(); 
     const routeIsPublic = to.matched.some(record => record.meta.isPublic === true);
 
     if (!routeIsPublic && store.auth === false && to.name !== 'login') {
+       
         next({ name: 'forbidden' });
     } else {
+       
         next();
     }
 });

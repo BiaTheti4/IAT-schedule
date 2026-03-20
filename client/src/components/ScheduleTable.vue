@@ -19,16 +19,10 @@
         <td class="border border-gray-300 p-1 m-1 w-64" v-for="day in weekDates" :key="day">
 
           <schedule-cell
-              v-if="!getLesson(day.date, lessonNumber).custom"
-              :schedule="getLesson(day.date, lessonNumber)"
+              v-for="lesson in getLesson(day.date, lessonNumber)"
+              :key="lesson.date + lesson.lessonNumber + lesson.ktp_id"
+              :schedule="lesson"
           />
-          <template v-if="getLesson(day.date, lessonNumber).custom">
-            <schedule-cell
-                v-for="lesson in getLesson(day.date, lessonNumber).custom"
-                :key="lesson.date + lesson.lessonNumber"
-            :schedule="lesson"
-            />
-          </template>
         </td>
       </tr>
       </tbody>
@@ -81,7 +75,7 @@ export default {
         case 'employee':
           return this.getLessonByEmployee(this.scheduleParam, date, lessonNumber)
       }
-      return {};
+      return [];
     },
 
   }
