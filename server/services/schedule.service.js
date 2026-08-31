@@ -113,7 +113,7 @@ class ScheduleService {
     getActiveYear(date) {
         const dt = moment(date);
         let year = dt.year();
-        if (dt.month() < 8) {
+        if (dt.month() < 7) {
             year--;
         }
         return year;

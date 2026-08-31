@@ -20,6 +20,7 @@
     "moment": "^2.29.3",
     "pinia": "^2.0.22",
     "vue": "^3.5.12",
+    "vue-cookies": "^1.8.6",
     "vue-loading-overlay": "^5.0.3",
     "vue-router": "^4.0.0",
     "vue-toast-notification": "3.0",

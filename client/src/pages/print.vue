@@ -39,9 +39,9 @@
             <tr v-for="lessonNumber in 7">
               <td class="tableCellFirst">{{ lessonNumber }}</td>
               <td class="tableCellFirst">{{ lessonTime[lessonNumber - 1] }}</td>
-              <template v-for="groupRow in groupByCourse[course]"
-                        :key="groupRow.id">
-                <schedule-table-cell-print :schedule="getLessonByGroup(groupRow.id, date, lessonNumber)"/>
+              <template v-for="groupRows in groupByCourse[course]"
+                        :key="groupRows.id">
+                <schedule-table-cell-print :schedule="getLessonByGroup(groupRows.id, date, lessonNumber)"/>
               </template>
             </tr>
             </tbody>

@@ -1,9 +1,13 @@
 <template>
   <td class="tableCell align-middle h-16 m-0 p-0">
-    <div class="flex h-14 w-24 text-clip mx-auto overflow-hidden break-all">
-      <div v-if="isHasLesson"><u>{{ schedule.subject }}</u>
-        <br />
-        <em>{{schedule.mainTeacher}}<template v-if="schedule.optionalTeacher">/{{schedule.optionalTeacher}}</template></em>
+    <div class="flex h-14 w-24 text-clip mx-auto overflow-hidden break-all"
+         v-for="row in schedule"
+    >
+      <div v-if="isHasLesson(row)"><u>{{ row.subject }}</u>
+        <br/>
+        <em>{{ row.mainTeacher }}
+          <template v-if="row.optionalTeacher">/{{ row.optionalTeacher }}</template>
+        </em>
       </div>
       <div v-else>
         &nbsp;
@@ -11,9 +15,14 @@
     </div>
   </td>
   <td class="tableCell">
-    <template v-if="isHasLesson">
-      {{ getCabinet(schedule['cabinet']) }}
-      <template v-if="schedule['optionalCabinet']"> {{ getCabinet(schedule['optionalCabinet']) }}</template>
+    <template
+
+        v-for="row in schedule"
+    >
+      <div v-if="isHasLesson(row)">
+        {{ getCabinet(row['cabinet']) }}
+        <template v-if="row['optionalCabinet']"> {{ getCabinet(row['optionalCabinet']) }}</template>
+      </div>
     </template>
   </td>
 
@@ -38,12 +47,13 @@ export default {
         return '';
       }
       return this.subjectCabinetCorrect(name);
+    },
+    isHasLesson(row) {
+      return row && row.subject;
     }
+
   },
   computed: {
-    isHasLesson() {
-      return this.schedule && this.schedule.subject;
-    }
   }
 }
 </script>

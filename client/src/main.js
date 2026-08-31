@@ -8,6 +8,7 @@ import '@vuepic/vue-datepicker/dist/main.css'
 import GlobalMixin from "@/mixins/global.mixin";
 import './assets/style.css'
 import axios from './modules/axios'
+import VueCookies from 'vue-cookies'
 
 const app = createApp(App);
 const pinia = createPinia()
@@ -16,6 +17,7 @@ app.component('Datepicker', Datepicker);
 app.use(Toaster);
 app.use(router);
 app.use(pinia);
+app.use(VueCookies);
 
 app.config.globalProperties.$axios = {...axios}
 

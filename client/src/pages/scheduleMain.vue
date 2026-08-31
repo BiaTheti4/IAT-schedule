@@ -310,7 +310,7 @@ export default {
         pair.label = '';
         pair.needSubgroup = false;
         pair.lastHour = null;
-        pair.ids = []; 
+        pair.ids = [];
         pair.list_id = '';
       }
     },
@@ -399,6 +399,7 @@ export default {
       ];
       const ignoreSubjects = [
         212, // Производственная практика
+        211, // Преддипломная практика
         'class_hour'
       ];
 
@@ -417,7 +418,7 @@ export default {
 
               let key;
 
-              if (ignoreSubjects.indexOf(pair.subjectId) !== -1|| pair.ktpId === 'class_hour') {
+              if (ignoreSubjects.indexOf(pair.subjectId) !== -1 || pair.ktpId === 'class_hour') {
                 return;
               }
               if (pair.teacherId) {
@@ -438,7 +439,7 @@ export default {
                 conflict.teachers[key].push(pair);
               }
               // cabinets
-              if (pair.cabinetId > 0 && ignoreCabinets.indexOf(+pair.cabinetId) === -1|| pair.ktpId === 'class_hour') {
+              if (pair.cabinetId > 0 && ignoreCabinets.indexOf(+pair.cabinetId) === -1 || pair.ktpId === 'class_hour') {
                 key = pair.cabinetId + '_' + pairNum;
                 if (!conflict.cabinets[key]) {
                   conflict.cabinets[key] = [];
@@ -590,7 +591,7 @@ export default {
       lesson.status = ''
     },
 
-    
+
     getSubjectList(groupId) {
       let ktpSubjects = _.get(this.courses, [this.selectedCourse, 'groups', groupId, 'subjects'], [])
       return [...ktpSubjects, ...CustomLesson];
@@ -829,7 +830,6 @@ export default {
     this.initEmployees();
     this.initCabinets();
     this.initGroups();
-
 
 
   }

@@ -2,7 +2,7 @@
   <div>
     <div class="datePicker" id="content">
       <form>
-        <select class="border px-2 py-1 ml-2 rounded-md border-sky-700" v-model="selectedEmployee">
+        <select class="border px-2 py-1 ml-2 rounded-md border-sky-700" v-model="nowEmployee">
           <option value="">Все преподаватели</option>
           <option v-for="teacher in teachers" :value="teacher.id">
             {{ teacher.name }}
@@ -14,7 +14,7 @@
       <div v-if="selectedEmployee === '' || +selectedEmployee === +teacher.id" :key="'block' + teacher.groupId">
         <h2 class="text-sky-900 pl-5 font-extrabold text-lg">{{ teacher.name }}</h2>
         <div class="inline-block  shadow-lg">
-          <schedule-table schedule-type="employee" :schedule-param="teacher.id" :week-dates="week" />
+          <schedule-table schedule-type="employee" :schedule-param="teacher.id" :week-dates="week"/>
         </div>
       </div>
     </template>
@@ -30,19 +30,30 @@ import TeachersMixin from "@/mixins/teachers.mixin";
 
 export default {
   name: "teacherBusyness",
-  components: { ScheduleTable },
+  components: {ScheduleTable},
   mixins: [ScheduleMixin, DatesMixin, TeachersMixin],
   data() {
     return {
       selectedEmployee: '',
     }
   },
-  methods: {
-
-  },
+  methods: {},
   computed: {
+    nowEmployee: {
+      get() {
+        return this.selectedEmployee;
+      },
+      set(value) {
+        this.selectedEmployee = value;
+        this.$cookies.set("selectedTeacher", value, '7d');
+      }
+    }
   },
   mounted() {
+    if (this.$cookies.get("selectedTeacher")) {
+      this.selectedEmployee = this.$cookies.get("selectedTeacher");
+    }
+
     this.fillWeek();
     this.initEmployees();
     this.getSchedule(this.week[0].date, this.week[this.week.length - 1].date);
