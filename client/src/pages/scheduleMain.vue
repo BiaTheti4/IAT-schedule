@@ -20,8 +20,11 @@
             <option v-for="n in 5" :value="n">{{ n }} курс</option>
           </select>
         </div>
-        <div class="p-2">
-          <a href="#" @click="cloneFromPrev()" class="btn btn-blue">Клонировать с предыдущей недели</a>
+        <div class="p-2 flex items-center gap-2">
+          <label for="clone-date">Клонировать с даты:</label>
+          <input id="clone-date" type="date" v-model="cloneDate" class="button-6">
+          <button type="button" @click="cloneFromPrev" class="btn btn-blue">Клонировать</button>
+          <button type="button" @click="clearDay" class="btn btn-red">Очистить расписание на день</button>
         </div>
       </div>
     </form>
@@ -90,16 +93,16 @@
 
               <select class="selectdiv"
                       @change="performSubjectChange(group[lessonNumber]);"
-                      :class="hasConflictCabinet(null,group[lessonNumber].cabinetId,lessonNumber)"
+                      :class="hasConflictCabinet(group[lessonNumber].groupId,group[lessonNumber].cabinetId,lessonNumber,group[lessonNumber])"
                       v-model="group[lessonNumber].cabinetId">
                 <option value="" disabled selected>-кабинет-</option>
-                <option v-for="cabinet in cabinets" :key="cabinet.id" :value="cabinet.id">
+                <option v-for="cabinet in orderedCabinets(group[lessonNumber])" :key="cabinet.id" :value="cabinet.id" :disabled="cabinet.separator">
                   {{ cabinet.number }}
                 </option>
               </select>
 
               <select class="selectdiv" @change="performSubjectChange(group[lessonNumber]);"
-                      :class="hasConflictCabinet(group[lessonNumber].groupId,group[lessonNumber].optionalCabinetId,lessonNumber)"
+                      :class="hasConflictCabinet(group[lessonNumber].groupId,group[lessonNumber].optionalCabinetId,lessonNumber,group[lessonNumber])"
                       v-model="group[lessonNumber].optionalCabinetId">
 
                 <option value="" disabled selected>-второй кабинет-</option>
@@ -107,7 +110,7 @@
                         v-if="!group[lessonNumber].needSubgroup"
                 >-нет-
                 </option>
-                <option v-for="cabinet in cabinets" :key="cabinet.id" :value="cabinet.id">
+                <option v-for="cabinet in orderedCabinets(group[lessonNumber])" :key="cabinet.id" :value="cabinet.id" :disabled="cabinet.separator">
                   {{ cabinet.number }}
                 </option>
               </select>
@@ -177,7 +180,9 @@ export default {
       changed: 'changed',
       usual: 'usual',
       date: moment().format('YYYY-MM-DD'),
+      cloneDate: moment().subtract(1, 'week').format('YYYY-MM-DD'),
       selectedCourse: '',
+      curriculumCabinets: {},
       conflicts: {
         teachers: {},
         cabinets: {},
@@ -199,19 +204,36 @@ export default {
     }
   },
   computed: {
+    subjectCabinets() {
+      const result = {};
+      for (const course of Object.values(this.courses)) {
+        for (const group of Object.values(course.groups || {})) {
+          for (const subject of group.subjects || []) {
+            if (Array.isArray(subject.cabinets)) {
+              result[subject.ktpId] = [...new Set(subject.cabinets.map(Number).filter(id => Number.isInteger(id) && id > 0))];
+            }
+          }
+        }
+      }
+      return result;
+    },
     getCourseData() {
       return _.sortBy(this.getCourses(this.selectedCourse), ['name']).map(row => this.dateCourseEvent[this.selectedCourse][row.groupId]);
     }
   },
   methods: {
     cloneFromPrev() {
-      if (!confirm('Заполнить с предыдущей недели?')) {
+      if (!moment(this.cloneDate, 'YYYY-MM-DD', true).isValid() || this.cloneDate === this.date) {
+        toaster.warning('Выберите другую корректную дату для клонирования');
+        return;
+      }
+      if (!confirm(`Клонировать расписание с ${moment(this.cloneDate).format('DD.MM.YYYY')} на ${moment(this.date).format('DD.MM.YYYY')}?`)) {
         return false;
       }
       this.showLoading();
       this.$axios.get('schedule/clone', {
         params: {
-          from_date: moment(this.date).subtract(1, 'week').format('YYYY-MM-DD'),
+          from_date: this.cloneDate,
           to_date: moment(this.date).format('YYYY-MM-DD'),
           course: this.selectedCourse
         }
@@ -227,9 +249,23 @@ export default {
         }
         console.log(res.data);
         this.hideLoading();
-        this.changeDate(this.date);
+        this.UpdateDateCourseEvent();
       })
 
+    },
+    clearDay() {
+      if (!confirm(`Очистить расписание за ${moment(this.date).format('DD.MM.YYYY')} для всех курсов?`)) return;
+      this.showLoading();
+      this.$axios.post('schedule/clearDay', {date: this.date}).then((res) => {
+        if (res.data?.status) {
+          this.removeSchedule = [];
+          this.UpdateDateCourseEvent();
+          toaster.success('Расписание на день очищено');
+        } else {
+          toaster.error(res.data?.error || 'Не удалось очистить расписание');
+        }
+      }).catch(() => toaster.error('Не удалось очистить расписание'))
+          .finally(() => this.hideLoading());
     },
     subjectOptionClass(subject) {
       return {
@@ -375,8 +411,25 @@ export default {
         }
       }
       this.date = dateString;
+      this.cloneDate = moment(dateString).subtract(1, 'week').format('YYYY-MM-DD');
       this.getSubjects();
       this.UpdateDateCourseEvent();
+    },
+    preferredCabinets(pair) {
+      return this.subjectCabinets[pair.ktpId] ?? this.curriculumCabinets[pair.ktpId] ?? [];
+    },
+    isOutsideCurriculum(pair, cabinetId) {
+      const preferred = this.preferredCabinets(pair);
+      return +cabinetId > 0 && preferred.length > 0 && !preferred.includes(+cabinetId);
+    },
+    orderedCabinets(pair) {
+      const preferred = this.preferredCabinets(pair);
+      const cabinets = Object.values(this.cabinets);
+      const planned = cabinets.filter(cabinet => preferred.includes(+cabinet.id));
+      const other = cabinets.filter(cabinet => !preferred.includes(+cabinet.id));
+      return planned.length
+          ? [...planned, {id: 'curriculum-separator', number: '──────────', separator: true}, ...other]
+          : other;
     },
     performSubjectChange(lesson) {
       lesson.isChanged = 1;
@@ -416,6 +469,12 @@ export default {
                 groupRow.hours += 2;
               }
 
+              const preferred = this.preferredCabinets(pair);
+              for (const id of [pair.cabinetId, pair.optionalCabinetId]) {
+                if (this.isOutsideCurriculum(pair, id)) {
+                  conflict.warnings.push(`Группа ${pair.group}, пара ${pairNum}: кабинет ${this.cabinets.find(c => +c.id === +id)?.number || id} не входит в перечень учебного плана (${preferred.map(id => this.cabinets.find(c => +c.id === id)?.number || id).join(', ')}).`);
+                }
+              }
               let key;
 
               if (ignoreSubjects.indexOf(pair.subjectId) !== -1 || pair.ktpId === 'class_hour') {
@@ -576,6 +635,7 @@ export default {
             courses[group.course].groups[group.groupId].subjects = group.subjects
           }
         })
+        this.checkConflict();
         this.hideLoading();
       })
     },
@@ -672,6 +732,7 @@ export default {
           }
         });
 
+        this.curriculumCabinets = res.data.curriculumCabinets || {};
         this.featureSchedule = res.data.feature;
         this.checkConflict();
         this.getWeekHours();
@@ -729,9 +790,10 @@ export default {
         'warning': !isConflict && isWarning,
       }
     },
-    hasConflictCabinet(groupId, cabinetId, pair) {
+    hasConflictCabinet(groupId, cabinetId, pair, lesson) {
       const isConflict = _.get(this.conflicts, ['cabinets', cabinetId + '_' + pair], 0).length > 1;
-      const isWarning = _.get(this.conflicts, ['optionalCabinet', groupId, pair], 0);
+      const isWarning = _.get(this.conflicts, ['optionalCabinet', groupId, pair], 0)
+          || (lesson && this.isOutsideCurriculum(lesson, cabinetId));
 
       return {
         'selectdiv': true,
@@ -1065,5 +1127,12 @@ select.warning {
 
 .btn-blue:hover {
   @apply bg-blue-700;
+}
+.btn-red {
+  @apply bg-red-500 text-white;
+}
+
+.btn-red:hover {
+  @apply bg-red-700;
 }
 </style>

@@ -2,12 +2,28 @@
   <div>
     <div class="datePicker" id="content">
       <form>
-        <select class="border px-2 py-1 ml-2 rounded-md border-sky-700" v-model="nowEmployee">
-          <option value="">Все преподаватели</option>
-          <option v-for="teacher in teachers" :value="teacher.id">
-            {{ teacher.name }}
-          </option>
-        </select>
+        <div class="flex" id="content">
+          <div class="w-64 flex-initial">
+            <Datepicker
+              :modelValue="date"
+              locale="ru-RU"
+              :enableTimePicker="false"
+              :disabledWeekDays="[0]"
+              position="left"
+              format="dd.MM.yyyy"
+              :autoApply="true"
+              :clearable="false"
+              @update:modelValue="updateData"
+            />
+          </div>
+          <select class="border px-2 py-1 ml-2 rounded-md border-sky-700" v-model="nowEmployee">
+            <option value="">Все преподаватели</option>
+            <option v-for="teacher in teachers" :value="teacher.id">
+              {{ teacher.name }}
+            </option>
+          </select>
+
+        </div>
       </form>
     </div>
     <template v-for="teacher in teachers">
@@ -27,6 +43,7 @@ import ScheduleTable from "@/components/ScheduleTable";
 import ScheduleMixin from "@/mixins/schedule.mixin";
 import DatesMixin from "@/mixins/dates.mixin";
 import TeachersMixin from "@/mixins/teachers.mixin";
+import moment from "moment/moment";
 
 export default {
   name: "teacherBusyness",
@@ -35,9 +52,18 @@ export default {
   data() {
     return {
       selectedEmployee: '',
+      date: moment().format('YYYY-MM-DD'),
     }
   },
-  methods: {},
+  methods: {
+    updateData(date) {
+      date = moment(date || this.date);
+      this.date = date.format('YYYY-MM-DD');
+      this.fillWeek(date);
+
+      this.getSchedule(date.format('YYYY-MM-DD'), date.clone().add(7, 'days').format('YYYY-MM-DD'));
+    }
+  },
   computed: {
     nowEmployee: {
       get() {
@@ -53,11 +79,8 @@ export default {
     if (this.$cookies.get("selectedTeacher")) {
       this.selectedEmployee = this.$cookies.get("selectedTeacher");
     }
-
-    this.fillWeek();
     this.initEmployees();
-    this.getSchedule(this.week[0].date, this.week[this.week.length - 1].date);
-
+    this.updateData();
 
   },
 }

@@ -10,6 +10,38 @@ const KtpService = require('./ktp.service');
 
 class ScheduleService {
 
+    validateLesson(lesson) {
+        if (!lesson || typeof lesson !== 'object' || Array.isArray(lesson)) return 'Некорректные данные занятия';
+        if (lesson.ktpId !== 'class_hour' && (!Array.isArray(lesson.ids) || !lesson.ids.length ||
+            lesson.ids.some(id => !Number.isSafeInteger(+id) || +id <= 0))) return 'Некорректные ID занятий';
+        if (lesson.ktpId !== 'class_hour' && (!Number.isSafeInteger(+lesson.ktpId) || +lesson.ktpId < 0)) return 'Некорректный ID КТП';
+        if (lesson.ktpId === 'class_hour' && +lesson.remove === 1) {
+            return Number.isSafeInteger(+lesson.id) && +lesson.id > 0 ? null : 'Некорректный ID занятия';
+        }
+        if (lesson.ktpId === 'class_hour' || +lesson.ktpId > 0) {
+            if (typeof lesson.date !== 'string' || !moment(lesson.date, 'YYYY-MM-DD', true).isValid()) return 'Некорректная дата занятия';
+            if (!Number.isInteger(+lesson.lesson_number) || +lesson.lesson_number < 1 || +lesson.lesson_number > 7) return 'Некорректный номер пары';
+            for (const field of ['teacherId', 'cabinetId']) {
+                if (!Number.isSafeInteger(+lesson[field]) || +lesson[field] <= 0) return `Некорректное значение ${field}`;
+            }
+            if (lesson.ktpId === 'class_hour' && (!Number.isSafeInteger(+lesson.groupId) || +lesson.groupId <= 0)) return 'Некорректный ID группы';
+        }
+        return null;
+    }
+
+    async clearDay(date) {
+        return sequelize.transaction(async (transaction) => {
+            await models.schedule.update({
+                date: null,
+                lesson_number: null,
+                cabinet_id: null,
+                optional_cabinet_id: null,
+                optional_employee_id: null,
+            }, {where: {date}, transaction});
+            await models.schedule_custom.destroy({where: {date}, transaction});
+        });
+    }
+
     mainQuery = `SELECT sch.id,
                         sch.date,
                         sch.ktp_id,
@@ -77,6 +109,17 @@ class ScheduleService {
     }
 
     async getScheduleOnPeriod(dateStart, dateEnd) {
+        const normalizeDate = (value) => {
+            if (value instanceof Date) {
+                return Number.isNaN(value.getTime()) ? null : moment(value).format('YYYY-MM-DD');
+            }
+            return typeof value === 'string' && moment(value, 'YYYY-MM-DD', true).isValid() ? value : null;
+        };
+        dateStart = normalizeDate(dateStart);
+        dateEnd = normalizeDate(dateEnd);
+        if (!dateStart || !dateEnd || dateStart > dateEnd) {
+            throw new RangeError('Некорректный период расписания');
+        }
         let query = this.mainQuery;
         let custom = this.customQuery;
         query = query.replace('#WHERE#', `sch.date >=:dateStart AND sch.date <=:dateEnd`)
@@ -206,6 +249,16 @@ class ScheduleService {
             }
         );
 
+        const cabinets = await require('./cabinets.service').getCurriculumCabinets();
+        for (const row of result) {
+            const preferred = cabinets[row.ktp_id] || [];
+            if (preferred.length) {
+                if (!preferred.includes(Number(row.cabinet_need))) row.cabinet_need = preferred[0];
+                if (!preferred.includes(Number(row.cabinet_optional_need))) {
+                    row.cabinet_optional_need = preferred.find(id => id !== Number(row.cabinet_need)) || preferred[0];
+                }
+            }
+        }
         return _.groupBy(result, 'ktp_id');
     }
 
@@ -292,8 +345,14 @@ class ScheduleService {
     }
 
     async updateSchedule(lessons) {
+        if (!Array.isArray(lessons)) return ['Данные расписания должны быть массивом'];
         let errors = [];
         for (const lesson of lessons) {
+            const validationError = this.validateLesson(lesson);
+            if (validationError) {
+                errors.push(validationError);
+                continue;
+            }
             if (lesson.ktpId === 'class_hour') {
                 let result = await this.saveCustomLesson(lesson);
                 if (result !== true) {
@@ -310,6 +369,10 @@ class ScheduleService {
                         } else {
                             if (lesson.ktpId > 0) {
                                 let ktp = await models.ktp.findByPk(lesson.ktpId);
+                                if (!ktp) {
+                                    errors.push('Не найден КТП для ID ' + lesson.ktpId);
+                                    continue;
+                                }
                                 if (scheduleIndex === 0) { // check only on first pair
                                     let hasLessons = await this.checkIsBusy(ktp.groupId, lesson.date, lesson.lesson_number);
                                     if (hasLessons) {

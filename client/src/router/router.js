@@ -13,6 +13,12 @@ import forbidden from "@/pages/forbidden.vue";
 
 const routes = [
     {
+        path: '/hours-control',
+        component: () => import('@/pages/hoursControl.vue'),
+        name: 'hours-control',
+        meta: { isPublic: false }
+    },
+    {
         path: '/login',
         component: login,
         name: 'login',

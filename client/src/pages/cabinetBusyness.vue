@@ -1,21 +1,33 @@
 <template>
   <div>
-    <div class="datePicker" id="content">
-      <form>
+    <form>
+      <div class="flex" id="content">
+        <div class="w-64 flex-initial">
+          <Datepicker
+            :modelValue="date"
+            locale="ru-RU"
+            :enableTimePicker="false"
+            :disabledWeekDays="[0]"
+            position="left"
+            format="dd.MM.yyyy"
+            :autoApply="true"
+            :clearable="false"
+            @update:modelValue="updateData"
+          />
+        </div>
         <select class="border px-2 py-1 ml-2 rounded-md border-sky-700" v-model="selectedCabinet">
           <option value="">Все кабинеты</option>
           <option v-for="cabinet in cabinets" :value="cabinet.id">
             {{ cabinet.number }}
           </option>
         </select>
-      </form>
-
-    </div>
+      </div>
+    </form>
     <template v-for="cabinet in cabinets">
       <div v-if="selectedCabinet === '' || +selectedCabinet === +cabinet.id" :key="'block-cabinet-' + cabinet.groupId">
         <h2 class="text-sky-900 pl-5 font-extrabold text-lg">Кабинет: {{ cabinet.number }}</h2>
         <div class="inline-block  shadow-lg">
-          <schedule-table schedule-type="cabinet" :schedule-param="cabinet.id" :week-dates="week" />
+          <schedule-table schedule-type="cabinet" :schedule-param="cabinet.id" :week-dates="week"/>
 
         </div>
       </div>
@@ -30,28 +42,33 @@ import ScheduleMixin from "@/mixins/schedule.mixin";
 import DatesMixin from "@/mixins/dates.mixin";
 import CabinetsMixin from "@/mixins/cabinets.mixin";
 import GroupsMixin from "@/mixins/groups.mixin";
+import moment from "moment";
 
 export default {
   name: "cabinetBusyness",
-  components: { ScheduleTable },
-  mixins: [ScheduleMixin, DatesMixin, CabinetsMixin,GroupsMixin],
+  components: {ScheduleTable},
+  mixins: [ScheduleMixin, DatesMixin, CabinetsMixin, GroupsMixin],
   data() {
     return {
       selectedCabinet: '',
+      date: moment().format('YYYY-MM-DD'),
     }
   },
   methods: {
-    test(){
-      console.log(this.week)
+    updateData(date) {
+      date = moment(date || this.date);
+      this.date = date.format('YYYY-MM-DD');
+      this.fillWeek(date);
+
+      this.getSchedule(date.format('YYYY-MM-DD'), date.clone().add(7, 'days').format('YYYY-MM-DD'));
     }
   },
-
   mounted() {
-    this.fillWeek();
+    if (this.$cookies.get("selectedCabinet")) {
+      this.selectedCabinet = this.$cookies.get("selectedCabinet");
+    }
     this.initCabinets();
-    this.initGroups();
-    this.getSchedule(this.week[0].date, this.week[this.week.length - 1].date);
-    
+    this.updateData(this.date);
   },
 }
 </script>

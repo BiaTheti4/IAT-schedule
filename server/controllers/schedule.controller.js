@@ -2,12 +2,25 @@ const ScheduleService = require('../services/schedule.service')
 const moment = require("moment");
 
 class ScheduleController {
+    async getHoursControl(req, res) {
+        const date = req.query.date || moment().format('YYYY-MM-DD');
+        if (!moment(date, 'YYYY-MM-DD', true).isValid()) {
+            return res.status(400).json({message: 'Некорректная дата'});
+        }
+        try {
+            return res.json(await require('../services/hours-control.service').getReport(date));
+        } catch (error) {
+            console.error('Hours control:', error);
+            return res.status(500).json({message: 'Не удалось рассчитать контроль часов'});
+        }
+    }
     async getCurrentSchedule(req, res) {
         const date = req.query.date || new Date()
         const scheduleData = await ScheduleService.getCurrentSchedule(date);
         return res.json({
                 current: ScheduleService.parseSchedule(scheduleData.main),
                 custom: scheduleData.custom,
+                curriculumCabinets: await require('../services/cabinets.service').getCurriculumCabinets(),
                 feature: await ScheduleService.getScheduleFeature()
             }
         )
@@ -16,9 +29,12 @@ class ScheduleController {
     async getSchedule(req, res) {
         const dateStart = req.query.start || new Date()
         const dateEnd = req.query.end || new Date()
-        return res.json(
-            await ScheduleService.getScheduleOnPeriod(dateStart, dateEnd)
-        )
+        try {
+            return res.json(await ScheduleService.getScheduleOnPeriod(dateStart, dateEnd))
+        } catch (error) {
+            if (error instanceof RangeError) return res.status(400).json({message: error.message})
+            throw error
+        }
     }
 
     async getWeekHours(req, res) {
@@ -70,6 +86,20 @@ class ScheduleController {
             } else {
                 return res.json({status: false, error: result});
             }
+        }
+    }
+
+    async clearDay(req, res) {
+        const date = req.body.date;
+        if (!moment(date, 'YYYY-MM-DD', true).isValid()) {
+            return res.status(400).json({status: false, error: 'Некорректная дата'});
+        }
+        try {
+            await ScheduleService.clearDay(date);
+            return res.json({status: true});
+        } catch (error) {
+            console.error('Clear schedule day:', error);
+            return res.status(500).json({status: false, error: 'Не удалось очистить расписание'});
         }
     }
 

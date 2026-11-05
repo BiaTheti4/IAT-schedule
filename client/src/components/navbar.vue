@@ -75,6 +75,7 @@ export default {
     navList() {
       return [
         {link: '/schedule', title: 'Управление', isPublic: false},
+        {link: '/hours-control', title: 'КВЧ', isPublic: false},
         {link: '/', title: 'Расписание', isPublic: true},
         {link: '/teachers', title: 'По преподавателям', isPublic: true},
         {link: '/cabinets', title: 'По кабинетам', isPublic: true},
