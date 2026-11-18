@@ -26,6 +26,10 @@
           <button type="button" @click="cloneFromPrev" class="btn btn-blue">Клонировать</button>
           <button type="button" @click="clearDay" class="btn btn-red">Очистить расписание на день</button>
         </div>
+        <label class="p-2 flex items-center gap-2 ml-auto">
+          <input type="checkbox" v-model="checkCurriculumCabinets" @change="checkConflict">
+          Контроль кабинета по УП
+        </label>
       </div>
     </form>
     <br>
@@ -46,7 +50,7 @@
       <tr v-for="lessonNumber in 7" :key="lessonNumber.value">
         <td class="">{{ lessonNumber }}</td>
         <td class="">{{ lessonTime[lessonNumber - 1] }}</td>
-        <td v-for="group in getCourseData" :class="cellInfo(group[lessonNumber])">
+        <td v-for="group in getCourseData" :class="[cellInfo(group[lessonNumber]), {'selected-issue-cell': isSelectedIssueCell(group[lessonNumber], lessonNumber)}]">
           <div class="formSubjects">
             <div v-if="group[lessonNumber].ktpId" style="float:left">{{ getLabel(group[lessonNumber]) }}</div>
 
@@ -97,7 +101,7 @@
                       v-model="group[lessonNumber].cabinetId">
                 <option value="" disabled selected>-кабинет-</option>
                 <option v-for="cabinet in orderedCabinets(group[lessonNumber])" :key="cabinet.id" :value="cabinet.id" :disabled="cabinet.separator">
-                  {{ cabinet.number }}
+                  {{ cabinet.number }}{{ !cabinet.separator && isCabinetOccupied(cabinet.id, lessonNumber, group[lessonNumber]) ? ' (Занят)' : '' }}
                 </option>
               </select>
 
@@ -111,7 +115,7 @@
                 >-нет-
                 </option>
                 <option v-for="cabinet in orderedCabinets(group[lessonNumber])" :key="cabinet.id" :value="cabinet.id" :disabled="cabinet.separator">
-                  {{ cabinet.number }}
+                  {{ cabinet.number }}{{ !cabinet.separator && isCabinetOccupied(cabinet.id, lessonNumber, group[lessonNumber]) ? ' (Занят)' : '' }}
                 </option>
               </select>
 
@@ -140,12 +144,24 @@
     <button class="button-7" @click="openModal()">Сохранить</button>
     <modal-component v-if="this.modal===1" @result="modalResult"></modal-component>
     <div class="flex flex-col">
-      <span class="box-border h-25 w-200 p-4  rounded-xl bg-red-500 mt-2" v-for="conflict in conflicts.details">
-        <strong>{{ conflict }}</strong>
-      </span> <span class="box-border h-25 w-200 p-4  rounded-xl bg-orange-400 mt-2"
-                    v-for="conflict in conflicts.warnings">
-        <strong>{{ conflict }}</strong>
-      </span>
+      <div v-for="category in conflictCategories" :key="category.title"
+           class="mt-2 p-3 rounded-xl"
+           :class="category.level === 'error' ? 'bg-red-100' : 'bg-orange-100'">
+        <h3><strong>{{ category.title }} ({{ category.items.length }})</strong></h3>
+        <table class="issue-table" :class="category.level === 'error' ? 'issue-table-error' : 'issue-table-warning'">
+          <thead><tr><th>Группа</th><th>Пара</th><th>Замечание</th></tr></thead>
+          <tbody>
+          <tr v-for="(item, index) in category.items" :key="index">
+            <td>
+              <button v-for="group in item.groups" :key="group.id" type="button" class="issue-group-link"
+                      @click="selectIssue(item, group)">{{ group.name }} ({{ group.course }} курс)</button>
+            </td>
+            <td>{{ item.pairNum }}</td>
+            <td>{{ item.message }}</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </template>
@@ -182,7 +198,9 @@ export default {
       date: moment().format('YYYY-MM-DD'),
       cloneDate: moment().subtract(1, 'week').format('YYYY-MM-DD'),
       selectedCourse: '',
+      selectedIssue: null,
       curriculumCabinets: {},
+      checkCurriculumCabinets: false,
       conflicts: {
         teachers: {},
         cabinets: {},
@@ -204,6 +222,16 @@ export default {
     }
   },
   computed: {
+    conflictCategories() {
+      const categories = [
+        {title: 'Конфликты преподавателей', level: 'error', items: this.conflicts.teacherDetails || []},
+        {title: 'Конфликты кабинетов', level: 'error', items: this.conflicts.cabinetDetails || []},
+        {title: 'Нет второго преподавателя', level: 'warning', items: this.conflicts.optionalTeacherWarnings || []},
+        {title: 'Нет второго кабинета', level: 'warning', items: this.conflicts.optionalCabinetWarnings || []},
+        {title: 'Кабинеты вне УП', level: 'warning', items: this.conflicts.curriculumWarnings || []},
+      ];
+      return categories.filter(category => category.items.length > 0);
+    },
     subjectCabinets() {
       const result = {};
       for (const course of Object.values(this.courses)) {
@@ -222,6 +250,23 @@ export default {
     }
   },
   methods: {
+    selectIssue(item, group) {
+      this.selectedCourse = group.course;
+      this.selectedIssue = {...item, groups: [group]};
+      this.$nextTick(() => document.querySelector('.selected-issue-cell')?.scrollIntoView({behavior: 'smooth', block: 'center'}));
+    },
+    isSelectedIssueCell(pair, pairNum) {
+      return this.selectedIssue?.pairNum === +pairNum
+          && this.selectedIssue.groups.some(group => group.id === +pair.groupId);
+    },
+    issueItem(message, pairs, pairNum) {
+      const groups = [...new Map(pairs.map(pair => {
+        const course = Number(Object.keys(this.courses).find(number => this.courses[number].groups[pair.groupId]));
+        return [+pair.groupId, {id: +pair.groupId, name: pair.group, course}];
+      })).values()];
+      const course = groups[0]?.course;
+      return {message, groups, course, pairNum: +pairNum};
+    },
     cloneFromPrev() {
       if (!moment(this.cloneDate, 'YYYY-MM-DD', true).isValid() || this.cloneDate === this.date) {
         toaster.warning('Выберите другую корректную дату для клонирования');
@@ -422,6 +467,16 @@ export default {
       const preferred = this.preferredCabinets(pair);
       return +cabinetId > 0 && preferred.length > 0 && !preferred.includes(+cabinetId);
     },
+    isCabinetOccupied(cabinetId, pairNum, currentPair) {
+      if (!(+cabinetId > 0) || +cabinetId === 62) return false;
+      return Object.values(this.dateCourseEvent).some(groups =>
+          Object.values(groups).some(lessons => {
+            const pair = lessons[pairNum];
+            if (!pair?.ktpId || pair === currentPair) return false;
+            return ['cabinetId', 'optionalCabinetId'].some(field =>
+                +pair[field] === +cabinetId);
+          }));
+    },
     orderedCabinets(pair) {
       const preferred = this.preferredCabinets(pair);
       const cabinets = Object.values(this.cabinets);
@@ -445,6 +500,11 @@ export default {
         optionalTeacher: {},
         details: [],
         warnings: [],
+        teacherDetails: [],
+        cabinetDetails: [],
+        optionalTeacherWarnings: [],
+        optionalCabinetWarnings: [],
+        curriculumWarnings: [],
       };
 
       const ignoreCabinets = [
@@ -469,10 +529,14 @@ export default {
                 groupRow.hours += 2;
               }
 
-              const preferred = this.preferredCabinets(pair);
-              for (const id of [pair.cabinetId, pair.optionalCabinetId]) {
-                if (this.isOutsideCurriculum(pair, id)) {
-                  conflict.warnings.push(`Группа ${pair.group}, пара ${pairNum}: кабинет ${this.cabinets.find(c => +c.id === +id)?.number || id} не входит в перечень учебного плана (${preferred.map(id => this.cabinets.find(c => +c.id === id)?.number || id).join(', ')}).`);
+              if (this.checkCurriculumCabinets) {
+                const preferred = this.preferredCabinets(pair);
+                for (const id of [pair.cabinetId, pair.optionalCabinetId]) {
+                  if (this.isOutsideCurriculum(pair, id)) {
+                    const message = `Группа ${pair.group}, пара ${pairNum}: кабинет ${this.cabinets.find(c => +c.id === +id)?.number || id} не входит в перечень учебного плана (${preferred.map(id => this.cabinets.find(c => +c.id === id)?.number || id).join(', ')}).`;
+                    conflict.warnings.push(message);
+                    conflict.curriculumWarnings.push(this.issueItem(message, [pair], pairNum));
+                  }
                 }
               }
               let key;
@@ -518,12 +582,16 @@ export default {
               // check if pair splited on two teachers - add warning
               if (pair.needSubgroup && !(pair.optionalTeacherId > 0)) {
                 _.set(conflict, ['optionalTeacher', pair.groupId, pairNum], 1);
-                conflict.warnings.push(`В группе ${pair.group} на ${pairNum} паре нет второго преподавателя!`)
+                const message = `В группе ${pair.group} на ${pairNum} паре нет второго преподавателя!`;
+                conflict.warnings.push(message);
+                conflict.optionalTeacherWarnings.push(this.issueItem(message, [pair], pairNum));
               }
               // check if pair splited on two teachers - add warning
               if (pair.needSubgroup && pair.teacherId !== pair.optionalTeacherId && !(pair.optionalCabinetId > 0)) {
                 _.set(conflict, ['optionalCabinet', pair.groupId, pairNum], 1);
-                conflict.warnings.push(`В группе ${pair.group} на ${pairNum} паре не указан второй кабинет!`)
+                const message = `В группе ${pair.group} на ${pairNum} паре не указан второй кабинет!`;
+                conflict.warnings.push(message);
+                conflict.optionalCabinetWarnings.push(this.issueItem(message, [pair], pairNum));
               }
             }
           })
@@ -540,6 +608,7 @@ export default {
 
           let detail = `Пара ${lessonNumber} Преподаватель: ${teacherName} в группах: ${groups}`
           conflict.details.push(detail)
+          conflict.teacherDetails.push(this.issueItem(detail, teachers, lessonNumber))
         }
       })
       _.each(conflict.cabinets, (cabinets, key) => {
@@ -551,6 +620,7 @@ export default {
           let cabinetNumber = (_.find(this.cabinets, (item) => +item.id === +cabinetId)).number
           let detail = `Пара ${lessonNumber} Кабинет: ${cabinetNumber} в группах:  ${groups}`
           conflict.details.push(detail)
+          conflict.cabinetDetails.push(this.issueItem(detail, cabinets, lessonNumber))
         }
 
       })
@@ -793,7 +863,7 @@ export default {
     hasConflictCabinet(groupId, cabinetId, pair, lesson) {
       const isConflict = _.get(this.conflicts, ['cabinets', cabinetId + '_' + pair], 0).length > 1;
       const isWarning = _.get(this.conflicts, ['optionalCabinet', groupId, pair], 0)
-          || (lesson && this.isOutsideCurriculum(lesson, cabinetId));
+          || (this.checkCurriculumCabinets && lesson && this.isOutsideCurriculum(lesson, cabinetId));
 
       return {
         'selectdiv': true,
@@ -899,6 +969,64 @@ export default {
 </script>
 
 <style scoped>
+.issue-table {
+  @apply w-auto max-w-full border-separate border-spacing-0 overflow-hidden rounded-lg bg-white text-sm shadow-sm;
+}
+
+.issue-table th,
+.issue-table td {
+  @apply border-b border-slate-200 px-4 py-2 text-left align-top;
+}
+
+.issue-table th {
+  @apply bg-slate-100 font-semibold text-slate-700;
+}
+
+.issue-table tbody tr {
+  @apply text-slate-700 transition-colors hover:bg-sky-50;
+}
+
+.issue-table tbody tr:last-child td {
+  @apply border-b-0;
+}
+
+.issue-table td:nth-child(2) {
+  @apply whitespace-nowrap text-center font-medium;
+}
+
+.issue-table-error th {
+  @apply bg-red-200 text-red-900;
+}
+
+.issue-table-error tbody tr:hover {
+  @apply bg-red-50;
+}
+
+.issue-table-error .issue-group-link {
+  @apply text-red-800 decoration-red-300 hover:text-red-900;
+}
+
+.issue-table-warning th {
+  @apply bg-orange-200 text-orange-900;
+}
+
+.issue-table-warning tbody tr:hover {
+  @apply bg-orange-50;
+}
+
+.issue-table-warning .issue-group-link {
+  @apply text-orange-800 decoration-orange-300 hover:text-orange-900;
+}
+
+.selected-issue-cell {
+  outline: 3px solid #f59e0b;
+  outline-offset: -3px;
+  background-color: #fef3c7;
+}
+
+.issue-group-link {
+  @apply mr-3 cursor-pointer font-medium text-blue-700 underline decoration-blue-300 underline-offset-2 hover:text-blue-900;
+}
 .changed {
   @apply bg-orange-100
   /*border-radius: 10px;*/

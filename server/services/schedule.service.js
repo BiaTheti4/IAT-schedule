@@ -10,217 +10,218 @@ const KtpService = require('./ktp.service');
 
 class ScheduleService {
 
-    validateLesson(lesson) {
-        if (!lesson || typeof lesson !== 'object' || Array.isArray(lesson)) return 'Некорректные данные занятия';
-        if (lesson.ktpId !== 'class_hour' && (!Array.isArray(lesson.ids) || !lesson.ids.length ||
-            lesson.ids.some(id => !Number.isSafeInteger(+id) || +id <= 0))) return 'Некорректные ID занятий';
-        if (lesson.ktpId !== 'class_hour' && (!Number.isSafeInteger(+lesson.ktpId) || +lesson.ktpId < 0)) return 'Некорректный ID КТП';
-        if (lesson.ktpId === 'class_hour' && +lesson.remove === 1) {
-            return Number.isSafeInteger(+lesson.id) && +lesson.id > 0 ? null : 'Некорректный ID занятия';
+  validateLesson(lesson) {
+    if (!lesson || typeof lesson !== 'object' || Array.isArray(lesson)) return 'Некорректные данные занятия';
+    if (lesson.ktpId !== 'class_hour' && (!Array.isArray(lesson.ids) || !lesson.ids.length ||
+      lesson.ids.some(id => !Number.isSafeInteger(+id) || +id <= 0))) return 'Некорректные ID занятий';
+    if (lesson.ktpId !== 'class_hour' && (!Number.isSafeInteger(+lesson.ktpId) || +lesson.ktpId < 0)) return 'Некорректный ID КТП';
+    if (lesson.ktpId === 'class_hour' && +lesson.remove === 1) {
+      return Number.isSafeInteger(+lesson.id) && +lesson.id > 0 ? null : 'Некорректный ID занятия';
+    }
+    if (lesson.ktpId === 'class_hour' || +lesson.ktpId > 0) {
+      if (typeof lesson.date !== 'string' || !moment(lesson.date, 'YYYY-MM-DD', true).isValid()) return 'Некорректная дата занятия';
+      if (!Number.isInteger(+lesson.lesson_number) || +lesson.lesson_number < 1 || +lesson.lesson_number > 7) return 'Некорректный номер пары';
+      for (const field of ['teacherId', 'cabinetId']) {
+        if (!Number.isSafeInteger(+lesson[field]) || +lesson[field] <= 0) return `Некорректное значение ${field}`;
+      }
+      if (lesson.ktpId === 'class_hour' && (!Number.isSafeInteger(+lesson.groupId) || +lesson.groupId <= 0)) return 'Некорректный ID группы';
+    }
+    return null;
+  }
+
+  async clearDay(date) {
+    return sequelize.transaction(async (transaction) => {
+      await models.schedule.update({
+        date: null,
+        lesson_number: null,
+        cabinet_id: null,
+        optional_cabinet_id: null,
+        optional_employee_id: null,
+      }, {where: {date}, transaction});
+      await models.schedule_custom.destroy({where: {date}, transaction});
+    });
+  }
+
+  mainQuery = `SELECT sch.id,
+                      sch.date,
+                      sch.ktp_id,
+                      sch.cabinet_id,
+                      sch.status,
+                      sch.hour,
+                      sch.optional_cabinet_id,
+                      sch.lesson_number,
+                      sch.pair_number,
+                      sch.employee_id,
+                      sch.optional_employee_id,
+                      sch.list_id,
+                      gr.name                                                                  as groupName,
+                      k.groupId,
+                      s.name                                                                   as subject,
+                      c1.number                                                                AS cabinet,
+                      c2.number                                                                AS second_cabinet,
+                      CONCAT(e1.last_name, ' ', SUBSTRING(e1.first_name, 1, 1), '.',
+                             SUBSTRING(e1.fathers_name, 1, 1), '.')                            AS employee,
+                      IF(e2.employeeId > 0, CONCAT(e2.last_name, ' ', SUBSTRING(e2.first_name, 1, 1), '.',
+                                                   SUBSTRING(e2.fathers_name, 1, 1), '.'), '') AS second_employee,
+
+                      k.groupId,
+                      k.semester,
+                      CEIL(k.semester / 2)                                                     AS course,
+                      kt.category,
+                      k.employeeId                                                             as main_employee,
+                      k.subjectId                                                              as subjectId,
+                      k.grouped                                                                as practice_grouped,
+                      k.grouped_k                                                              as course_grouped,
+                      k.group_employee                                                         as practice_employee,
+                      k.group_k_employee                                                       as course_employee,
+                      cp.type                                                                  as practice_type,
+                      IF(cs.id > 0, cs.code, sm.code)                                          AS subject_code
+               FROM schedule AS sch
+                        INNER JOIN ktp k ON sch.ktp_id = k.ktpId
+                        INNER JOIN ktp_list AS kl ON kl.listId = sch.list_id
+                        INNER JOIN ktp_types AS kt ON kt.typeId = kl.typeId
+                        INNER JOIN subjects AS s ON s.subjectId = k.subjectId
+                        INNER JOIN employees AS e1 ON e1.employeeId = sch.employee_id
+                        INNER JOIN cabinets AS c1 ON c1.id = sch.cabinet_id
+                        INNER JOIN \`groups\` AS gr ON gr.groupId = k.groupId
+                        LEFT JOIN employees AS e2 ON e2.employeeId = sch.optional_employee_id
+                        LEFT JOIN cabinets AS c2 ON c2.id = sch.optional_cabinet_id
+                        LEFT JOIN curriculum_subjects cs ON k.curriculumSubjectId = cs.id
+                        LEFT JOIN curriculum_module_practice cp ON k.curriculumPracticeId = cp.id
+                        LEFT JOIN standard_modules sm ON cp.moduleId = sm.id
+               WHERE #WHERE#
+               ORDER BY sch.ktp_id, sch.hour
+  `;
+
+  customQuery = `SELECT sc.*,
+                        :activeYear - g.year + 1 AS course,
+                        c.number                 AS cabinet,
+                        CONCAT(e.last_name, ' ', SUBSTRING(e.first_name, 1, 1), '.', SUBSTRING(e.fathers_name, 1, 1),
+                               '.')              AS employee
+                 FROM schedule_custom AS sc
+                          INNER JOIN \`groups\` g ON sc.group_id = g.groupId
+                          LEFT JOIN employees AS e ON e.employeeId = sc.employee_id
+                          LEFT JOIN cabinets AS c ON c.id = sc.cabinet_id
+                 WHERE #WHERE#`
+
+  async getCurrentSchedule(date) {
+    return this.getScheduleOnPeriod(date, date);
+  }
+
+  async getScheduleOnPeriod(dateStart, dateEnd) {
+    const normalizeDate = (value) => {
+      if (value instanceof Date) {
+        return Number.isNaN(value.getTime()) ? null : moment(value).format('YYYY-MM-DD');
+      }
+      return typeof value === 'string' && moment(value, 'YYYY-MM-DD', true).isValid() ? value : null;
+    };
+    dateStart = normalizeDate(dateStart);
+    dateEnd = normalizeDate(dateEnd);
+    if (!dateStart || !dateEnd || dateStart > dateEnd) {
+      throw new RangeError('Некорректный период расписания');
+    }
+    let query = this.mainQuery;
+    let custom = this.customQuery;
+    query = query.replace('#WHERE#', `sch.date >=:dateStart AND sch.date <=:dateEnd`)
+    custom = custom.replace('#WHERE#', `sc.date >=:dateStart AND sc.date <=:dateEnd`)
+
+    return {
+      main: await sequelize.query(
+        query, {
+          replacements: {
+            dateStart: String(dateStart),
+            dateEnd: String(dateEnd)
+          },
+          type: sequelize.QueryTypes.SELECT,
         }
-        if (lesson.ktpId === 'class_hour' || +lesson.ktpId > 0) {
-            if (typeof lesson.date !== 'string' || !moment(lesson.date, 'YYYY-MM-DD', true).isValid()) return 'Некорректная дата занятия';
-            if (!Number.isInteger(+lesson.lesson_number) || +lesson.lesson_number < 1 || +lesson.lesson_number > 7) return 'Некорректный номер пары';
-            for (const field of ['teacherId', 'cabinetId']) {
-                if (!Number.isSafeInteger(+lesson[field]) || +lesson[field] <= 0) return `Некорректное значение ${field}`;
-            }
-            if (lesson.ktpId === 'class_hour' && (!Number.isSafeInteger(+lesson.groupId) || +lesson.groupId <= 0)) return 'Некорректный ID группы';
-        }
-        return null;
+      ),
+      custom: await sequelize.query(
+        custom,
+        {
+          replacements: {
+            dateStart: String(dateStart),
+            dateEnd: String(dateEnd),
+            activeYear: this.getActiveYear(dateStart)
+          },
+          type: sequelize.QueryTypes.SELECT,
+        })
+    };
+  }
+
+  async getStudyWeekSchedule(date) {
+    let dates = this.getStudyWeek(date);
+    return this.getScheduleOnPeriod(dates[0], dates[1]);
+  }
+
+  getActiveYear(date) {
+    const dt = moment(date);
+    let year = dt.year();
+    if (dt.month() < 7) {
+      year--;
     }
+    return year;
+  }
 
-    async clearDay(date) {
-        return sequelize.transaction(async (transaction) => {
-            await models.schedule.update({
-                date: null,
-                lesson_number: null,
-                cabinet_id: null,
-                optional_cabinet_id: null,
-                optional_employee_id: null,
-            }, {where: {date}, transaction});
-            await models.schedule_custom.destroy({where: {date}, transaction});
-        });
+  getStudyWeek(date) {
+    let dt = moment(date);
+    let year = this.getActiveYear(date);
+    let startDate = moment(year + '-09-01');// start week
+    let diffWeeks = dt.diff(startDate, 'weeks');
+    let startWeekDate = startDate.add(diffWeeks, 'w');
+    let endWeekDate = startWeekDate.clone().add(6, 'd');
+    return [startWeekDate.format('YYYY-MM-DD'), endWeekDate.format('YYYY-MM-DD')]
+  }
+
+  async getWeekHours(date) {
+    let data = await this.getStudyWeekSchedule(date);
+    if (!data) {
+      return {};
     }
+    let result = {};
 
-    mainQuery = `SELECT sch.id,
-                        sch.date,
-                        sch.ktp_id,
-                        sch.cabinet_id,
-                        sch.status,
-                        sch.hour,
-                        sch.optional_cabinet_id,
-                        sch.lesson_number,
-                        sch.pair_number,
-                        sch.employee_id,
-                        sch.optional_employee_id,
-                        sch.list_id,
-                        gr.name as groupName,
-                        k.groupId,
-                        s.name                                                                   as subject,
-                        c1.number                                                                AS cabinet,
-                        c2.number                                                                AS second_cabinet,
-                        CONCAT(e1.last_name, ' ', SUBSTRING(e1.first_name, 1, 1), '.',
-                               SUBSTRING(e1.fathers_name, 1, 1), '.')                            AS employee,
-                        IF(e2.employeeId > 0, CONCAT(e2.last_name, ' ', SUBSTRING(e2.first_name, 1, 1), '.',
-                                                     SUBSTRING(e2.fathers_name, 1, 1), '.'), '') AS second_employee,
-
-                        k.groupId,
-                        k.semester,
-                        CEIL(k.semester / 2)                                                     AS course,
-                        kt.category,
-                        k.employeeId                                                             as main_employee,
-                        k.subjectId                                                              as subjectId,
-                        k.grouped                                                                as practice_grouped,
-                        k.grouped_k                                                              as course_grouped,
-                        k.group_employee                                                         as practice_employee,
-                        k.group_k_employee                                                       as course_employee,
-                        cp.type                                                                  as practice_type,
-                        IF(cs.id > 0, cs.code, sm.code)                                          AS subject_code
-                 FROM schedule AS sch
-                          INNER JOIN ktp k ON sch.ktp_id = k.ktpId
-                          INNER JOIN ktp_list AS kl ON kl.listId = sch.list_id
-                          INNER JOIN ktp_types AS kt ON kt.typeId = kl.typeId
-                          INNER JOIN subjects AS s ON s.subjectId = k.subjectId
-                          INNER JOIN employees AS e1 ON e1.employeeId = sch.employee_id
-                          INNER JOIN cabinets AS c1 ON c1.id = sch.cabinet_id
-                          INNER JOIN \`groups\` AS gr ON gr.groupId=k.groupId
-                          LEFT JOIN employees AS e2 ON e2.employeeId = sch.optional_employee_id
-                          LEFT JOIN cabinets AS c2 ON c2.id = sch.optional_cabinet_id
-                          LEFT JOIN curriculum_subjects cs ON k.curriculumSubjectId = cs.id
-                          LEFT JOIN curriculum_module_practice cp ON k.curriculumPracticeId = cp.id
-                          LEFT JOIN standard_modules sm ON cp.moduleId = sm.id
-                 WHERE #WHERE#
-                 ORDER BY sch.ktp_id, sch.hour
-    `;
-
-    customQuery = `SELECT sc.*,
-                          :activeYear - g.year + 1 AS course,
-                          c.number                 AS cabinet,
-                          CONCAT(e.last_name, ' ', SUBSTRING(e.first_name, 1, 1), '.', SUBSTRING(e.fathers_name, 1, 1),
-                                 '.')              AS employee
-                   FROM schedule_custom AS sc
-                            INNER JOIN \`groups\` g ON sc.group_id = g.groupId
-                            LEFT JOIN employees AS e ON e.employeeId = sc.employee_id
-                            LEFT JOIN cabinets AS c ON c.id = sc.cabinet_id
-                   WHERE #WHERE#`
-
-    async getCurrentSchedule(date) {
-        return this.getScheduleOnPeriod(date, date);
-    }
-
-    async getScheduleOnPeriod(dateStart, dateEnd) {
-        const normalizeDate = (value) => {
-            if (value instanceof Date) {
-                return Number.isNaN(value.getTime()) ? null : moment(value).format('YYYY-MM-DD');
-            }
-            return typeof value === 'string' && moment(value, 'YYYY-MM-DD', true).isValid() ? value : null;
+    for (let row of data.main) {
+      if (row.date == date) {
+        continue;
+      }
+      if (!result[row.groupId]) {
+        result[row.groupId] = {
+          groupId: row.groupId,
+          course: row.course,
+          hours: {},
         };
-        dateStart = normalizeDate(dateStart);
-        dateEnd = normalizeDate(dateEnd);
-        if (!dateStart || !dateEnd || dateStart > dateEnd) {
-            throw new RangeError('Некорректный период расписания');
-        }
-        let query = this.mainQuery;
-        let custom = this.customQuery;
-        query = query.replace('#WHERE#', `sch.date >=:dateStart AND sch.date <=:dateEnd`)
-        custom = custom.replace('#WHERE#', `sc.date >=:dateStart AND sc.date <=:dateEnd`)
-
-        return {
-            main: await sequelize.query(
-                query, {
-                    replacements: {
-                        dateStart: String(dateStart),
-                        dateEnd: String(dateEnd)
-                    },
-                    type: sequelize.QueryTypes.SELECT,
-                }
-            ),
-            custom: await sequelize.query(
-                custom,
-                {
-                    replacements: {
-                        dateStart: String(dateStart),
-                        dateEnd: String(dateEnd),
-                        activeYear: this.getActiveYear(dateStart)
-                    },
-                    type: sequelize.QueryTypes.SELECT,
-                })
-        };
+      }
+      if (!result[row.groupId].hours[row.date]) {
+        result[row.groupId].hours[row.date] = 0;
+      }
+      result[row.groupId].hours[row.date]++;
     }
+    return result;
+  }
 
-    async getStudyWeekSchedule(date) {
-        let dates = this.getStudyWeek(date);
-        return this.getScheduleOnPeriod(dates[0], dates[1]);
-    }
-
-    getActiveYear(date) {
-        const dt = moment(date);
-        let year = dt.year();
-        if (dt.month() < 7) {
-            year--;
-        }
-        return year;
-    }
-
-    getStudyWeek(date) {
-        let dt = moment(date);
-        let year = this.getActiveYear(date);
-        let startDate = moment(year + '-09-01');// start week
-        let diffWeeks = dt.diff(startDate, 'weeks');
-        let startWeekDate = startDate.add(diffWeeks, 'w');
-        let endWeekDate = startWeekDate.clone().add(6, 'd');
-        return [startWeekDate.format('YYYY-MM-DD'), endWeekDate.format('YYYY-MM-DD')]
-    }
-
-    async getWeekHours(date) {
-        let data = await this.getStudyWeekSchedule(date);
-        if (!data) {
-            return {};
-        }
-        let result = {};
-
-        for (let row of data.main) {
-            if (row.date == date) {
-                continue;
-            }
-            if (!result[row.groupId]) {
-                result[row.groupId] = {
-                    groupId: row.groupId,
-                    course: row.course,
-                    hours: {},
-                };
-            }
-            if (!result[row.groupId].hours[row.date]) {
-                result[row.groupId].hours[row.date] = 0;
-            }
-            result[row.groupId].hours[row.date]++;
-        }
-        return result;
-    }
-
-    async getScheduleFeature(hoursLimit) {
-        hoursLimit = hoursLimit || 15;
-        let query = `select id,
-                            ktp_id,
-                            status,
-                            s.hour,
-                            list_id,
-                            semester,
-                            main_employee,
-                            practice_employee,
-                            course_employee,
-                            category,
-                            course,
-                            (SELECT cabinet_id
-                             FROM schedule AS s2
-                                      INNER JOIN ktp_list l ON s2.list_id = l.listId
-                                      INNER JOIN ktp_types t ON l.typeId = t.typeId
-                             WHERE s.ktp_id = s2.ktp_id
-                               AND s.category = t.category
-                               and s2.cabinet_id > 0
-                             GROUP BY cabinet_id
-                             ORDER BY COUNT(s2.id) DESC
-                                LIMIT 1) AS cabinet_need,
+  async getScheduleFeature(hoursLimit) {
+    hoursLimit = hoursLimit || 15;
+    const activeYear = this.getActiveYear(new Date());
+    let query = `select id,
+                        ktp_id,
+                        status,
+                        s.hour,
+                        list_id,
+                        semester,
+                        main_employee,
+                        practice_employee,
+                        course_employee,
+                        category,
+                        course,
+                        (SELECT cabinet_id
+                         FROM schedule AS s2
+                                  INNER JOIN ktp_list l ON s2.list_id = l.listId
+                                  INNER JOIN ktp_types t ON l.typeId = t.typeId
+                         WHERE s.ktp_id = s2.ktp_id
+                           AND s.category = t.category
+                           and s2.cabinet_id > 0
+                         GROUP BY cabinet_id
+                         ORDER BY COUNT(s2.id) DESC
+                            LIMIT 1) AS cabinet_need,
                             (SELECT optional_cabinet_id
                              FROM schedule AS s3
                                       INNER JOIN ktp_list l ON s3.list_id = l.listId
@@ -231,669 +232,670 @@ class ScheduleService {
                              GROUP BY optional_cabinet_id
                              ORDER BY COUNT(s3.id) DESC
                                 LIMIT 1) AS cabinet_optional_need
-                     from (SELECT sch.id AS id, sch.ktp_id, sch.status, sch.list_id, sch.hour, k.semester, k.employeeId as main_employee, IF(k.grouped, k.group_employee, null) as practice_employee, IF(k.grouped_k, k.group_k_employee, null) as course_employee, kt.category, CEIL(k.semester / 2) AS course, ROW_NUMBER() OVER (PARTITION BY sch.ktp_id ORDER BY sch.hour) AS row_num
-                         FROM schedule AS sch
-                         INNER JOIN ktp k ON sch.ktp_id = k.ktpId
-                         INNER JOIN ktp_list AS kl ON kl.listId = sch.list_id
-                         INNER JOIN ktp_types AS kt ON kt.typeId = kl.typeId
-                         WHERE date IS NULL and kt.category!='i'
-                         ORDER BY sch.ktp_id, sch.hour) as s
-                     WHERE s.row_num < :hoursLimit`;
+                 from (SELECT sch.id AS id, sch.ktp_id, sch.status, sch.list_id, sch.hour, k.semester, k.employeeId as main_employee, IF(k.grouped, k.group_employee, null) as practice_employee, IF(k.grouped_k, k.group_k_employee, null) as course_employee, kt.category, CEIL(k.semester / 2) AS course, ROW_NUMBER() OVER (PARTITION BY sch.ktp_id ORDER BY sch.hour) AS row_num
+                     FROM schedule AS sch
+                     INNER JOIN ktp k ON sch.ktp_id = k.ktpId
+                     INNER JOIN ktp_list AS kl ON kl.listId = sch.list_id
+                     INNER JOIN ktp_types AS kt ON kt.typeId = kl.typeId
+                     WHERE sch.date IS NULL and kt.category!='i' and k.year = :activeYear
+                     ORDER BY sch.ktp_id, sch.hour) as s
+                 WHERE s.row_num < :hoursLimit`;
 
-        let result = await sequelize.query(
-            query, {
-                replacements: {
-                    hoursLimit: String(hoursLimit),
-                },
-                type: sequelize.QueryTypes.SELECT
-            }
-        );
+    let result = await sequelize.query(
+      query, {
+        replacements: {
+          hoursLimit: String(hoursLimit),
+          activeYear,
+        },
+        type: sequelize.QueryTypes.SELECT
+      }
+    );
 
-        const cabinets = await require('./cabinets.service').getCurriculumCabinets();
-        for (const row of result) {
-            const preferred = cabinets[row.ktp_id] || [];
-            if (preferred.length) {
-                if (!preferred.includes(Number(row.cabinet_need))) row.cabinet_need = preferred[0];
-                if (!preferred.includes(Number(row.cabinet_optional_need))) {
-                    row.cabinet_optional_need = preferred.find(id => id !== Number(row.cabinet_need)) || preferred[0];
-                }
-            }
+    const cabinets = await require('./cabinets.service').getCurriculumCabinets(activeYear);
+    for (const row of result) {
+      const preferred = cabinets[row.ktp_id] || [];
+      if (preferred.length) {
+        if (!preferred.includes(Number(row.cabinet_need))) row.cabinet_need = preferred[0];
+        if (!preferred.includes(Number(row.cabinet_optional_need))) {
+          row.cabinet_optional_need = preferred.find(id => id !== Number(row.cabinet_need)) || preferred[0];
         }
-        return _.groupBy(result, 'ktp_id');
+      }
     }
+    return _.groupBy(result, 'ktp_id');
+  }
 
-    isTheory(type) {
-        return type === 't' || type === 'c' || type === 's';
-    }
+  isTheory(type) {
+    return type === 't' || type === 'c' || type === 's';
+  }
 
-    isPractice(type) {
-        return type === 'l' || type === 'p';
-    }
+  isPractice(type) {
+    return type === 'l' || type === 'p';
+  }
 
-    isCourse(type) {
-        return type === 'k';
-    }
+  isCourse(type) {
+    return type === 'k';
+  }
 
-    isExam(type) {
-        return type === 'z';
-    }
+  isExam(type) {
+    return type === 'z';
+  }
 
-    parseSchedule(data) {
-        let result = {};
-        for (let row of data) {
-            let key = `${row.date}_${row.groupId}_${row.lesson_number}_${row.ktp_id}`;
-            let needSubgroup = false;
-            if (this.isPractice(row.category) && row['practice_grouped'] > 0) {
-                needSubgroup = row['main_employee'] !== row['practice_employee'];
-            }
-            if (this.isCourse(row.category) && row['course_grouped'] > 0) {
-                needSubgroup = row['main_employee'] !== row['course_employee'];
-            }
-            if (!result[key]) {
-                result[key] = {
-                    id: row.id,
-                    ids: [row.id],
-                    groupId: row.groupId,
-                    course: row.course,
-                    semester: row.semester,
-                    subjectId: row.subjectId,
-                    ktpId: row.ktp_id,
-                    listId: row.list_id,
-                    lesson_number: row.lesson_number,
-                    categories: [row.category],
-                    teacherId: row.employee_id,
-                    optionalTeacherId: row.optional_employee_id,
-                    cabinetId: row.cabinet_id,
-                    optionalCabinetId: row.optional_cabinet_id,
-                    lastHour: row.hour,
-                    needSubgroup: needSubgroup,
-                }
-            } else {
-                result[key].ids.push(row.id);
-                result[key].lastHour = row.hour;
-                result[key].needSubgroup = result[key].needSubgroup || needSubgroup;
-                result[key].categories.push(row.category)
-                result[key].categories = _.uniq(result[key].categories);
-            }
+  parseSchedule(data) {
+    let result = {};
+    for (let row of data) {
+      let key = `${row.date}_${row.groupId}_${row.lesson_number}_${row.ktp_id}`;
+      let needSubgroup = false;
+      if (this.isPractice(row.category) && row['practice_grouped'] > 0) {
+        needSubgroup = row['main_employee'] !== row['practice_employee'];
+      }
+      if (this.isCourse(row.category) && row['course_grouped'] > 0) {
+        needSubgroup = row['main_employee'] !== row['course_employee'];
+      }
+      if (!result[key]) {
+        result[key] = {
+          id: row.id,
+          ids: [row.id],
+          groupId: row.groupId,
+          course: row.course,
+          semester: row.semester,
+          subjectId: row.subjectId,
+          ktpId: row.ktp_id,
+          listId: row.list_id,
+          lesson_number: row.lesson_number,
+          categories: [row.category],
+          teacherId: row.employee_id,
+          optionalTeacherId: row.optional_employee_id,
+          cabinetId: row.cabinet_id,
+          optionalCabinetId: row.optional_cabinet_id,
+          lastHour: row.hour,
+          needSubgroup: needSubgroup,
         }
-        return Object.values(result);
+      } else {
+        result[key].ids.push(row.id);
+        result[key].lastHour = row.hour;
+        result[key].needSubgroup = result[key].needSubgroup || needSubgroup;
+        result[key].categories.push(row.category)
+        result[key].categories = _.uniq(result[key].categories);
+      }
     }
+    return Object.values(result);
+  }
 
-    async removeSchedule(lessons) {
-        _.each(lessons, (row) => {
-            if (row.type === 'custom' && +row.id > 0) {
-                models.schedule_custom.destroy({
-                    where: {
-                        id: row.id
-                    }
-                })
-            }
-            if (row.type === 'lesson' && +row.id > 0) {
-                models.schedule.update({
-                    date: null,
-                    lesson_number:null,
-                    cabinet_id: null,
-                    optional_cabinet_id: null,
-                },{
-                    where: {
-                        id: row.id
-                    }
-                })
-            }
-        });
-        return true;
-    }
-
-    async updateSchedule(lessons) {
-        if (!Array.isArray(lessons)) return ['Данные расписания должны быть массивом'];
-        let errors = [];
-        for (const lesson of lessons) {
-            const validationError = this.validateLesson(lesson);
-            if (validationError) {
-                errors.push(validationError);
-                continue;
-            }
-            if (lesson.ktpId === 'class_hour') {
-                let result = await this.saveCustomLesson(lesson);
-                if (result !== true) {
-                    errors.push(result);
-                }
-            } else {
-                for (let scheduleIndex in lesson.ids) {
-                    let scheduleId = lesson.ids[scheduleIndex];
-                    // update schedule
-                    if (scheduleId > 0) {
-                        let scheduleRow = await models.schedule.findByPk(scheduleId);
-                        if (!scheduleRow || !(scheduleRow.id > 0)) {
-                            errors.push('Не найдено занятий в расписании для ID ' + scheduleId);
-                        } else {
-                            if (lesson.ktpId > 0) {
-                                let ktp = await models.ktp.findByPk(lesson.ktpId);
-                                if (!ktp) {
-                                    errors.push('Не найден КТП для ID ' + lesson.ktpId);
-                                    continue;
-                                }
-                                if (scheduleIndex === 0) { // check only on first pair
-                                    let hasLessons = await this.checkIsBusy(ktp.groupId, lesson.date, lesson.lesson_number);
-                                    if (hasLessons) {
-                                        let group = await ktp.getGroup();
-                                        errors.push(`для группы ${group.name} урок №${lesson.lesson_number} уже содержит занятие`);
-                                        continue;
-                                    }
-                                }
-
-                                let isNeedSecondEmployee = await ktpService.isNeedSecondEmployee(scheduleRow.list_id)
-                                scheduleRow.date = lesson.date;
-                                scheduleRow.lesson_number = lesson.lesson_number;
-                                scheduleRow.employee_id = lesson.teacherId;
-                                scheduleRow.cabinet_id = lesson.cabinetId;
-                                scheduleRow.optional_cabinet_id = isNeedSecondEmployee && lesson.optionalCabinetId ? lesson.optionalCabinetId : null;
-                                scheduleRow.optional_employee_id = isNeedSecondEmployee && lesson.optionalTeacherId ? lesson.optionalTeacherId : null;
-                            } else {
-                                scheduleRow.date = null;
-                                scheduleRow.lesson_number = null;
-                                // scheduleRow.employee_id = null;
-                                scheduleRow.cabinet_id = null;
-                                scheduleRow.optional_employee_id = null;
-                                scheduleRow.optional_cabinet_id = null;
-                            }
-
-                            let result = false;
-                            try {
-                                result = await scheduleRow.save(['date', 'lesson_number', 'employee_id', 'cabinet_id', 'optional_employee_id', 'optional_cabinet_id'])
-                                if (!result) {
-                                    errors.push('Can not save schedule data')
-                                }
-                            } catch (e) {
-                                errors.push('Error on save schedule data:' + e.message)
-                            }
-                        }
-                    } else {
-                        // remove schedule info
-
-                    }
-                }
-            }
-        }
-        return errors.length > 0 ? _.uniq(errors) : true;
-    }
-
-    async saveCustomLesson(lesson) {
-        if (+lesson.remove === 1) {
-            if (lesson.id > 0) {
-                try {
-                    await models.schedule_custom.destroy({
-                        where: {
-                            id: lesson.id
-                        }
-                    });
-
-                } catch (e) {
-                    return 'Error on save schedule data:' + e.message;
-                }
-            }
-        } else {
-            try {
-                // check if has on this lesson
-                let row = await models.schedule_custom.findOne({
-                    where: {
-                        date: lesson.date,
-                        lesson_number: lesson.lesson_number,
-                        group_id: lesson.groupId,
-                    }
-                });
-                if (row) {
-                    return 'На это время уже есть расписание';
-                }
-
-                let scheduleRow = await models.schedule_custom.create({
-                    name: lesson.ktpId,
-                    date: lesson.date,
-                    lesson_number: lesson.lesson_number,
-                    group_id: lesson.groupId,
-                    employee_id: lesson.teacherId,
-                    cabinet_id: lesson.cabinetId,
-                });
-                if (!scheduleRow || !(scheduleRow.id > 0)) {
-                    return 'не удалось сохранить данные';
-                }
-            } catch (e) {
-                return 'Ошибка сохранения расписания: ' + e.message;
-            }
-        }
-        return true;
-    }
-
-    async checkIsBusy(groupId, date, lesson_number) {
-        let result = await models.schedule.findAll({
-            include: [{
-                model: models.ktp,
-                as: 'ktp',
-            }],
-            where: {
-                date: date,
-                '$ktp.groupId$': groupId,
-                lesson_number: lesson_number
-            },
-            // logging: console.log,
+  async removeSchedule(lessons) {
+    _.each(lessons, (row) => {
+      if (row.type === 'custom' && +row.id > 0) {
+        models.schedule_custom.destroy({
+          where: {
+            id: row.id
+          }
         })
-        return result.length !== 0;
-    }
+      }
+      if (row.type === 'lesson' && +row.id > 0) {
+        models.schedule.update({
+          date: null,
+          lesson_number: null,
+          cabinet_id: null,
+          optional_cabinet_id: null,
+        }, {
+          where: {
+            id: row.id
+          }
+        })
+      }
+    });
+    return true;
+  }
 
-    async correctScheduleOrder(ktpId, correct) {
-        // get defect ktp ids
-        const year = KtpService.getActiveYear(new Date());
-        let ktpIds = await sequelize.query(
-            `select distinct ktp_id
-             from (select ktp_id, hour, row_number() over (partition by ktp_id order by date, lesson_number) as schedule_hour
-                   from schedule as s
-                       inner join ktp as k
-                   on k.ktpId=s.ktp_id
-                   where date >= 0
-                     and k.year=${year}
-                     and lesson_number
-                       > 0
-                   order by ktp_id, date, lesson_number) as schedule
-             where hour != schedule_hour` +
-            (ktpId > 0 ? ` AND ktp_id=${+ktpId}` : '')
-            , {
-                type: sequelize.QueryTypes.SELECT
-            }
-        );
-        if (ktpIds.length === 0) {
-            // all is good
-            return false;
+  async updateSchedule(lessons) {
+    if (!Array.isArray(lessons)) return ['Данные расписания должны быть массивом'];
+    let errors = [];
+    for (const lesson of lessons) {
+      const validationError = this.validateLesson(lesson);
+      if (validationError) {
+        errors.push(validationError);
+        continue;
+      }
+      if (lesson.ktpId === 'class_hour') {
+        let result = await this.saveCustomLesson(lesson);
+        if (result !== true) {
+          errors.push(result);
         }
-        ktpIds = ktpIds.map((row) => row.ktp_id);
-        let log = {};
-        for (let ktpId of ktpIds) {
-            let errors = await this.correctByKtpId(ktpId, false);
-            if (errors.length) {
-                log[ktpId] = {
-                    name: await ktpService.geSubjectNameByKtp(ktpId),
-                    errors: errors
+      } else {
+        for (let scheduleIndex in lesson.ids) {
+          let scheduleId = lesson.ids[scheduleIndex];
+          // update schedule
+          if (scheduleId > 0) {
+            let scheduleRow = await models.schedule.findByPk(scheduleId);
+            if (!scheduleRow || !(scheduleRow.id > 0)) {
+              errors.push('Не найдено занятий в расписании для ID ' + scheduleId);
+            } else {
+              if (lesson.ktpId > 0) {
+                let ktp = await models.ktp.findByPk(lesson.ktpId);
+                if (!ktp) {
+                  errors.push('Не найден КТП для ID ' + lesson.ktpId);
+                  continue;
                 }
-            }
-            if (correct) {
-                if (ktpId) {
-                    await this.correctByKtpId(ktpId, true)
+                if (scheduleIndex === 0) { // check only on first pair
+                  let hasLessons = await this.checkIsBusy(ktp.groupId, lesson.date, lesson.lesson_number);
+                  if (hasLessons) {
+                    let group = await ktp.getGroup();
+                    errors.push(`для группы ${group.name} урок №${lesson.lesson_number} уже содержит занятие`);
+                    continue;
+                  }
                 }
+
+                let isNeedSecondEmployee = await ktpService.isNeedSecondEmployee(scheduleRow.list_id)
+                scheduleRow.date = lesson.date;
+                scheduleRow.lesson_number = lesson.lesson_number;
+                scheduleRow.employee_id = lesson.teacherId;
+                scheduleRow.cabinet_id = lesson.cabinetId;
+                scheduleRow.optional_cabinet_id = isNeedSecondEmployee && lesson.optionalCabinetId ? lesson.optionalCabinetId : null;
+                scheduleRow.optional_employee_id = isNeedSecondEmployee && lesson.optionalTeacherId ? lesson.optionalTeacherId : null;
+              } else {
+                scheduleRow.date = null;
+                scheduleRow.lesson_number = null;
+                // scheduleRow.employee_id = null;
+                scheduleRow.cabinet_id = null;
+                scheduleRow.optional_employee_id = null;
+                scheduleRow.optional_cabinet_id = null;
+              }
+
+              let result = false;
+              try {
+                result = await scheduleRow.save(['date', 'lesson_number', 'employee_id', 'cabinet_id', 'optional_employee_id', 'optional_cabinet_id'])
+                if (!result) {
+                  errors.push('Can not save schedule data')
+                }
+              } catch (e) {
+                errors.push('Error on save schedule data:' + e.message)
+              }
             }
+          } else {
+            // remove schedule info
+
+          }
+        }
+      }
+    }
+    return errors.length > 0 ? _.uniq(errors) : true;
+  }
+
+  async saveCustomLesson(lesson) {
+    if (+lesson.remove === 1) {
+      if (lesson.id > 0) {
+        try {
+          await models.schedule_custom.destroy({
+            where: {
+              id: lesson.id
+            }
+          });
+
+        } catch (e) {
+          return 'Error on save schedule data:' + e.message;
+        }
+      }
+    } else {
+      try {
+        // check if has on this lesson
+        let row = await models.schedule_custom.findOne({
+          where: {
+            date: lesson.date,
+            lesson_number: lesson.lesson_number,
+            group_id: lesson.groupId,
+          }
+        });
+        if (row) {
+          return 'На это время уже есть расписание';
         }
 
-
-        return log;
+        let scheduleRow = await models.schedule_custom.create({
+          name: lesson.ktpId,
+          date: lesson.date,
+          lesson_number: lesson.lesson_number,
+          group_id: lesson.groupId,
+          employee_id: lesson.teacherId,
+          cabinet_id: lesson.cabinetId,
+        });
+        if (!scheduleRow || !(scheduleRow.id > 0)) {
+          return 'не удалось сохранить данные';
+        }
+      } catch (e) {
+        return 'Ошибка сохранения расписания: ' + e.message;
+      }
     }
+    return true;
+  }
 
-    async getScheduleOverlay() {
-        let year = this.getActiveYear(new Date());
-        let rows = await sequelize.query(
-            `select count(id)            as cnt,
-                    groupId,
-                    group_concat(s.id)   as ids,
-                    group_concat(ktp_id) as ktp_list, date, lesson_number
+  async checkIsBusy(groupId, date, lesson_number) {
+    let result = await models.schedule.findAll({
+      include: [{
+        model: models.ktp,
+        as: 'ktp',
+      }],
+      where: {
+        date: date,
+        '$ktp.groupId$': groupId,
+        lesson_number: lesson_number
+      },
+      // logging: console.log,
+    })
+    return result.length !== 0;
+  }
+
+  async correctScheduleOrder(ktpId, correct) {
+    // get defect ktp ids
+    const year = this.getActiveYear(new Date());
+    let ktpIds = await sequelize.query(
+      `select distinct ktp_id
+       from (select ktp_id, hour, row_number() over (partition by ktp_id order by date, lesson_number) as schedule_hour
              from schedule as s
-                 inner join ktp k
-             on s.ktp_id = k.ktpId
-             where date >= :dateValue
+                 inner join ktp as k
+             on k.ktpId=s.ktp_id
+             where date >= 0
+               and k.year=${year}
                and lesson_number
                  > 0
-             group by groupId, date, lesson_number
-             having cnt > 2
-             order by date, lesson_number, ktp_id`
-            , {
-                replacements: {
-                    dateValue: year + '-09-01'
-                },
-                type: sequelize.QueryTypes.SELECT
-            }
-        );
-
-        let errors = {};
-        for (let row of rows) {
-            if (!errors[row.date]) {
-                errors[row.date] = {}
-            }
-            if (!errors[row.date][row.groupId]) {
-                errors[row.date][row.groupId] = [];
-            }
-            let ktps = {};
-            let scheduleIds = row.ids.split(',');
-            let ktpIds = row.ktp_list.split(',');
-            for (let index in ktpIds) {
-                const ktpId = ktpIds[index];
-                if (!ktps[ktpId]) {
-                    ktps[ktpId] = {
-                        name: await ktpService.geSubjectNameByKtp(ktpIds[index]),
-                        ids: []
-                    };
-                }
-                ktps[ktpId].ids.push(scheduleIds[index]);
-            }
-
-            errors[row.date][row.groupId].push({
-                lesson_number: row.lesson_number,
-                ktps: ktps
-            })
-
+             order by ktp_id, date, lesson_number) as schedule
+       where hour != schedule_hour` +
+      (ktpId > 0 ? ` AND ktp_id=${+ktpId}` : '')
+      , {
+        type: sequelize.QueryTypes.SELECT
+      }
+    );
+    if (ktpIds.length === 0) {
+      // all is good
+      return false;
+    }
+    ktpIds = ktpIds.map((row) => row.ktp_id);
+    let log = {};
+    for (let ktpId of ktpIds) {
+      let errors = await this.correctByKtpId(ktpId, false);
+      if (errors.length) {
+        log[ktpId] = {
+          name: await ktpService.geSubjectNameByKtp(ktpId),
+          errors: errors
         }
-        return errors;
+      }
+      if (correct) {
+        if (ktpId) {
+          await this.correctByKtpId(ktpId, true)
+        }
+      }
     }
 
-    async correctScheduleOverlay(ids) {
-        if (!ids || ids.length === 0) {
-            return false;
+
+    return log;
+  }
+
+  async getScheduleOverlay() {
+    let year = this.getActiveYear(new Date());
+    let rows = await sequelize.query(
+      `select count(id)            as cnt,
+              groupId,
+              group_concat(s.id)   as ids,
+              group_concat(ktp_id) as ktp_list, date, lesson_number
+       from schedule as s
+           inner join ktp k
+       on s.ktp_id = k.ktpId
+       where date >= :dateValue
+         and lesson_number
+           > 0
+       group by groupId, date, lesson_number
+       having cnt > 2
+       order by date, lesson_number, ktp_id`
+      , {
+        replacements: {
+          dateValue: year + '-09-01'
+        },
+        type: sequelize.QueryTypes.SELECT
+      }
+    );
+
+    let errors = {};
+    for (let row of rows) {
+      if (!errors[row.date]) {
+        errors[row.date] = {}
+      }
+      if (!errors[row.date][row.groupId]) {
+        errors[row.date][row.groupId] = [];
+      }
+      let ktps = {};
+      let scheduleIds = row.ids.split(',');
+      let ktpIds = row.ktp_list.split(',');
+      for (let index in ktpIds) {
+        const ktpId = ktpIds[index];
+        if (!ktps[ktpId]) {
+          ktps[ktpId] = {
+            name: await ktpService.geSubjectNameByKtp(ktpIds[index]),
+            ids: []
+          };
         }
-        await sequelize.query(
-            `UPDATE schedule
-             SET date=null,
-                 lesson_number=0
-             where id IN (:ids)`
-            , {
-                replacements: {
-                    ids: ids,
-                },
-                type: sequelize.QueryTypes.UPDATE
-            }
-        )
+        ktps[ktpId].ids.push(scheduleIds[index]);
+      }
 
+      errors[row.date][row.groupId].push({
+        lesson_number: row.lesson_number,
+        ktps: ktps
+      })
 
-        return true;
     }
+    return errors;
+  }
 
-    async correctByKtpId(ktpId, correct) {
-        let errors = [];
-        let rows = await sequelize.query(
-            `select s.*, kt.category
-             from schedule as s
-                      inner join ktp_list as kl on kl.listId = s.list_id
-                      inner join ktp_types as kt on kl.typeId = kt.typeId
-             where ktp_id = :ktpId
-             order by ktp_id, hour`
-            , {
-                replacements: {
-                    ktpId: ktpId
-                },
-                type: sequelize.QueryTypes.SELECT
-            }
-        );
-
-        let dates = rows.reduce((acc, row) => {
-            if (row.date && row.lesson_number > 0)
-                acc[row.date] = [...acc[row.date] || [], {
-                    category: row.category,
-                    lesson: row.lesson_number,
-                    cabinet_id: row.cabinet_id,
-                    employee_id: row.employee_id,
-                    optional_employee_id: row.optional_employee_id,
-                    optional_cabinet_id: row.optional_cabinet_id,
-                }]
-            return acc;
-        }, {});
-        // order dates
-        dates = Object.keys(dates).sort().reduce((obj, key) => {
-            obj[key] = dates[key];
-            return obj
-        }, {})
-
-        let rowIndex = 0;
-        let lastHour = 0;
-        const ktpInfo = await ktpService.getKtpInfo(ktpId);
-        for (let date in dates) {
-            let replaces = await ReplaceService.getReplacesOnDate(date);
-            // fill replaces on employees
-            let dateEmployees = _.clone(ktpInfo.employees);
-            let replacedEmployee;
-            if ((replacedEmployee = _.get(replaces, [ktpInfo.group, ktpInfo.subject, ktpInfo.employees.main, 't'], false)) !== false) {
-                dateEmployees.main = replacedEmployee;
-            }
-            if ((replacedEmployee = _.get(replaces, [ktpInfo.group, ktpInfo.subject, ktpInfo.employees.practice, 'p'], false)) !== false) {
-                dateEmployees.practice = replacedEmployee;
-            }
-            if ((replacedEmployee = _.get(replaces, [ktpInfo.group, ktpInfo.subject, ktpInfo.employees.course, 'c'], false)) !== false) {
-                dateEmployees.course = replacedEmployee;
-            }
-            // end fill replaces on employees
+  async correctScheduleOverlay(ids) {
+    if (!ids || ids.length === 0) {
+      return false;
+    }
+    await sequelize.query(
+      `UPDATE schedule
+       SET date=null,
+           lesson_number=0
+       where id IN (:ids)`
+      , {
+        replacements: {
+          ids: ids,
+        },
+        type: sequelize.QueryTypes.UPDATE
+      }
+    )
 
 
-            let lessonNumbers = _.sortBy(dates[date], ['lesson']);
-            for (let lessonNumber of lessonNumbers) {
-                let row = rows[rowIndex++];//
-                lastHour = row.hour;
+    return true;
+  }
 
-                // correct
-                if (row.date === date &&
-                    +row.lesson_number === +lessonNumber.lesson) {
-                    continue;
-                }
-                if (correct) {
-                    let scheduleRow = await models.schedule.findByPk(row.id);
-                    scheduleRow.date = date;
-                    scheduleRow.lesson_number = lessonNumber.lesson;
+  async correctByKtpId(ktpId, correct) {
+    let errors = [];
+    let rows = await sequelize.query(
+      `select s.*, kt.category
+       from schedule as s
+                inner join ktp_list as kl on kl.listId = s.list_id
+                inner join ktp_types as kt on kl.typeId = kt.typeId
+       where ktp_id = :ktpId
+       order by ktp_id, hour`
+      , {
+        replacements: {
+          ktpId: ktpId
+        },
+        type: sequelize.QueryTypes.SELECT
+      }
+    );
 
-                    if (scheduleRow.cabinet_id === null) {
-                        scheduleRow.cabinet_id = lessonNumber.cabinet_id;
-                    }
-                    // if replaced employee
-                    if (+scheduleRow.employee_id !== +dateEmployees.main) {
-                        scheduleRow.employee_id = dateEmployees.main;
-                    }
+    let dates = rows.reduce((acc, row) => {
+      if (row.date && row.lesson_number > 0)
+        acc[row.date] = [...acc[row.date] || [], {
+          category: row.category,
+          lesson: row.lesson_number,
+          cabinet_id: row.cabinet_id,
+          employee_id: row.employee_id,
+          optional_employee_id: row.optional_employee_id,
+          optional_cabinet_id: row.optional_cabinet_id,
+        }]
+      return acc;
+    }, {});
+    // order dates
+    dates = Object.keys(dates).sort().reduce((obj, key) => {
+      obj[key] = dates[key];
+      return obj
+    }, {})
 
-                    // Optional (подгруппа 2) заполняем только когда реально есть "деление":
-                    // optional-предметный преподаватель != main-преподавателя и он определен для этого типа занятия.
-                    const mainEmployeeId = +dateEmployees.main;
-                    const isPractice = this.isPractice(row.category); // l/p
-                    const isCourse = this.isCourse(row.category); // k
+    let rowIndex = 0;
+    let lastHour = 0;
+    const ktpInfo = await ktpService.getKtpInfo(ktpId);
+    for (let date in dates) {
+      let replaces = await ReplaceService.getReplacesOnDate(date);
+      // fill replaces on employees
+      let dateEmployees = _.clone(ktpInfo.employees);
+      let replacedEmployee;
+      if ((replacedEmployee = _.get(replaces, [ktpInfo.group, ktpInfo.subject, ktpInfo.employees.main, 't'], false)) !== false) {
+        dateEmployees.main = replacedEmployee;
+      }
+      if ((replacedEmployee = _.get(replaces, [ktpInfo.group, ktpInfo.subject, ktpInfo.employees.practice, 'p'], false)) !== false) {
+        dateEmployees.practice = replacedEmployee;
+      }
+      if ((replacedEmployee = _.get(replaces, [ktpInfo.group, ktpInfo.subject, ktpInfo.employees.course, 'c'], false)) !== false) {
+        dateEmployees.course = replacedEmployee;
+      }
+      // end fill replaces on employees
 
-                    if (isPractice) {
-                        const optionalPracticeId = dateEmployees.practice ? +dateEmployees.practice : null;
-                        if (optionalPracticeId && optionalPracticeId > 0 && optionalPracticeId !== mainEmployeeId) {
-                            scheduleRow.optional_employee_id = optionalPracticeId;
-                            scheduleRow.optional_cabinet_id = lessonNumber.optional_cabinet_id;
-                        } else {
-                            scheduleRow.optional_employee_id = null;
-                            scheduleRow.optional_cabinet_id = null;
-                        }
-                    } else if (isCourse) {
-                        const optionalCourseId = dateEmployees.course ? +dateEmployees.course : null;
-                        if (optionalCourseId && optionalCourseId > 0 && optionalCourseId !== mainEmployeeId) {
-                            scheduleRow.optional_employee_id = optionalCourseId;
-                            scheduleRow.optional_cabinet_id = lessonNumber.optional_cabinet_id;
-                        } else {
-                            scheduleRow.optional_employee_id = null;
-                            scheduleRow.optional_cabinet_id = null;
-                        }
-                    } else {
-                        scheduleRow.optional_employee_id = null;
-                        scheduleRow.optional_cabinet_id = null;
-                    }
 
-                    let result = false;
-                    try {
-                        result = await scheduleRow.save(['date', 'lesson_number', 'employee_id', 'cabinet_id', 'optional_employee_id', 'optional_cabinet_id'])
-                        if (!result) {
-                            errors.push({list_id: row['list_id'], message: 'Can not save schedule data'})
-                        }
-                    } catch (e) {
-                        errors.push({list_id: row['list_id'], message: 'Error on save schedule data:' + e.message});
-                    }
-                } else {
-                    errors.push({
-                        list_id: row['list_id'],
-                        message: `Нарушен порядок. должен быть ${date} (${lessonNumber.lesson} пара), стоит ${row.date} (${row.lesson_number} пара)` +
-                            (row.category !== lessonNumber.category ? `. Тип занятия имзениется - была ${row.category} станет ${lessonNumber.category}` : '')
-                    })
-                }
-            }
+      let lessonNumbers = _.sortBy(dates[date], ['lesson']);
+      for (let lessonNumber of lessonNumbers) {
+        let row = rows[rowIndex++];//
+        lastHour = row.hour;
+
+        // correct
+        if (row.date === date &&
+          +row.lesson_number === +lessonNumber.lesson) {
+          continue;
         }
         if (correct) {
-            await sequelize.query(
-                `UPDATE schedule
-                 SET date=null,
-                     lesson_number=0,
-                     cabinet_id=null,
-                     optional_cabinet_id=null
-                 where ktp_id = :ktpId AND hour > :hour`
-                , {
-                    replacements: {
-                        ktpId: ktpId,
-                        hour: lastHour
-                    },
-                    type: sequelize.QueryTypes.UPDATE
-                }
-            )
-        }
-        return errors;
-    }
+          let scheduleRow = await models.schedule.findByPk(row.id);
+          scheduleRow.date = date;
+          scheduleRow.lesson_number = lessonNumber.lesson;
 
+          if (scheduleRow.cabinet_id === null) {
+            scheduleRow.cabinet_id = lessonNumber.cabinet_id;
+          }
+          // if replaced employee
+          if (+scheduleRow.employee_id !== +dateEmployees.main) {
+            scheduleRow.employee_id = dateEmployees.main;
+          }
 
-    async compareJournal() {
-        let scheduleRows = await sequelize.query(
-            `select *
-             from schedule as s
-             where date >= 0
-               and lesson_number
-                 > 0
-               and ktp_id=13906
-             order by ktp_id, date, lesson_number, hour`
-            , {
-                type: sequelize.QueryTypes.SELECT
-            }
-        );
-        let schedule = {};
-        for (let row of scheduleRows) {
-            if (!schedule[row.ktp_id]) {
-                schedule[row.ktp_id] = {
-                    name: await ktpService.geSubjectNameByKtp(row.ktp_id),
-                    dates: {}
-                };
-            }
-            if (!schedule[row.ktp_id]['dates'][row.date]) {
-                schedule[row.ktp_id]['dates'][row.date] = [];
-            }
-            schedule[row.ktp_id]['dates'][row.date].push({
-                ...row,
-                journal: null,
-                journal2: null,
-                problem: false
-            });
-        }
-        // get journals
-        let activeYear = this.getActiveYear(new Date());
-        let journalRows = await sequelize.query(
-            `select *
-             from journal as j
-             where date >= '${activeYear}-09-01'
-               and type in (0
-                 , 2)
-               and ktpId=13906
+          // Optional (подгруппа 2) заполняем только когда реально есть "деление":
+          // optional-предметный преподаватель != main-преподавателя и он определен для этого типа занятия.
+          const mainEmployeeId = +dateEmployees.main;
+          const isPractice = this.isPractice(row.category); // l/p
+          const isCourse = this.isCourse(row.category); // k
 
-             order by ktpId, date, journalId`
-            , {
-                type: sequelize.QueryTypes.SELECT
-            }
-        );
-        let scheduleDateIndex = {};
-        for (let row of journalRows) {
-            if (!schedule[row.ktpId]) {
-                schedule[row.ktpId] = {
-                    name: await ktpService.geSubjectNameByKtp(row.ktpId),
-                    dates: {}
-                };
-            }
-            if (!schedule[row.ktpId]['dates'][row.date]) {
-                schedule[row.ktpId]['dates'][row.date] = [];
-            }
-            let key = row.ktpId + '_' + row.subgroup;
-            if (!scheduleDateIndex[key]) {
-                scheduleDateIndex[key] = 0;
-            }
-            if (!schedule[row.ktpId]['dates'][row.date][scheduleDateIndex[key]]) {
-                schedule[row.ktpId]['dates'][row.date].push({
-                    lesson_number: 0,
-                    list_id: row.listId,
-                    employee_id: +row.subgroup < 2 ? row.employeeId : null,
-                    optional_employee_id: +row.subgroup == 2 ? row.employeeId : null,
-                    problem: true
-                });
+          if (isPractice) {
+            const optionalPracticeId = dateEmployees.practice ? +dateEmployees.practice : null;
+            if (optionalPracticeId && optionalPracticeId > 0 && optionalPracticeId !== mainEmployeeId) {
+              scheduleRow.optional_employee_id = optionalPracticeId;
+              scheduleRow.optional_cabinet_id = lessonNumber.optional_cabinet_id;
             } else {
-                let curRow = schedule[row.ktpId]['dates'][row.date][scheduleDateIndex[key]];
-                if (row.subgroup < 2) {
-                    curRow['journal'] = row;
-                } else {
-                    curRow['journal2'] = row;
-                }
-                curRow['problem'] = curRow['problem'] || curRow['list_id'] != row.listId;
+              scheduleRow.optional_employee_id = null;
+              scheduleRow.optional_cabinet_id = null;
             }
-            scheduleDateIndex[key]++;
-        }
+          } else if (isCourse) {
+            const optionalCourseId = dateEmployees.course ? +dateEmployees.course : null;
+            if (optionalCourseId && optionalCourseId > 0 && optionalCourseId !== mainEmployeeId) {
+              scheduleRow.optional_employee_id = optionalCourseId;
+              scheduleRow.optional_cabinet_id = lessonNumber.optional_cabinet_id;
+            } else {
+              scheduleRow.optional_employee_id = null;
+              scheduleRow.optional_cabinet_id = null;
+            }
+          } else {
+            scheduleRow.optional_employee_id = null;
+            scheduleRow.optional_cabinet_id = null;
+          }
 
-        return schedule;
+          let result = false;
+          try {
+            result = await scheduleRow.save(['date', 'lesson_number', 'employee_id', 'cabinet_id', 'optional_employee_id', 'optional_cabinet_id'])
+            if (!result) {
+              errors.push({list_id: row['list_id'], message: 'Can not save schedule data'})
+            }
+          } catch (e) {
+            errors.push({list_id: row['list_id'], message: 'Error on save schedule data:' + e.message});
+          }
+        } else {
+          errors.push({
+            list_id: row['list_id'],
+            message: `Нарушен порядок. должен быть ${date} (${lessonNumber.lesson} пара), стоит ${row.date} (${row.lesson_number} пара)` +
+              (row.category !== lessonNumber.category ? `. Тип занятия имзениется - была ${row.category} станет ${lessonNumber.category}` : '')
+          })
+        }
+      }
+    }
+    if (correct) {
+      await sequelize.query(
+        `UPDATE schedule
+         SET date=null,
+             lesson_number=0,
+             cabinet_id=null,
+             optional_cabinet_id=null
+         where ktp_id = :ktpId AND hour > :hour`
+        , {
+          replacements: {
+            ktpId: ktpId,
+            hour: lastHour
+          },
+          type: sequelize.QueryTypes.UPDATE
+        }
+      )
+    }
+    return errors;
+  }
+
+
+  async compareJournal() {
+    let scheduleRows = await sequelize.query(
+      `select *
+       from schedule as s
+       where date >= 0
+         and lesson_number
+           > 0
+         and ktp_id=13906
+       order by ktp_id, date, lesson_number, hour`
+      , {
+        type: sequelize.QueryTypes.SELECT
+      }
+    );
+    let schedule = {};
+    for (let row of scheduleRows) {
+      if (!schedule[row.ktp_id]) {
+        schedule[row.ktp_id] = {
+          name: await ktpService.geSubjectNameByKtp(row.ktp_id),
+          dates: {}
+        };
+      }
+      if (!schedule[row.ktp_id]['dates'][row.date]) {
+        schedule[row.ktp_id]['dates'][row.date] = [];
+      }
+      schedule[row.ktp_id]['dates'][row.date].push({
+        ...row,
+        journal: null,
+        journal2: null,
+        problem: false
+      });
+    }
+    // get journals
+    let activeYear = this.getActiveYear(new Date());
+    let journalRows = await sequelize.query(
+      `select *
+       from journal as j
+       where date >= '${activeYear}-09-01'
+         and type in (0
+           , 2)
+         and ktpId=13906
+
+       order by ktpId, date, journalId`
+      , {
+        type: sequelize.QueryTypes.SELECT
+      }
+    );
+    let scheduleDateIndex = {};
+    for (let row of journalRows) {
+      if (!schedule[row.ktpId]) {
+        schedule[row.ktpId] = {
+          name: await ktpService.geSubjectNameByKtp(row.ktpId),
+          dates: {}
+        };
+      }
+      if (!schedule[row.ktpId]['dates'][row.date]) {
+        schedule[row.ktpId]['dates'][row.date] = [];
+      }
+      let key = row.ktpId + '_' + row.subgroup;
+      if (!scheduleDateIndex[key]) {
+        scheduleDateIndex[key] = 0;
+      }
+      if (!schedule[row.ktpId]['dates'][row.date][scheduleDateIndex[key]]) {
+        schedule[row.ktpId]['dates'][row.date].push({
+          lesson_number: 0,
+          list_id: row.listId,
+          employee_id: +row.subgroup < 2 ? row.employeeId : null,
+          optional_employee_id: +row.subgroup == 2 ? row.employeeId : null,
+          problem: true
+        });
+      } else {
+        let curRow = schedule[row.ktpId]['dates'][row.date][scheduleDateIndex[key]];
+        if (row.subgroup < 2) {
+          curRow['journal'] = row;
+        } else {
+          curRow['journal2'] = row;
+        }
+        curRow['problem'] = curRow['problem'] || curRow['list_id'] != row.listId;
+      }
+      scheduleDateIndex[key]++;
     }
 
-    async cloneFromDate(fromDate, toDate, course) {
-        let fromSchedule = await this.getCurrentSchedule(fromDate);
-        let toSchedule = await this.getCurrentSchedule(toDate);
+    return schedule;
+  }
 
-        fromSchedule.main = _.filter(fromSchedule.main, {course: +course});
-        fromSchedule.custom = _.filter(fromSchedule.custom, {course: +course});
-        toSchedule.main = _.filter(toSchedule.main, {course: +course});
-        toSchedule.custom = _.filter(toSchedule.custom, {course: +course});
-        if ((fromSchedule.main.length + fromSchedule.custom.length) === 0) {
-            return 'Source schedule is  empty.';
-        }
-        if ((toSchedule.main.length + toSchedule.custom.length) > 0) {
-            return 'Date to fill schedule not empty.';
-        }
+  async cloneFromDate(fromDate, toDate, course) {
+    let fromSchedule = await this.getCurrentSchedule(fromDate);
+    let toSchedule = await this.getCurrentSchedule(toDate);
 
-        fromSchedule.main = this.parseSchedule(fromSchedule.main)
-
-        let free = await this.getScheduleFeature(9);
-        let teacherReplace = await ReplaceService.getReplacesOnDate(toDate)
-
-        let ktpOffset = {};
-        let lessons = [];
-        _.each(fromSchedule.main, (row) => {
-            let freeRows = free[row.ktpId];
-            let offset = ktpOffset[row.ktpId] || 0;
-            if (!freeRows || freeRows.length - offset < 2) {
-                // errors.push(`ktp with id ${row.ktpId} less more 2 hours`)
-                // just ignore
-                return;
-            }
-            const employeeId = _.get(teacherReplace, [row.groupId, row.subjectId, row.teacherId, 't'], row.teacherId);
-            const practiceEmployeeId = _.get(teacherReplace, [row.groupId, row.subjectId, row.optionalTeacherId, 'p'], row.optionalTeacherId);
-
-            let lesson = {
-                ids: [],
-                ktpId: row.ktpId,
-                date: toDate,
-                lesson_number: row.lesson_number,
-                teacherId: employeeId,
-                cabinetId: row.cabinetId,
-                optionalCabinetId: row.optionalCabinetId,
-                optionalTeacherId: practiceEmployeeId,
-            };
-            for (let hour = 0; hour < 2; hour++) {
-                lesson.ids.push(freeRows[offset++].id);
-            }
-            lessons.push(lesson);
-            ktpOffset[row.ktpId] = offset;
-        })
-
-        // clone custom
-        _.each(fromSchedule.custom, (row) => {
-            lessons.push({
-                ktpId: row.name,
-                date: toDate,
-                lesson_number: row.lesson_number,
-                groupId: row.group_id,
-                teacherId: row.employee_id,
-                cabinetId: row.cabinet_id
-            })
-        })
-        return await this.updateSchedule(lessons);
+    fromSchedule.main = _.filter(fromSchedule.main, {course: +course});
+    fromSchedule.custom = _.filter(fromSchedule.custom, {course: +course});
+    toSchedule.main = _.filter(toSchedule.main, {course: +course});
+    toSchedule.custom = _.filter(toSchedule.custom, {course: +course});
+    if ((fromSchedule.main.length + fromSchedule.custom.length) === 0) {
+      return 'Source schedule is  empty.';
     }
+    if ((toSchedule.main.length + toSchedule.custom.length) > 0) {
+      return 'Date to fill schedule not empty.';
+    }
+
+    fromSchedule.main = this.parseSchedule(fromSchedule.main)
+
+    let free = await this.getScheduleFeature(9);
+    let teacherReplace = await ReplaceService.getReplacesOnDate(toDate)
+
+    let ktpOffset = {};
+    let lessons = [];
+    _.each(fromSchedule.main, (row) => {
+      let freeRows = free[row.ktpId];
+      let offset = ktpOffset[row.ktpId] || 0;
+      if (!freeRows || freeRows.length - offset < 2) {
+        // errors.push(`ktp with id ${row.ktpId} less more 2 hours`)
+        // just ignore
+        return;
+      }
+      const employeeId = _.get(teacherReplace, [row.groupId, row.subjectId, row.teacherId, 't'], row.teacherId);
+      const practiceEmployeeId = _.get(teacherReplace, [row.groupId, row.subjectId, row.optionalTeacherId, 'p'], row.optionalTeacherId);
+
+      let lesson = {
+        ids: [],
+        ktpId: row.ktpId,
+        date: toDate,
+        lesson_number: row.lesson_number,
+        teacherId: employeeId,
+        cabinetId: row.cabinetId,
+        optionalCabinetId: row.optionalCabinetId,
+        optionalTeacherId: practiceEmployeeId,
+      };
+      for (let hour = 0; hour < 2; hour++) {
+        lesson.ids.push(freeRows[offset++].id);
+      }
+      lessons.push(lesson);
+      ktpOffset[row.ktpId] = offset;
+    })
+
+    // clone custom
+    _.each(fromSchedule.custom, (row) => {
+      lessons.push({
+        ktpId: row.name,
+        date: toDate,
+        lesson_number: row.lesson_number,
+        groupId: row.group_id,
+        teacherId: row.employee_id,
+        cabinetId: row.cabinet_id
+      })
+    })
+    return await this.updateSchedule(lessons);
+  }
 
 }
 
